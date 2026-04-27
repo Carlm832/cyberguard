@@ -1,0 +1,13 @@
+{
+  "name": "cyberguard",
+  "version": "1.0.0",
+  "description": "CyberGuard | Hybrid Expert System for Phishing Risk Assessment",
+  "main": "app.py",
+  "scripts": {
+    "start": "python -m streamlit run app.py",
+    "dev": "python -m streamlit run app.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,167 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+:root {
+    --bg-main: #f5f7fb;
+    --bg-card: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --brand: #1f4aa1;
+    --border: #e5e7eb;
+    --low: #10b981;
+    --medium: #f59e0b;
+    --high: #ef4444;
+}
+
+.stApp {
+    background: radial-gradient(circle at top, #ffffff 0%, var(--bg-main) 65%);
+    color: var(--text-main);
+    font-family: "Outfit", sans-serif;
+}
+
+.app-header {
+    text-align: center;
+    margin: 0.5rem 0 2rem;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--brand);
+}
+
+.subtitle {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.98rem;
+}
+
+.cyber-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px;
+    padding: 0.45rem 0.8rem;
+    background: #eef2ff;
+}
+
+.stTabs [aria-selected="true"] {
+    background: #dbe7ff;
+    color: #0f2f73;
+    font-weight: 600;
+}
+
+.gauge-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 230px;
+    margin: 0.6rem 0 0.8rem;
+}
+
+.risk-circle {
+    width: 205px;
+    height: 205px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 10px solid;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.low-risk {
+    border-color: var(--low);
+    color: var(--low);
+}
+
+.medium-risk {
+    border-color: var(--medium);
+    color: var(--medium);
+}
+
+.high-risk {
+    border-color: var(--high);
+    color: var(--high);
+}
+
+.risk-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.risk-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.78;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.rec-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    padding: 0.9rem 1rem;
+    margin: 0.45rem 0;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.stTextInput input {
+    border-radius: 8px !important;
+    border: 1px solid #d1d5db !important;
+}
+
+[data-testid="stMetric"] {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 0.75rem;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--text-muted);
+}
+
+[data-testid="stChatMessage"] {
+    border-radius: 10px;
+}
+
+.stButton > button {
+    border-radius: 8px;
+    border: 1px solid #cdd5e1;
+}
+
+.stCaption {
+    color: var(--text-muted) !important;
+}
+
+@media (max-width: 900px) {
+    .app-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .risk-circle {
+        width: 180px;
+        height: 180px;
+    }
+
+    .risk-value {
+        font-size: 2.4rem;
+    }
+}
