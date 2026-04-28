@@ -1,168 +1,117 @@
-import time
-
-import streamlit as st
+import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+from urllib.parse import unquote
 
 from logic import EmailExpert, FuzzyRiskEngine, PasswordExpert, SecurityChatExpert
 
-# Page configuration
-st.set_page_config(
-    page_title="CyberGuard | Hybrid Expert System",
-    page_icon="CG",
-    layout="wide",
-)
+HOST = "0.0.0.0"
+PORT = 8000
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
-# Load custom CSS
-with open("style.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# Initialize engines
 email_expert = EmailExpert()
 pwd_expert = PasswordExpert()
 fuzzy_engine = FuzzyRiskEngine()
 chat_expert = SecurityChatExpert()
 
-# Session state for boot animation and chat history
-if "booted" not in st.session_state:
-    with st.spinner("Initializing CyberGuard Expert System..."):
-        time.sleep(1.2)
-    st.session_state["booted"] = True
 
-if "chat_messages" not in st.session_state:
-    st.session_state["chat_messages"] = [
-        {
-            "role": "assistant",
-            "content": (
-                "I am the CyberGuard Assistant. Ask about phishing indicators, suspicious links, "
-                "password safety, MFA, or breach response. I will respond with a matched rule and confidence."
-            ),
-        }
-    ]
+class CyberGuardHandler(BaseHTTPRequestHandler):
+    def _send_json(self, payload, status=200):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
-# --- HEADER ---
-st.markdown(
-    """
-<div class="app-header">
-    <h1>CyberGuard</h1>
-    <p class="subtitle">Phishing and Password Security Expert System</p>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+    def _send_file(self, file_path, content_type="text/plain; charset=utf-8"):
+        if not file_path.exists() or not file_path.is_file():
+            self.send_error(404)
+            return
 
-assessment_tab, chat_tab = st.tabs(["Risk Assessment", "Security Q&A"])
+        data = file_path.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
-with assessment_tab:
-    col1, col2 = st.columns(2, gap="large")
+    def _parse_json_body(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0:
+            return {}
+        raw = self.rfile.read(length)
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError:
+            return {}
 
-    with col1:
-        st.markdown('<div class="cyber-card">', unsafe_allow_html=True)
-        st.subheader("Email Characteristics")
-        st.write("Select the indicators identified in the email under review.")
+    def do_GET(self):
+        if self.path == "/":
+            self._send_file(TEMPLATES_DIR / "index.html", "text/html; charset=utf-8")
+            return
 
-        unknown_sender = st.checkbox("Unknown or spoofed sender address")
-        malicious_links = st.checkbox("Contains links with unusual domains")
-        urgency = st.checkbox("Language creating urgency or pressure")
-        sensitive_info = st.checkbox("Requests sensitive information (PII or login)")
+        if self.path.startswith("/static/"):
+            rel = unquote(self.path[len("/static/"):]).replace("..", "")
+            file_path = STATIC_DIR / rel
 
-        email_factors = {
-            "unknown_sender": unknown_sender,
-            "malicious_links": malicious_links,
-            "urgency": urgency,
-            "sensitive_info_request": sensitive_info,
-        }
-        email_score = email_expert.evaluate(email_factors)
-        st.markdown("</div>", unsafe_allow_html=True)
+            if file_path.suffix == ".css":
+                ctype = "text/css; charset=utf-8"
+            elif file_path.suffix == ".js":
+                ctype = "application/javascript; charset=utf-8"
+            else:
+                ctype = "application/octet-stream"
 
-    with col2:
-        st.markdown('<div class="cyber-card">', unsafe_allow_html=True)
-        st.subheader("Password Auditor")
-        st.write("Enter a sample password for security quality estimation.")
+            self._send_file(file_path, ctype)
+            return
 
-        password = st.text_input("Test Password", type="password", placeholder="************")
-        pwd_strength = pwd_expert.evaluate(password) if password else None
+        self.send_error(404)
 
-        if password:
-            st.progress(pwd_strength, text=f"Password strength score: {int(pwd_strength * 100)}%")
-            strength_text = "Strong" if pwd_strength > 0.7 else "Moderate" if pwd_strength > 0.4 else "Weak"
-            st.caption(f"Classification: {strength_text}")
-        else:
-            st.caption("No password entered yet. Password contribution is excluded from total risk.")
-        st.markdown("</div>", unsafe_allow_html=True)
+    def do_POST(self):
+        if self.path == "/api/assess":
+            payload = self._parse_json_body()
+            email_factors = {
+                "unknown_sender": bool(payload.get("unknown_sender", False)),
+                "malicious_links": bool(payload.get("malicious_links", False)),
+                "urgency": bool(payload.get("urgency", False)),
+                "sensitive_info_request": bool(payload.get("sensitive_info_request", False)),
+            }
 
-    # --- LOGIC PROCESSING ---
-    total_risk_val = fuzzy_engine.compute_total_risk(email_score, pwd_strength)
-    risk_label = fuzzy_engine.get_risk_label(total_risk_val)
-    recommendations = fuzzy_engine.get_recommendations(email_factors, pwd_strength)
+            password = (payload.get("password") or "").strip()
+            pwd_strength = pwd_expert.evaluate(password) if password else None
+            email_score = email_expert.evaluate(email_factors)
+            total_risk_val = fuzzy_engine.compute_total_risk(email_score, pwd_strength)
+            risk_label = fuzzy_engine.get_risk_label(total_risk_val)
+            recommendations = fuzzy_engine.get_recommendations(email_factors, pwd_strength)
 
-    risk_class = "low-risk" if risk_label == "LOW" else "medium-risk" if risk_label == "MEDIUM" else "high-risk"
-
-    # --- SUMMARY STRIP ---
-    summary_1, summary_2, summary_3 = st.columns(3)
-    summary_1.metric("Email Risk", f"{int(email_score * 100)}%")
-    summary_2.metric("Password Strength", f"{int(pwd_strength * 100)}%" if pwd_strength is not None else "N/A")
-    summary_3.metric("Total Security Risk", f"{int(total_risk_val * 100)}%")
-
-    # --- RISK + RECOMMENDATIONS ---
-    risk_col, rec_col = st.columns(2, gap="large")
-    with risk_col:
-        st.markdown(
-            f"""
-<div class="gauge-container">
-    <div class="risk-circle {risk_class}">
-        <div class="risk-label">Risk Level</div>
-        <div class="risk-value">{int(total_risk_val * 100)}%</div>
-        <div class="risk-label">{risk_label}</div>
-    </div>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
-    with rec_col:
-        st.markdown("### Recommendations")
-        for rec in recommendations:
-            st.markdown(f'<div class="rec-item">{rec}</div>', unsafe_allow_html=True)
-
-with chat_tab:
-    top_left, top_right = st.columns([5, 1])
-    with top_left:
-        st.caption("Ask practical questions related to phishing and password security.")
-    with top_right:
-        if st.button("Clear Chat", use_container_width=True):
-            st.session_state["chat_messages"] = [
+            self._send_json(
                 {
-                    "role": "assistant",
-                    "content": (
-                        "Chat reset complete. Ask about phishing indicators, suspicious links, "
-                        "password safety, MFA, or breach response."
-                    ),
+                    "email_risk": email_score,
+                    "password_strength": pwd_strength,
+                    "total_risk": total_risk_val,
+                    "risk_label": risk_label,
+                    "recommendations": recommendations,
                 }
-            ]
-            st.rerun()
+            )
+            return
 
-    for msg in st.session_state["chat_messages"]:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        if self.path == "/api/chat":
+            payload = self._parse_json_body()
+            question = payload.get("question", "")
+            result = chat_expert.answer_question(question)
+            self._send_json(result)
+            return
 
-    user_question = st.chat_input("Ask a question...")
-    if user_question:
-        st.session_state["chat_messages"].append({"role": "user", "content": user_question})
-        with st.chat_message("user"):
-            st.markdown(user_question)
+        self.send_error(404)
 
-        result = chat_expert.answer_question(user_question)
-        confidence_pct = int(result["confidence"] * 100)
-        matched_terms = ", ".join(result["matched_keywords"]) if result["matched_keywords"] else "none"
-        answer = (
-            f"{result['answer']}\n\n"
-            f"**Rule ID:** `{result['rule_id']}`  \n"
-            f"**Confidence:** `{confidence_pct}%`  \n"
-            f"**Matched Terms:** `{matched_terms}`\n\n"
-            f"**Follow-up:** {result['follow_up']}"
-        )
-        st.session_state["chat_messages"].append({"role": "assistant", "content": answer})
-        with st.chat_message("assistant"):
-            st.markdown(answer)
 
-# --- FOOTER ---
-st.markdown("---")
-st.caption("CyberGuard Decision Support System")
+def run_server():
+    httpd = HTTPServer((HOST, PORT), CyberGuardHandler)
+    print(f"CyberGuard server running at http://localhost:{PORT}")
+    httpd.serve_forever()
+
+
+if __name__ == "__main__":
+    run_server()

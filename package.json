@@ -4,8 +4,8 @@
   "description": "CyberGuard | Hybrid Expert System for Phishing Risk Assessment",
   "main": "app.py",
   "scripts": {
-    "start": "python -m streamlit run app.py",
-    "dev": "python -m streamlit run app.py"
+    "start": "python app.py",
+    "dev": "python app.py"
   },
   "keywords": [],
   "author": "",

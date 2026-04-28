@@ -1,0 +1,260 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+:root {
+    --bg-main: #f5f7fb;
+    --bg-card: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --brand: #1f4aa1;
+    --border: #e5e7eb;
+    --low: #10b981;
+    --medium: #f59e0b;
+    --high: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(circle at top, #ffffff 0%, var(--bg-main) 65%);
+    color: var(--text-main);
+    font-family: "Outfit", sans-serif;
+}
+
+.container {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.app-header {
+    text-align: center;
+    margin: 8px 0 28px;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--brand);
+}
+
+.subtitle {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.98rem;
+}
+
+.tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tab-btn {
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: #eef2ff;
+    border: 1px solid #dbe7ff;
+    color: #27437e;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    background: #dbe7ff;
+    color: #0f2f73;
+    font-weight: 600;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.grid,
+.risk-rec-grid,
+.summary-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.grid,
+.risk-rec-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 16px 0;
+}
+
+.cyber-card,
+.chat-card,
+.metric {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.cyber-card h2,
+.chat-card h2 {
+    margin: 0 0 8px;
+}
+
+label {
+    display: block;
+    margin: 10px 0;
+}
+
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 10px;
+}
+
+.metric span {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.92rem;
+}
+
+.metric strong {
+    font-size: 1.5rem;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 240px;
+}
+
+.risk-circle {
+    width: 205px;
+    height: 205px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 10px solid;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.low-risk {
+    border-color: var(--low);
+    color: var(--low);
+}
+
+.medium-risk {
+    border-color: var(--medium);
+    color: var(--medium);
+}
+
+.high-risk {
+    border-color: var(--high);
+    color: var(--high);
+}
+
+.risk-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.risk-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.78;
+    text-transform: uppercase;
+}
+
+.rec-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    padding: 0.9rem 1rem;
+    margin: 0.45rem 0;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+button {
+    border-radius: 8px;
+    border: 1px solid #cdd5e1;
+    background: #fff;
+    padding: 9px 12px;
+    cursor: pointer;
+}
+
+.chat-log {
+    max-height: 320px;
+    overflow-y: auto;
+    margin: 12px 0;
+    padding-right: 4px;
+}
+
+.chat-msg {
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+}
+
+.chat-msg.user {
+    background: #e8efff;
+}
+
+.chat-msg.assistant {
+    background: #f3f4f6;
+}
+
+.chat-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+@media (max-width: 900px) {
+    .grid,
+    .risk-rec-grid,
+    .summary-grid,
+    .chat-form {
+        grid-template-columns: 1fr;
+    }
+
+    .app-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .risk-circle {
+        width: 180px;
+        height: 180px;
+    }
+
+    .risk-value {
+        font-size: 2.4rem;
+    }
+
+    .tab-nav {
+        flex-wrap: wrap;
+    }
+}

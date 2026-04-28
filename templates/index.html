@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CyberGuard | Hybrid Expert System</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="app-header">
+      <h1>CyberGuard</h1>
+      <p class="subtitle">Phishing and Password Security Expert System</p>
+    </header>
+
+    <section class="tab-nav" aria-label="Sections">
+      <button id="tab_assessment" class="tab-btn active" type="button">Risk Assessment</button>
+      <button id="tab_chat" class="tab-btn" type="button">Security Q&A</button>
+    </section>
+
+    <section id="panel_assessment" class="tab-panel active">
+      <section class="grid">
+        <article class="cyber-card">
+          <h2>Email Characteristics</h2>
+          <p>Select the indicators identified in the email under review.</p>
+          <label><input type="checkbox" id="unknown_sender"> Unknown or spoofed sender address</label>
+          <label><input type="checkbox" id="malicious_links"> Contains links with unusual domains</label>
+          <label><input type="checkbox" id="urgency"> Language creating urgency or pressure</label>
+          <label><input type="checkbox" id="sensitive_info_request"> Requests sensitive information (PII or login)</label>
+        </article>
+
+        <article class="cyber-card">
+          <h2>Password Auditor</h2>
+          <p>Enter a sample password for security quality estimation.</p>
+          <input id="password" type="password" placeholder="************">
+        </article>
+      </section>
+
+      <section class="summary-grid">
+        <div class="metric"><span>Email Risk</span><strong id="email_metric">0%</strong></div>
+        <div class="metric"><span>Password Strength</span><strong id="pwd_metric">N/A</strong></div>
+        <div class="metric"><span>Total Security Risk</span><strong id="total_metric">0%</strong></div>
+      </section>
+
+      <section class="risk-rec-grid">
+        <article class="cyber-card center">
+          <div id="risk_circle" class="risk-circle low-risk">
+            <div class="risk-label">Risk Level</div>
+            <div id="risk_value" class="risk-value">0%</div>
+            <div id="risk_label" class="risk-label">LOW</div>
+          </div>
+        </article>
+
+        <article class="cyber-card">
+          <h2>Recommendations</h2>
+          <div id="recommendations"></div>
+        </article>
+      </section>
+    </section>
+
+    <section id="panel_chat" class="tab-panel">
+      <section class="chat-card">
+        <div class="chat-header">
+          <h2>Security Q&A</h2>
+          <button id="clear_chat" type="button">Clear Chat</button>
+        </div>
+        <p class="subtitle">Ask practical questions related to phishing and password security.</p>
+        <div id="chat_log" class="chat-log"></div>
+        <form id="chat_form" class="chat-form">
+          <input id="chat_input" type="text" placeholder="Ask a question..." autocomplete="off">
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const assessEls = [
+      "unknown_sender",
+      "malicious_links",
+      "urgency",
+      "sensitive_info_request",
+      "password"
+    ].map(id => document.getElementById(id));
+
+    const chatLog = document.getElementById("chat_log");
+    const chatInput = document.getElementById("chat_input");
+    const tabAssessment = document.getElementById("tab_assessment");
+    const tabChat = document.getElementById("tab_chat");
+    const panelAssessment = document.getElementById("panel_assessment");
+    const panelChat = document.getElementById("panel_chat");
+
+    const state = {
+      chatMessages: [
+        {
+          role: "assistant",
+          content: "I am the CyberGuard Assistant. Ask about phishing indicators, suspicious links, password safety, MFA, or breach response. I will respond with a matched rule and confidence."
+        }
+      ]
+    };
+
+    function pct(value) {
+      return `${Math.round(value * 100)}%`;
+    }
+
+    function renderRecs(items) {
+      const wrap = document.getElementById("recommendations");
+      wrap.innerHTML = "";
+      items.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "rec-item";
+        el.textContent = item;
+        wrap.appendChild(el);
+      });
+    }
+
+    function setRiskVisual(totalRisk, riskLabel) {
+      const riskCircle = document.getElementById("risk_circle");
+      riskCircle.classList.remove("low-risk", "medium-risk", "high-risk");
+      const riskClass = riskLabel === "LOW" ? "low-risk" : riskLabel === "MEDIUM" ? "medium-risk" : "high-risk";
+      riskCircle.classList.add(riskClass);
+
+      document.getElementById("risk_value").textContent = pct(totalRisk);
+      document.getElementById("risk_label").textContent = riskLabel;
+    }
+
+    async function assess() {
+      const payload = {
+        unknown_sender: document.getElementById("unknown_sender").checked,
+        malicious_links: document.getElementById("malicious_links").checked,
+        urgency: document.getElementById("urgency").checked,
+        sensitive_info_request: document.getElementById("sensitive_info_request").checked,
+        password: document.getElementById("password").value
+      };
+
+      const res = await fetch("/api/assess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      document.getElementById("email_metric").textContent = pct(data.email_risk);
+      document.getElementById("pwd_metric").textContent = data.password_strength === null ? "N/A" : pct(data.password_strength);
+      document.getElementById("total_metric").textContent = pct(data.total_risk);
+
+      setRiskVisual(data.total_risk, data.risk_label);
+      renderRecs(data.recommendations);
+    }
+
+    function renderChat() {
+      chatLog.innerHTML = "";
+      state.chatMessages.forEach(msg => {
+        const bubble = document.createElement("div");
+        bubble.className = `chat-msg ${msg.role}`;
+        bubble.textContent = msg.content;
+        chatLog.appendChild(bubble);
+      });
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    async function submitChat(question) {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+
+      const result = await res.json();
+      const confidencePct = Math.round(result.confidence * 100);
+      const matchedTerms = result.matched_keywords?.length ? result.matched_keywords.join(", ") : "none";
+
+      const answer = `${result.answer}\n\nRule ID: ${result.rule_id}\nConfidence: ${confidencePct}%\nMatched Terms: ${matchedTerms}\n\nFollow-up: ${result.follow_up}`;
+
+      state.chatMessages.push({ role: "assistant", content: answer });
+      renderChat();
+    }
+
+    function activateTab(tab) {
+      const isAssessment = tab === "assessment";
+      tabAssessment.classList.toggle("active", isAssessment);
+      tabChat.classList.toggle("active", !isAssessment);
+      panelAssessment.classList.toggle("active", isAssessment);
+      panelChat.classList.toggle("active", !isAssessment);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    assessEls.forEach(el => el.addEventListener("input", assess));
+
+    document.getElementById("chat_form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const question = chatInput.value.trim();
+      if (!question) return;
+
+      state.chatMessages.push({ role: "user", content: question });
+      renderChat();
+      chatInput.value = "";
+
+      await submitChat(question);
+    });
+
+    document.getElementById("clear_chat").addEventListener("click", () => {
+      state.chatMessages = [
+        {
+          role: "assistant",
+          content: "Chat reset complete. Ask about phishing indicators, suspicious links, password safety, MFA, or breach response."
+        }
+      ];
+      renderChat();
+    });
+
+    tabAssessment.addEventListener("click", () => activateTab("assessment"));
+    tabChat.addEventListener("click", () => activateTab("chat"));
+
+    renderChat();
+    assess();
+  </script>
+</body>
+</html>
