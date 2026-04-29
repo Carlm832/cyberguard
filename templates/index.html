@@ -62,13 +62,22 @@
       <section class="chat-card">
         <div class="chat-header">
           <h2>Security Q&A</h2>
-          <button id="clear_chat" type="button">Clear Chat</button>
+          <button id="clear_chat" type="button">Clear Session</button>
         </div>
         <p class="subtitle">Ask practical questions related to phishing and password security.</p>
+        <div class="trust-row">
+          <span id="nlp_status" class="status-pill">Checking status...</span>
+        </div>
+        <p class="privacy-note">Privacy: questions are processed with NLP via OpenRouter to improve answer quality.</p>
+        <div class="starter-prompts" id="starter_prompts">
+          <button type="button" class="prompt-btn">How can I tell if this email is phishing?</button>
+          <button type="button" class="prompt-btn">What should I do if I clicked a suspicious link?</button>
+          <button type="button" class="prompt-btn">What makes a strong password and passphrase?</button>
+        </div>
         <div id="chat_log" class="chat-log"></div>
         <form id="chat_form" class="chat-form">
           <input id="chat_input" type="text" placeholder="Ask a question..." autocomplete="off">
-          <button type="submit">Send</button>
+          <button id="send_btn" type="submit">Send</button>
         </form>
       </section>
     </section>
@@ -89,12 +98,15 @@
     const tabChat = document.getElementById("tab_chat");
     const panelAssessment = document.getElementById("panel_assessment");
     const panelChat = document.getElementById("panel_chat");
+    const sendBtn = document.getElementById("send_btn");
 
     const state = {
+      loading: false,
+      nlpAvailable: false,
       chatMessages: [
         {
           role: "assistant",
-          content: "I am the CyberGuard Assistant. Ask about phishing indicators, suspicious links, password safety, MFA, or breach response. I will respond with a matched rule and confidence."
+          content: "I am the CyberGuard Assistant. Ask about phishing indicators, suspicious links, password safety, MFA, or breach response. I respond with practical guidance and can use deeper NLP support when needed."
         }
       ]
     };
@@ -154,27 +166,106 @@
       state.chatMessages.forEach(msg => {
         const bubble = document.createElement("div");
         bubble.className = `chat-msg ${msg.role}`;
-        bubble.textContent = msg.content;
+        if (msg.role === "assistant" && typeof msg.content === "object" && msg.content !== null) {
+          const sourceBadge = document.createElement("div");
+          sourceBadge.className = "source-badge";
+          sourceBadge.textContent = getSourceLabel(msg.content.rule_id);
+          bubble.appendChild(sourceBadge);
+
+          const answerEl = document.createElement("div");
+          answerEl.textContent = msg.content.answer || "";
+          bubble.appendChild(answerEl);
+
+          if (msg.content.follow_up) {
+            const followUpEl = document.createElement("div");
+            followUpEl.style.marginTop = "8px";
+            followUpEl.textContent = `Follow-up: ${msg.content.follow_up}`;
+            bubble.appendChild(followUpEl);
+          }
+
+          const details = document.createElement("details");
+          details.style.marginTop = "8px";
+          const summary = document.createElement("summary");
+          summary.textContent = "Details";
+          details.appendChild(summary);
+
+          const confidencePct = Math.round((msg.content.confidence || 0) * 100);
+          const confidenceLabel = getConfidenceLabel(msg.content.confidence || 0);
+          const matchedTerms = msg.content.matched_keywords?.length
+            ? msg.content.matched_keywords.join(", ")
+            : "none";
+          const meta = document.createElement("div");
+          meta.style.marginTop = "6px";
+          meta.style.whiteSpace = "pre-line";
+          meta.textContent = `Source: ${msg.content.rule_id || "unknown"}\nConfidence: ${confidenceLabel} (${confidencePct}%)\nMatched Terms: ${matchedTerms}`;
+          details.appendChild(meta);
+          bubble.appendChild(details);
+        } else {
+          bubble.textContent = msg.content;
+        }
         chatLog.appendChild(bubble);
       });
       chatLog.scrollTop = chatLog.scrollHeight;
     }
 
+    function getSourceLabel(ruleId) {
+      if (!ruleId) return "Source: Unknown";
+      if (ruleId.startsWith("OPENROUTER_")) return "Source: NLP";
+      if (ruleId.startsWith("PHISH_") || ruleId.startsWith("PWD_")) return "Source: Rule-based";
+      return "Source: Hybrid";
+    }
+
+    function getConfidenceLabel(conf) {
+      if (conf >= 0.75) return "High";
+      if (conf >= 0.5) return "Medium";
+      return "Low";
+    }
+
+    function setLoading(isLoading) {
+      state.loading = isLoading;
+      sendBtn.disabled = isLoading;
+      chatInput.disabled = isLoading;
+      sendBtn.textContent = isLoading ? "Analyzing..." : "Send";
+    }
+
     async function submitChat(question) {
+      setLoading(true);
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question })
       });
 
-      const result = await res.json();
-      const confidencePct = Math.round(result.confidence * 100);
-      const matchedTerms = result.matched_keywords?.length ? result.matched_keywords.join(", ") : "none";
-
-      const answer = `${result.answer}\n\nRule ID: ${result.rule_id}\nConfidence: ${confidencePct}%\nMatched Terms: ${matchedTerms}\n\nFollow-up: ${result.follow_up}`;
-
-      state.chatMessages.push({ role: "assistant", content: answer });
+      if (!res.ok) {
+        state.chatMessages.push({
+          role: "assistant",
+          content: "I could not process that request right now. If NLP is unavailable, try again or switch to rule-only mode."
+        });
+      } else {
+        const result = await res.json();
+        state.chatMessages.push({ role: "assistant", content: result });
+      }
+      setLoading(false);
       renderChat();
+    }
+
+    async function loadChatCapabilities() {
+      const statusEl = document.getElementById("nlp_status");
+      try {
+        const res = await fetch("/api/chat-capabilities");
+        const data = await res.json();
+        state.nlpAvailable = Boolean(data.enabled);
+        if (data.enabled) {
+          statusEl.textContent = `NLP available (${data.model})`;
+          statusEl.className = "status-pill enabled";
+        } else {
+          statusEl.textContent = "NLP unavailable";
+          statusEl.className = "status-pill disabled";
+        }
+      } catch (_err) {
+        statusEl.textContent = "Status unavailable";
+        statusEl.className = "status-pill disabled";
+      }
     }
 
     function activateTab(tab) {
@@ -197,10 +288,15 @@
       renderChat();
       chatInput.value = "";
 
-      await submitChat(question);
+      try {
+        await submitChat(question);
+      } finally {
+        setLoading(false);
+      }
     });
 
     document.getElementById("clear_chat").addEventListener("click", () => {
+      if (!confirm("Clear chat history for this session?")) return;
       state.chatMessages = [
         {
           role: "assistant",
@@ -210,11 +306,19 @@
       renderChat();
     });
 
+    document.querySelectorAll(".prompt-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        chatInput.value = btn.textContent;
+        chatInput.focus();
+      });
+    });
+
     tabAssessment.addEventListener("click", () => activateTab("assessment"));
     tabChat.addEventListener("click", () => activateTab("chat"));
 
     renderChat();
     assess();
+    loadChatCapabilities();
   </script>
 </body>
 </html>

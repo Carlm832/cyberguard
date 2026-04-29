@@ -1,4 +1,7 @@
 import re
+import json
+import os
+from urllib import error, request
 
 
 class EmailExpert:
@@ -107,6 +110,7 @@ class SecurityChatExpert:
     """Rule-based Q&A assistant for phishing and password security."""
 
     def __init__(self):
+        self.openrouter = OpenRouterClient()
         self.knowledge_base = [
             {
                 "id": "PHISH_SENDER_01",
@@ -347,6 +351,7 @@ class SecurityChatExpert:
             "follow_up": "Would you like to rephrase your question as phishing, password, MFA, or breach related?",
             "matched_keywords": [],
         }
+        self.llm_threshold = 0.55
 
     @staticmethod
     def _tokenize(text):
@@ -365,7 +370,7 @@ class SecurityChatExpert:
                 matched.append(keyword)
         return score, matched
 
-    def answer_question(self, question):
+    def answer_question(self, question, prefer_nlp=True):
         """Return the best rule-based answer for a user question."""
         if not question or not question.strip():
             return {
@@ -394,15 +399,99 @@ class SecurityChatExpert:
             elif score > second_score:
                 second_score = score
 
+        if prefer_nlp:
+            llm_result = self.openrouter.answer(question)
+            if llm_result:
+                return llm_result
+
         if best_rule and best_score > 0:
             separation_bonus = 1 if best_score > second_score else 0
             confidence = min(0.95, 0.35 + (best_score * 0.12) + (separation_bonus * 0.08))
-            return {
+            result = {
                 "answer": best_rule["answer"],
                 "rule_id": best_rule["id"],
                 "confidence": round(confidence, 2),
                 "follow_up": best_rule["follow_up"],
                 "matched_keywords": sorted(best_matches),
             }
+            if result["confidence"] >= self.llm_threshold or not prefer_nlp:
+                return result
+            llm_result = self.openrouter.answer(question)
+            return llm_result or result
 
-        return self.default_result
+        llm_result = self.openrouter.answer(question)
+        return llm_result or self.default_result
+
+
+class OpenRouterClient:
+    """Optional OpenRouter NLP fallback for broader security Q&A."""
+
+    def __init__(self):
+        self.api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+        self.model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+        self.url = "https://openrouter.ai/api/v1/chat/completions"
+        self.timeout_sec = 12
+
+    def _enabled(self):
+        return bool(self.api_key)
+
+    def capabilities(self):
+        return {
+            "enabled": self._enabled(),
+            "model": self.model,
+        }
+
+    def answer(self, question):
+        if not self._enabled():
+            return None
+
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a cybersecurity assistant. Provide concise, practical guidance focused on phishing, "
+                        "password hygiene, MFA, account security, and breach response. Avoid legal/medical claims. "
+                        "If unsure, say uncertainty and give safest next action."
+                    ),
+                },
+                {"role": "user", "content": question},
+            ],
+            "temperature": 0.3,
+            "max_tokens": 260,
+        }
+
+        req = request.Request(
+            self.url,
+            data=json.dumps(payload).encode("utf-8"),
+            method="POST",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "CyberGuard",
+            },
+        )
+
+        try:
+            with request.urlopen(req, timeout=self.timeout_sec) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError):
+            return None
+
+        choices = data.get("choices") or []
+        if not choices:
+            return None
+
+        message = (choices[0].get("message") or {}).get("content", "").strip()
+        if not message:
+            return None
+
+        return {
+            "answer": message,
+            "rule_id": f"OPENROUTER_{self.model}",
+            "confidence": 0.7,
+            "follow_up": "Want me to turn this into a short step-by-step checklist?",
+            "matched_keywords": [],
+        }

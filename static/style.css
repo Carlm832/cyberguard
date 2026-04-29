@@ -6,6 +6,7 @@
     --text-main: #1f2937;
     --text-muted: #6b7280;
     --brand: #1f4aa1;
+    --brand-soft: #e9efff;
     --border: #e5e7eb;
     --low: #10b981;
     --medium: #f59e0b;
@@ -18,7 +19,7 @@
 
 body {
     margin: 0;
-    background: radial-gradient(circle at top, #ffffff 0%, var(--bg-main) 65%);
+    background: radial-gradient(circle at top, #ffffff 0%, var(--bg-main) 70%);
     color: var(--text-main);
     font-family: "Outfit", sans-serif;
 }
@@ -205,8 +206,73 @@ button {
     cursor: pointer;
 }
 
+button:hover {
+    border-color: #9fb2d9;
+}
+
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+    outline: 3px solid #99b8ff;
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.trust-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.status-pill {
+    font-size: 0.82rem;
+    border-radius: 999px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.status-pill.enabled {
+    background: #e8fff4;
+    border-color: #8fe0bc;
+    color: #0f7a51;
+}
+
+.status-pill.disabled {
+    background: #fff4f4;
+    border-color: #ffc2c2;
+    color: #aa2b2b;
+}
+
+.privacy-note {
+    margin: 8px 0 10px;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.starter-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.prompt-btn {
+    background: var(--brand-soft);
+    border-color: #c9d8ff;
+    color: #1e3e87;
+    padding: 7px 10px;
+    font-size: 0.88rem;
+}
+
 .chat-log {
-    max-height: 320px;
+    max-height: 360px;
     overflow-y: auto;
     margin: 12px 0;
     padding-right: 4px;
@@ -225,6 +291,18 @@ button {
 
 .chat-msg.assistant {
     background: #f3f4f6;
+}
+
+.source-badge {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #24427e;
+    background: #e6efff;
+    border: 1px solid #c6d7ff;
+    border-radius: 999px;
+    padding: 3px 8px;
+    margin-bottom: 7px;
 }
 
 .chat-form {
@@ -256,5 +334,10 @@ button {
 
     .tab-nav {
         flex-wrap: wrap;
+    }
+
+    .trust-row {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

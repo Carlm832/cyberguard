@@ -1,4 +1,5 @@
 import json
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import unquote
@@ -10,6 +11,24 @@ PORT = 8000
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
+
+
+def load_env_file(path):
+    """Minimal .env loader for local development."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        raw = line.strip()
+        if not raw or raw.startswith("#") or "=" not in raw:
+            continue
+        key, value = raw.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+load_env_file(BASE_DIR / ".env")
 
 email_expert = EmailExpert()
 pwd_expert = PasswordExpert()
@@ -51,6 +70,10 @@ class CyberGuardHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
             self._send_file(TEMPLATES_DIR / "index.html", "text/html; charset=utf-8")
+            return
+
+        if self.path == "/api/chat-capabilities":
+            self._send_json(chat_expert.openrouter.capabilities())
             return
 
         if self.path.startswith("/static/"):
@@ -100,7 +123,8 @@ class CyberGuardHandler(BaseHTTPRequestHandler):
         if self.path == "/api/chat":
             payload = self._parse_json_body()
             question = payload.get("question", "")
-            result = chat_expert.answer_question(question)
+            use_nlp = bool(payload.get("use_nlp", True))
+            result = chat_expert.answer_question(question, prefer_nlp=use_nlp)
             self._send_json(result)
             return
 
