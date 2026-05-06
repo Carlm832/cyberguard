@@ -111,6 +111,12 @@ class SecurityChatExpert:
 
     def __init__(self):
         self.openrouter = OpenRouterClient()
+        self.stopwords = {
+            "a", "an", "and", "are", "as", "at", "be", "can", "do", "for", "from", "get", "give",
+            "help", "how", "i", "if", "in", "is", "it", "like", "me", "my", "of", "on", "or",
+            "please", "should", "that", "the", "this", "to", "want", "we", "what", "when", "with",
+            "would", "you", "your"
+        }
         self.knowledge_base = [
             {
                 "id": "PHISH_SENDER_01",
@@ -368,6 +374,15 @@ class SecurityChatExpert:
             elif keyword in tokens:
                 score += 1
                 matched.append(keyword)
+
+        follow_up_tokens = self._tokenize(rule.get("follow_up", "")) - self.stopwords
+        question_tokens = tokens - self.stopwords
+        follow_overlap = follow_up_tokens & question_tokens
+        if follow_up_tokens and len(follow_overlap) >= 2:
+            overlap_ratio = len(follow_overlap) / len(follow_up_tokens)
+            if overlap_ratio >= 0.35:
+                score += len(follow_overlap) + 1
+                matched.append("follow_up_match")
         return score, matched
 
     def answer_question(self, question, prefer_nlp=True):
