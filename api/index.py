@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import uvicorn
 
 from logic import (
     ARIAEngine,
@@ -112,5 +113,4 @@ async def breach_check(req: BreachRequest):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run("index:app", host="0.0.0.0", port=8000, reload=True)
