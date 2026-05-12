@@ -245,7 +245,12 @@ class FuzzyRiskEngine:
         self.password_score = password_score / 100.0
 
     def evaluate(self) -> Dict[str, Any]:
-        overall = (self.phishing_score * 0.6) + (self.password_score * 0.4)
+        # Phishing score is already a risk score (higher = riskier)
+        # Password score is a strength score (higher = safer), so we invert it for the risk calculation
+        password_risk = 1.0 - self.password_score
+        
+        overall = (self.phishing_score * 0.6) + (password_risk * 0.4)
+        
         if overall >= 0.65:
             status = "Needs Work"
         elif overall >= 0.35:
