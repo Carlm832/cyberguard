@@ -4,6 +4,7 @@ Updated to use Gemini and FastAPI with the new Hybrid Expert System logic.
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import Any, List, Dict
 
@@ -28,6 +29,10 @@ from logic import (
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
+# Ensure the api directory is in sys.path for importing logic.py
+if str(BASE_DIR) not in sys.path:
+    sys.path.append(str(BASE_DIR))
+
 load_dotenv(BASE_DIR.parent / ".env")
 
 # ---------------------------------------------------------------------------
@@ -48,7 +53,8 @@ app.add_middleware(
 
 @app.get("/", response_class=FileResponse)
 async def serve_index():
-    return FileResponse(BASE_DIR.parent / "templates" / "index.html")
+    index_path = BASE_DIR.parent / "templates" / "index.html"
+    return FileResponse(str(index_path))
 
 # ---------------------------------------------------------------------------
 # Request / Response models
