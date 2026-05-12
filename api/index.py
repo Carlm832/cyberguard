@@ -27,7 +27,7 @@ from logic import (
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR.parent / ".env")
 
 # ---------------------------------------------------------------------------
 # App Initialization
@@ -42,15 +42,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-static_path = BASE_DIR / "static"
-if not static_path.exists():
-    static_path.mkdir(exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+# Static files are served by Vercel via the /public folder.
+# No need to mount StaticFiles here for production.
 
 @app.get("/", response_class=FileResponse)
 async def serve_index():
-    return FileResponse(BASE_DIR / "templates" / "index.html")
+    return FileResponse(BASE_DIR.parent / "templates" / "index.html")
 
 # ---------------------------------------------------------------------------
 # Request / Response models
