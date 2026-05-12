@@ -1,141 +1,119 @@
-import json
+"""
+CyberGuard — FastAPI Application Entry Point
+Updated to use Gemini and FastAPI with the new Hybrid Expert System logic.
+"""
+
 import os
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import unquote
+from typing import Any, List, Dict
 
-from logic import EmailExpert, FuzzyRiskEngine, PasswordExpert, SecurityChatExpert
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-HOST = "0.0.0.0"
-PORT = 8000
+from logic import (
+    ARIAEngine,
+    FuzzyRiskEngine,
+    HIBPExpert,
+    PasswordExpert,
+    PhishingExpert,
+)
+
+# ---------------------------------------------------------------------------
+# Bootstrap
+# ---------------------------------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATES_DIR = BASE_DIR / "templates"
-STATIC_DIR = BASE_DIR / "static"
+load_dotenv(BASE_DIR / ".env")
+
+# ---------------------------------------------------------------------------
+# App Initialization
+# ---------------------------------------------------------------------------
+
+app = FastAPI(title="CyberGuard", version="2.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:8000", "*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files
+static_path = BASE_DIR / "static"
+if not static_path.exists():
+    static_path.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+@app.get("/", response_class=FileResponse)
+async def serve_index():
+    return FileResponse(BASE_DIR / "templates" / "index.html")
+
+# ---------------------------------------------------------------------------
+# Request / Response models
+# ---------------------------------------------------------------------------
+
+class AssessRequest(BaseModel):
+    indicators: Dict[str, bool] = {}
+    password: str = ""
+
+class ChatRequest(BaseModel):
+    message: str
+    history: List[Dict[str, str]] = []
+
+class BreachRequest(BaseModel):
+    password: str
+
+# ---------------------------------------------------------------------------
+# API Routes
+# ---------------------------------------------------------------------------
+
+@app.post("/api/assess")
+async def assess(req: AssessRequest):
+    phishing_expert = PhishingExpert(req.indicators)
+    phishing_result = phishing_expert.evaluate()
+    
+    password_expert = PasswordExpert(req.password)
+    password_result = password_expert.evaluate()
+    
+    hibp_expert = HIBPExpert(req.password)
+    hibp_result = hibp_expert.check()
+    
+    fuzzy_engine = FuzzyRiskEngine(
+        phishing_score=phishing_result["risk_score"],
+        password_score=password_result["score"]
+    )
+    overall_result = fuzzy_engine.evaluate()
+    
+    return {
+        "phishing": phishing_result,
+        "password": password_result,
+        "hibp": hibp_result,
+        "overall": overall_result,
+    }
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest):
+    # History comes in as [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+    aria = ARIAEngine(history=req.history)
+    result = aria.ask(req.message)
+    return result
 
 
-def load_env_file(path):
-    """Minimal .env loader for local development."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        raw = line.strip()
-        if not raw or raw.startswith("#") or "=" not in raw:
-            continue
-        key, value = raw.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = value
 
+@app.post("/api/breach")
+async def breach_check(req: BreachRequest):
+    expert = HIBPExpert(req.password)
+    result = expert.check()
+    return result
 
-load_env_file(BASE_DIR / ".env")
-
-email_expert = EmailExpert()
-pwd_expert = PasswordExpert()
-fuzzy_engine = FuzzyRiskEngine()
-chat_expert = SecurityChatExpert()
-
-
-class CyberGuardHandler(BaseHTTPRequestHandler):
-    def _send_json(self, payload, status=200):
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def _send_file(self, file_path, content_type="text/plain; charset=utf-8"):
-        if not file_path.exists() or not file_path.is_file():
-            self.send_error(404)
-            return
-
-        data = file_path.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
-    def _parse_json_body(self):
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0:
-            return {}
-        raw = self.rfile.read(length)
-        try:
-            return json.loads(raw.decode("utf-8"))
-        except json.JSONDecodeError:
-            return {}
-
-    def do_GET(self):
-        if self.path == "/":
-            self._send_file(TEMPLATES_DIR / "index.html", "text/html; charset=utf-8")
-            return
-
-        if self.path == "/api/chat-capabilities":
-            self._send_json(chat_expert.openrouter.capabilities())
-            return
-
-        if self.path.startswith("/static/"):
-            rel = unquote(self.path[len("/static/"):]).replace("..", "")
-            file_path = STATIC_DIR / rel
-
-            if file_path.suffix == ".css":
-                ctype = "text/css; charset=utf-8"
-            elif file_path.suffix == ".js":
-                ctype = "application/javascript; charset=utf-8"
-            else:
-                ctype = "application/octet-stream"
-
-            self._send_file(file_path, ctype)
-            return
-
-        self.send_error(404)
-
-    def do_POST(self):
-        if self.path == "/api/assess":
-            payload = self._parse_json_body()
-            email_factors = {
-                "unknown_sender": bool(payload.get("unknown_sender", False)),
-                "malicious_links": bool(payload.get("malicious_links", False)),
-                "urgency": bool(payload.get("urgency", False)),
-                "sensitive_info_request": bool(payload.get("sensitive_info_request", False)),
-            }
-
-            password = (payload.get("password") or "").strip()
-            pwd_strength = pwd_expert.evaluate(password) if password else None
-            email_score = email_expert.evaluate(email_factors)
-            total_risk_val = fuzzy_engine.compute_total_risk(email_score, pwd_strength)
-            risk_label = fuzzy_engine.get_risk_label(total_risk_val)
-            recommendations = fuzzy_engine.get_recommendations(email_factors, pwd_strength)
-
-            self._send_json(
-                {
-                    "email_risk": email_score,
-                    "password_strength": pwd_strength,
-                    "total_risk": total_risk_val,
-                    "risk_label": risk_label,
-                    "recommendations": recommendations,
-                }
-            )
-            return
-
-        if self.path == "/api/chat":
-            payload = self._parse_json_body()
-            question = payload.get("question", "")
-            use_nlp = bool(payload.get("use_nlp", True))
-            result = chat_expert.answer_question(question, prefer_nlp=use_nlp)
-            self._send_json(result)
-            return
-
-        self.send_error(404)
-
-
-def run_server():
-    httpd = HTTPServer((HOST, PORT), CyberGuardHandler)
-    print(f"CyberGuard server running at http://localhost:{PORT}")
-    httpd.serve_forever()
-
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    run_server()
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

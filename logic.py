@@ -1,512 +1,297 @@
-import re
-import json
 import os
-from urllib import error, request
+import hashlib
+import json
+import re
+import secrets
+import base64
+from typing import List, Dict, Any
+import requests
+from urllib.parse import quote_plus
 
+# Load API keys from environment (uses python-dotenv in app.py)
+# Helper to call Gemini API (gemini-pro model) with a list of messages
+def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "") -> Dict[str, Any]:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"error": True, "message": "Gemini API key not set"}
+    
+    # Use v1beta for proper system_instruction support
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    
+    payload = {
+        "contents": [{"role": m["role"], "parts": [{"text": m["content"]}]} for m in messages]
+    }
+    
+    if system_prompt:
+        payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
 
-class EmailExpert:
-    """Rule-based engine for assessing phishing threats."""
+    try:
+        resp = requests.post(endpoint, json=payload, timeout=15)
+        if resp.status_code != 200:
+            return {"error": True, "message": f"Gemini Error {resp.status_code}: {resp.text}"}
+        
+        data = resp.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            return {"error": True, "message": "No candidates returned from Gemini"}
+        
+        parts = candidates[0].get("content", {}).get("parts", [])
+        if not parts:
+            return {"error": True, "message": "No response parts found"}
+            
+        text = parts[0].get("text", "")
+        # Robust JSON extraction: find first '{' and last '}'
+        start = text.find('{')
+        end = text.rfind('}')
+        if start != -1 and end != -1:
+            text = text[start:end+1]
+        
+        return {"error": False, "content": text.strip()}
+    except Exception as e:
+        return {"error": True, "message": str(e)}
 
-    def __init__(self):
-        self.risk_factors = {
-            "unknown_sender": 0.3,
-            "malicious_links": 0.4,
-            "urgency": 0.2,
-            "sensitive_info_request": 0.4,
-        }
+# ---------- Expert engines ----------
 
-    def evaluate(self, factors):
-        """
-        Evaluates email risk based on boolean factors.
-        Returns a score from 0.0 to 1.0.
-        """
+class PhishingExpert:
+    """Deterministic scoring of phishing indicators.
+
+    Indicators dict keys:
+        unknown_sender, urgency, suspicious_link, unexpected_attachment,
+        spoofed_domain, requests_credentials, generic_greeting, too_good_offer
+    """
+
+    _weights = {
+        "requests_credentials": 0.25,
+        "suspicious_link": 0.20,
+        "urgency": 0.15,
+        "spoofed_domain": 0.15,
+        "unknown_sender": 0.10,
+        "unexpected_attachment": 0.08,
+        "generic_greeting": 0.04,
+        "too_good_offer": 0.03,
+    }
+
+    _labels = {
+        "unknown_sender": "I don't know the sender",
+        "urgency": "It feels urgent or threatening",
+        "suspicious_link": "It contains a link to click",
+        "requests_credentials": "It asks for my password or personal info",
+        "unexpected_attachment": "It has an attachment",
+        "spoofed_domain": "The email address looks odd",
+        "generic_greeting": "It uses a generic greeting like 'Dear Customer'",
+        "too_good_offer": "It offers a prize or reward that seems too good",
+    }
+
+    def __init__(self, indicators: Dict[str, bool]):
+        self.indicators = indicators
+
+    def evaluate(self) -> Dict[str, Any]:
         score = 0.0
-        if factors.get("unknown_sender"):
-            score += self.risk_factors["unknown_sender"]
-        if factors.get("malicious_links"):
-            score += self.risk_factors["malicious_links"]
-        if factors.get("urgency"):
-            score += self.risk_factors["urgency"]
-        if factors.get("sensitive_info_request"):
-            score += self.risk_factors["sensitive_info_request"]
-
-        return min(1.0, score)
-
+        triggered = []
+        for key, weight in self._weights.items():
+            if self.indicators.get(key):
+                score += weight
+                triggered.append(self._labels.get(key, key.replace('_', ' ')))
+        # Clamp to 0‑1 range
+        score = min(1.0, score)
+        # Determine level
+        if score >= 0.7:
+            level = "HIGH"
+        elif score >= 0.4:
+            level = "MEDIUM"
+        else:
+            level = "LOW"
+        # Recommendations – simple static list based on level
+        recs = []
+        if level == "HIGH":
+            recs = [
+                "Do NOT click any links or open attachments.",
+                "Report the email to your IT/security team.",
+                "Delete the email permanently.",
+            ]
+        elif level == "MEDIUM":
+            recs = [
+                "Verify the sender through another channel.",
+                "Hover over any links to see the real URL before clicking.",
+                "If it asks for a login, go directly to the official site.",
+            ]
+        else:
+            recs = ["The email looks normal, but stay vigilant."]
+        return {
+            "risk_score": round(score, 3),
+            "risk_level": level,
+            "triggered_indicators": triggered,
+            "recommendations": recs,
+        }
 
 class PasswordExpert:
-    """Rule-based engine for assessing password strength."""
+    """Score a password without storing it.
+    Returns a numeric score (0‑100), a strength label and improvement tips.
+    """
 
-    def evaluate(self, password):
-        """
-        Assesses password strength based on expert rules.
-        Returns a strength score from 0.0 to 1.0 (1.0 is strongest).
-        """
-        if not password:
+    def __init__(self, password: str):
+        self.password = password or ""
+
+    def _entropy_estimate(self) -> float:
+        # Simple Shannon entropy based on character set size
+        if not self.password:
             return 0.0
+        pool = 0
+        if re.search(r"[a-z]", self.password):
+            pool += 26
+        if re.search(r"[A-Z]", self.password):
+            pool += 26
+        if re.search(r"\d", self.password):
+            pool += 10
+        if re.search(r"[!@#$%^&*(),.?\":{}|<>]", self.password):
+            pool += 32
+        entropy = len(self.password) * (pool.bit_length())
+        # Normalise roughly to 0‑10 scale
+        return min(10.0, entropy / 12.0)
 
+    def evaluate(self) -> Dict[str, Any]:
+        pwd = self.password
         score = 0
-        length = len(password)
-
-        # Length rules
-        if length >= 12:
-            score += 4
+        length = len(pwd)
+        # Length points
+        if length >= 20:
+            score += 40
+        elif length >= 16:
+            score += 30
+        elif length >= 12:
+            score += 20
         elif length >= 8:
-            score += 2
+            score += 10
+        # Character variety
+        if re.search(r"[A-Z]", pwd):
+            score += 10
+        if re.search(r"[a-z]", pwd):
+            score += 10
+        if re.search(r"\d", pwd):
+            score += 15
+        if re.search(r"[!@#$%^&*(),.?\":{}|<>]", pwd):
+            score += 15
+        # Entropy bonus
+        score += int(self._entropy_estimate() * 10)
+        score = min(100, score)
+        # Labels
+        if score >= 80:
+            label = "Very Strong"
+        elif score >= 60:
+            label = "Strong"
+        elif score >= 40:
+            label = "Fair"
+        else:
+            label = "Weak"
+        # Feedback suggestions
+        feedback = []
+        if length < 12:
+            feedback.append("Use at least 12 characters.")
+        if not re.search(r"[A-Z]", pwd):
+            feedback.append("Add uppercase letters.")
+        if not re.search(r"[a-z]", pwd):
+            feedback.append("Add lowercase letters.")
+        if not re.search(r"\d", pwd):
+            feedback.append("Add numbers.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", pwd):
+            feedback.append("Add special symbols.")
+        if not feedback:
+            feedback.append("Your password looks good!")
+        return {
+            "score": score,
+            "strength_label": label,
+            "feedback": feedback,
+        }
 
-        # Complexity rules
-        if re.search(r"[A-Z]", password):
-            score += 1
-        if re.search(r"[a-z]", password):
-            score += 1
-        if re.search(r"\d", password):
-            score += 2
-        if re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-            score += 2
+class HIBPExpert:
+    """Check password against Have I Been Pwned using k‑anonymity.
+    The plain password is never transmitted.
+    """
 
-        # Normalize to 0-1
-        return min(1.0, score / 10.0)
+    API_URL = "https://api.pwnedpasswords.com/range/"
 
+    def __init__(self, password: str):
+        self.password = password or ""
+
+    def _sha1_hash(self) -> str:
+        return hashlib.sha1(self.password.encode("utf-8")).hexdigest().upper()
+
+    def check(self) -> Dict[str, Any]:
+        if not self.password:
+            return {"breached": False, "breach_count": 0}
+        full_hash = self._sha1_hash()
+        prefix = full_hash[:5]
+        suffix = full_hash[5:]
+        try:
+            resp = requests.get(self.API_URL + prefix, timeout=10)
+            resp.raise_for_status()
+            lines = resp.text.splitlines()
+            for line in lines:
+                h, cnt = line.split(":")
+                if h.upper() == suffix:
+                    return {"breached": True, "breach_count": int(cnt)}
+            return {"breached": False, "breach_count": 0}
+        except Exception:
+            # In case of network error, treat as not breached but flag
+            return {"breached": False, "breach_count": 0, "error": True}
 
 class FuzzyRiskEngine:
-    """Fuzzy Logic engine for combining risks."""
+    """Combine phishing and password scores into an overall status.
+    Phishing score is 0‑1, password score is 0‑100 (converted to 0‑1).
+    """
 
-    def get_risk_label(self, score):
-        if score < 0.35:
-            return "LOW"
-        if score < 0.7:
-            return "MEDIUM"
-        return "HIGH"
+    def __init__(self, phishing_score: float, password_score: float):
+        self.phishing_score = phishing_score
+        self.password_score = password_score / 100.0
 
-    def compute_total_risk(self, email_risk, password_strength=None):
-        """
-        Hybrid Fuzzy Inference:
-        Combines email risk (0-1) and password weakness (1 - strength).
-        """
-        if password_strength is None:
-            return round(email_risk, 2)
+    def evaluate(self) -> Dict[str, Any]:
+        overall = (self.phishing_score * 0.6) + (self.password_score * 0.4)
+        if overall >= 0.65:
+            status = "Needs Work"
+        elif overall >= 0.35:
+            status = "Fair"
+        else:
+            status = "Great"
+        return {"overall_score": round(overall, 3), "overall_status": status}
 
-        pwd_weakness = 1.0 - password_strength
-
-        # Weighted aggregate:
-        # Email has higher weight because phishing is an active threat vector.
-        total_score = (email_risk * 0.7) + (pwd_weakness * 0.3)
-
-        return round(total_score, 2)
-
-    def get_recommendations(self, email_factors, pwd_strength=None):
-        recs = []
-        if email_factors.get("malicious_links"):
-            recs.append("Do not click links in suspicious emails.")
-        if email_factors.get("sensitive_info_request"):
-            recs.append("Never provide passwords or PII through email.")
-        if pwd_strength is not None and pwd_strength < 0.6:
-            recs.append("Improve password quality: use 12+ characters with symbols.")
-        if not recs:
-            recs.append("Continue following standard security procedures.")
-        return recs
+# ---------- Gemini powered agents ----------
 
 
-class SecurityChatExpert:
-    """Rule-based Q&A assistant for phishing and password security."""
 
-    def __init__(self):
-        self.openrouter = OpenRouterClient()
-        self.stopwords = {
-            "a", "an", "and", "are", "as", "at", "be", "can", "do", "for", "from", "get", "give",
-            "help", "how", "i", "if", "in", "is", "it", "like", "me", "my", "of", "on", "or",
-            "please", "should", "that", "the", "this", "to", "want", "we", "what", "when", "with",
-            "would", "you", "your"
-        }
-        self.knowledge_base = [
-            {
-                "id": "PHISH_SENDER_01",
-                "keywords": {"spoofed sender", "display name", "from address", "impersonation", "sender"},
-                "answer": (
-                    "Validate both the sender display name and full email domain. Impersonation often uses "
-                    "small spelling changes or a different sender domain."
-                ),
-                "follow_up": "Do you want a checklist to verify whether this sender is legitimate?",
-            },
-            {
-                "id": "PHISH_LINK_02",
-                "keywords": {"link", "url", "hover", "domain", "typo", "misspelled domain"},
-                "answer": (
-                    "Hover before clicking and inspect the full URL. Watch for misspelled domains, extra subdomains, "
-                    "or login pages hosted on unfamiliar domains."
-                ),
-                "follow_up": "Would you like a quick method to compare a suspicious URL with the real domain?",
-            },
-            {
-                "id": "PHISH_URGENCY_03",
-                "keywords": {"urgent", "immediately", "suspend", "action required", "deadline"},
-                "answer": (
-                    "Urgency is a major phishing signal. Pause and verify through a trusted channel before taking action."
-                ),
-                "follow_up": "Can I give you a short pause-and-verify routine for urgent messages?",
-            },
-            {
-                "id": "PHISH_ATTACHMENT_04",
-                "keywords": {"attachment", "invoice", "pdf", "zip", "macro", "docm"},
-                "answer": (
-                    "Treat unexpected attachments as high risk, especially macro-enabled files and archives. "
-                    "Open only after independent verification."
-                ),
-                "follow_up": "Do you want safe steps for handling unknown attachments?",
-            },
-            {
-                "id": "PHISH_QR_05",
-                "keywords": {"qr", "quishing", "scan code", "qr code"},
-                "answer": (
-                    "QR phishing hides malicious links inside codes. Scan only from trusted sources and preview the URL first."
-                ),
-                "follow_up": "Would you like rules for safely handling QR codes in emails and posters?",
-            },
-            {
-                "id": "PHISH_SMISH_06",
-                "keywords": {"sms", "text message", "smishing", "mobile scam"},
-                "answer": (
-                    "Smishing messages often use fake delivery, bank, or account alerts. Do not tap links in unexpected texts."
-                ),
-                "follow_up": "Should I share a safe verification flow for suspicious SMS messages?",
-            },
-            {
-                "id": "PHISH_VOICE_07",
-                "keywords": {"vishing", "phone call", "caller", "support call", "helpdesk"},
-                "answer": (
-                    "Vishing attacks pressure you by phone. Hang up and call the organization using an official number."
-                ),
-                "follow_up": "Do you want a script you can use to end suspicious calls safely?",
-            },
-            {
-                "id": "PHISH_BEC_08",
-                "keywords": {"ceo fraud", "wire transfer", "gift card", "executive request", "bec"},
-                "answer": (
-                    "Business Email Compromise often requests urgent payments or gift cards. Require out-of-band approval."
-                ),
-                "follow_up": "Would a two-person approval rule for payment requests help your project demo?",
-            },
-            {
-                "id": "PHISH_REPLYTO_09",
-                "keywords": {"reply-to", "reply to", "different address", "redirect reply"},
-                "answer": (
-                    "If the Reply-To address differs from the sender domain, treat it as suspicious and verify manually."
-                ),
-                "follow_up": "Want a quick checklist of email header fields to inspect?",
-            },
-            {
-                "id": "PHISH_LOGIN_10",
-                "keywords": {"login page", "sign in", "credential page", "fake login"},
-                "answer": (
-                    "Never sign in through links in unexpected messages. Open the service directly from your bookmark."
-                ),
-                "follow_up": "Would you like a rule to detect fake login pages fast?",
-            },
-            {
-                "id": "PHISH_RESET_11",
-                "keywords": {"password reset email", "reset request", "did not request"},
-                "answer": (
-                    "Unrequested password reset emails can be phishing or account probing. Go directly to the service site."
-                ),
-                "follow_up": "Do you want incident steps for unrequested password reset notifications?",
-            },
-            {
-                "id": "PHISH_SHORT_12",
-                "keywords": {"short link", "bit.ly", "tinyurl", "shortened"},
-                "answer": (
-                    "Short links hide the destination. Use a preview/expander service before opening, or avoid entirely."
-                ),
-                "follow_up": "Would you like tools to safely expand shortened URLs?",
-            },
-            {
-                "id": "PHISH_HTTPS_13",
-                "keywords": {"https", "padlock", "secure site"},
-                "answer": (
-                    "HTTPS only means encrypted transport, not legitimacy. A phishing site can still have HTTPS."
-                ),
-                "follow_up": "Do you want criteria beyond HTTPS for judging site trustworthiness?",
-            },
-            {
-                "id": "PWD_STRENGTH_14",
-                "keywords": {"password", "strong password", "weak password", "strength"},
-                "answer": (
-                    "Use long, unique passwords. Length and uniqueness matter more than frequent forced changes."
-                ),
-                "follow_up": "Do you want examples of strong passphrase formats?",
-            },
-            {
-                "id": "PWD_LENGTH_15",
-                "keywords": {"length", "12 characters", "minimum length", "long password"},
-                "answer": (
-                    "Aim for at least 12 characters. Longer passphrases are usually more resilient and easier to remember."
-                ),
-                "follow_up": "Would you like a quick passphrase template for your users?",
-            },
-            {
-                "id": "PWD_REUSE_16",
-                "keywords": {"reuse", "same password", "multiple accounts"},
-                "answer": (
-                    "Password reuse is high risk. One breach can expose many accounts if passwords are reused."
-                ),
-                "follow_up": "Should I provide a migration plan to stop password reuse?",
-            },
-            {
-                "id": "PWD_MANAGER_17",
-                "keywords": {"password manager", "vault", "store passwords", "manager"},
-                "answer": (
-                    "A reputable password manager helps generate unique credentials and reduces reuse risk."
-                ),
-                "follow_up": "Do you want selection criteria for choosing a password manager?",
-            },
-            {
-                "id": "PWD_MFA_18",
-                "keywords": {"mfa", "2fa", "multi-factor", "authenticator"},
-                "answer": (
-                    "Enable MFA on critical accounts. Authenticator apps or hardware keys are generally stronger than SMS."
-                ),
-                "follow_up": "Would you like a prioritization list of accounts that should get MFA first?",
-            },
-            {
-                "id": "PWD_BREACH_19",
-                "keywords": {"breach", "leak", "compromised", "exposed password"},
-                "answer": (
-                    "After a breach, change affected passwords immediately, rotate reused credentials, and enable MFA."
-                ),
-                "follow_up": "Do you want a step-by-step breach response checklist?",
-            },
-            {
-                "id": "PWD_ROTATION_20",
-                "keywords": {"change password often", "rotation", "how often"},
-                "answer": (
-                    "Do not rotate strong passwords on a strict schedule unless policy requires it. "
-                    "Rotate immediately when compromise is suspected."
-                ),
-                "follow_up": "Would you like policy language balancing usability and security?",
-            },
-            {
-                "id": "PWD_SECURITY_Q_21",
-                "keywords": {"security question", "mother's maiden name", "pet name"},
-                "answer": (
-                    "Security questions are weak if answers are guessable. Use random stored answers where possible."
-                ),
-                "follow_up": "Want examples of safer approaches when security questions are mandatory?",
-            },
-            {
-                "id": "OTP_SHARE_22",
-                "keywords": {"otp", "one-time code", "verification code", "share code"},
-                "answer": (
-                    "Never share one-time verification codes. Legitimate support teams will not ask for them."
-                ),
-                "follow_up": "Do you want a short warning message users can memorize for OTP scams?",
-            },
-            {
-                "id": "SIM_SWAP_23",
-                "keywords": {"sim swap", "port out", "phone takeover"},
-                "answer": (
-                    "SIM swap attacks can intercept SMS codes. Add carrier PIN protection and prefer app-based MFA."
-                ),
-                "follow_up": "Would you like safeguards for accounts still using SMS MFA?",
-            },
-            {
-                "id": "MFA_FATIGUE_24",
-                "keywords": {"mfa fatigue", "push bombing", "approval spam"},
-                "answer": (
-                    "Push-bombing attacks spam MFA prompts until a user accepts one. Deny unexpected prompts and report immediately."
-                ),
-                "follow_up": "Do you want user instructions for handling repeated MFA prompts?",
-            },
-            {
-                "id": "RECOVERY_CODES_25",
-                "keywords": {"backup codes", "recovery code", "account recovery"},
-                "answer": (
-                    "Store recovery codes offline in a secure location. They are critical if your second factor is lost."
-                ),
-                "follow_up": "Would you like a safe storage strategy for recovery codes?",
-            },
-            {
-                "id": "PUBLIC_WIFI_26",
-                "keywords": {"public wifi", "airport wifi", "coffee shop wifi"},
-                "answer": (
-                    "Avoid sensitive logins on public Wi-Fi without protection. Use trusted networks and MFA."
-                ),
-                "follow_up": "Do you want safe browsing rules for public networks?",
-            },
-            {
-                "id": "BROWSER_SAVE_27",
-                "keywords": {"save password in browser", "browser password", "autofill"},
-                "answer": (
-                    "Browser storage can be acceptable with device security controls, but a dedicated password manager is stronger."
-                ),
-                "follow_up": "Would you like a quick comparison: browser vault vs password manager?",
-            },
-            {
-                "id": "ACCOUNT_LOCK_28",
-                "keywords": {"account lockout", "failed login", "brute force"},
-                "answer": (
-                    "Use lockout and rate-limiting controls to slow brute-force attempts and alert on repeated failures."
-                ),
-                "follow_up": "Should I provide recommended lockout thresholds for a school project?",
-            },
-        ]
-        self.default_result = {
-            "answer": (
-                "I am not fully certain about that topic yet. Safest next step: avoid clicking unknown links, "
-                "do not share credentials or OTP codes, and verify through official channels."
-            ),
-            "rule_id": "FALLBACK_SAFE_00",
-            "confidence": 0.2,
-            "follow_up": "Would you like to rephrase your question as phishing, password, MFA, or breach related?",
-            "matched_keywords": [],
-        }
-        self.llm_threshold = 0.55
+class ARIAEngine:
+    """Chat engine that talks to Gemini using the ARIA system prompt.
+    Maintains conversation history.
+    """
 
-    @staticmethod
-    def _tokenize(text):
-        return set(re.findall(r"[a-z0-9]+", text.lower()))
+    SYSTEM_PROMPT = (
+        "You are ARIA (Awareness & Risk Intelligence Advisor), a friendly and knowledgeable "
+        "cybersecurity expert specialising in phishing awareness and password security. "
+        "Your audience is everyday employees and members of the general public — not technical experts. "
+        "Your mission is to educate, reassure, and empower them. Tone: warm, clear, calm, approachable. "
+        "Never use jargon without explanation. If a user is anxious, reassure first, then guide. "
+        "If a request is out of scope, respond: 'I am not able to help with that. ARIA is here to protect people.' "
+        "Keep answers to 3‑6 sentences or short numbered steps. End with an invitation for more questions."
+    )
 
-    def _score_rule(self, lowered, tokens, rule):
-        score = 0
-        matched = []
-        for keyword in rule["keywords"]:
-            if " " in keyword:
-                if keyword in lowered:
-                    score += 2
-                    matched.append(keyword)
-            elif keyword in tokens:
-                score += 1
-                matched.append(keyword)
+    def __init__(self, history: List[Dict[str, str]] = None):
+        self.history = history or []
 
-        follow_up_tokens = self._tokenize(rule.get("follow_up", "")) - self.stopwords
-        question_tokens = tokens - self.stopwords
-        follow_overlap = follow_up_tokens & question_tokens
-        if follow_up_tokens and len(follow_overlap) >= 2:
-            overlap_ratio = len(follow_overlap) / len(follow_up_tokens)
-            if overlap_ratio >= 0.35:
-                score += len(follow_overlap) + 1
-                matched.append("follow_up_match")
-        return score, matched
+    def ask(self, user_message: str) -> Dict[str, Any]:
+        # Append user message
+        self.history.append({"role": "user", "content": user_message})
+        # Build messages for Gemini
+        messages = []
+        for h in self.history:
+            role = "user" if h["role"] == "user" else "model"
+            messages.append({"role": role, "content": h["content"]})
+        
+        result = _gemini_chat(messages, system_prompt=self.SYSTEM_PROMPT)
+        if result.get("error"):
+            reply = "I'm having trouble connecting right now. Please try again in a moment."
+        else:
+            reply = result["content"]
+        # Append assistant reply to history for future context
+        self.history.append({"role": "assistant", "content": reply})
+        return {"reply": reply, "history": self.history}
 
-    def answer_question(self, question, prefer_nlp=True):
-        """Return the best rule-based answer for a user question."""
-        if not question or not question.strip():
-            return {
-                "answer": "Please type a question about phishing or password security.",
-                "rule_id": "INPUT_EMPTY_00",
-                "confidence": 1.0,
-                "follow_up": "Try: 'How can I detect a phishing email?'",
-                "matched_keywords": [],
-            }
-
-        lowered = question.lower()
-        tokens = self._tokenize(question)
-
-        best_rule = None
-        best_score = 0
-        best_matches = []
-        second_score = 0
-
-        for rule in self.knowledge_base:
-            score, matched = self._score_rule(lowered, tokens, rule)
-            if score > best_score:
-                second_score = best_score
-                best_score = score
-                best_rule = rule
-                best_matches = matched
-            elif score > second_score:
-                second_score = score
-
-        if prefer_nlp:
-            llm_result = self.openrouter.answer(question)
-            if llm_result:
-                return llm_result
-
-        if best_rule and best_score > 0:
-            separation_bonus = 1 if best_score > second_score else 0
-            confidence = min(0.95, 0.35 + (best_score * 0.12) + (separation_bonus * 0.08))
-            result = {
-                "answer": best_rule["answer"],
-                "rule_id": best_rule["id"],
-                "confidence": round(confidence, 2),
-                "follow_up": best_rule["follow_up"],
-                "matched_keywords": sorted(best_matches),
-            }
-            if result["confidence"] >= self.llm_threshold or not prefer_nlp:
-                return result
-            llm_result = self.openrouter.answer(question)
-            return llm_result or result
-
-        llm_result = self.openrouter.answer(question)
-        return llm_result or self.default_result
-
-
-class OpenRouterClient:
-    """Optional OpenRouter NLP fallback for broader security Q&A."""
-
-    def __init__(self):
-        self.api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-        self.model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
-        self.url = "https://openrouter.ai/api/v1/chat/completions"
-        self.timeout_sec = 12
-
-    def _enabled(self):
-        return bool(self.api_key)
-
-    def capabilities(self):
-        return {
-            "enabled": self._enabled(),
-            "model": self.model,
-        }
-
-    def answer(self, question):
-        if not self._enabled():
-            return None
-
-        payload = {
-            "model": self.model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a cybersecurity assistant. Provide concise, practical guidance focused on phishing, "
-                        "password hygiene, MFA, account security, and breach response. Avoid legal/medical claims. "
-                        "If unsure, say uncertainty and give safest next action."
-                    ),
-                },
-                {"role": "user", "content": question},
-            ],
-            "temperature": 0.3,
-            "max_tokens": 260,
-        }
-
-        req = request.Request(
-            self.url,
-            data=json.dumps(payload).encode("utf-8"),
-            method="POST",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
-                "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "CyberGuard",
-            },
-        )
-
-        try:
-            with request.urlopen(req, timeout=self.timeout_sec) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError):
-            return None
-
-        choices = data.get("choices") or []
-        if not choices:
-            return None
-
-        message = (choices[0].get("message") or {}).get("content", "").strip()
-        if not message:
-            return None
-
-        return {
-            "answer": message,
-            "rule_id": f"OPENROUTER_{self.model}",
-            "confidence": 0.7,
-            "follow_up": "Want me to turn this into a short step-by-step checklist?",
-            "matched_keywords": [],
-        }
+# End of module
