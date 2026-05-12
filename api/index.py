@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 from typing import Any, List, Dict
 
+# Ensure the api directory is in sys.path for importing logic.py
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.append(str(BASE_DIR))
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,11 +32,6 @@ from logic import (
 # ---------------------------------------------------------------------------
 # Bootstrap
 # ---------------------------------------------------------------------------
-
-BASE_DIR = Path(__file__).resolve().parent
-# Ensure the api directory is in sys.path for importing logic.py
-if str(BASE_DIR) not in sys.path:
-    sys.path.append(str(BASE_DIR))
 
 load_dotenv(BASE_DIR.parent / ".env")
 
