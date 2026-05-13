@@ -423,6 +423,28 @@ body {
   color: var(--text-primary);
 }
 
+.msg-content p {
+  margin: 0 0 8px;
+}
+
+.msg-content p:last-child {
+  margin-bottom: 0;
+}
+
+.msg-content ul,
+.msg-content ol {
+  margin: 0 0 8px 18px;
+  padding: 0;
+}
+
+.msg-content li {
+  margin: 0 0 6px;
+}
+
+.msg-content li:last-child {
+  margin-bottom: 0;
+}
+
 .msg-user {
   align-self: flex-end;
   background: var(--purple);

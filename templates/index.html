@@ -29,7 +29,7 @@
         <!-- Tabs -->
         <nav class="tabs">
             <button class="tab-btn active" data-tab="check">Quick check</button>
-            <button class="tab-btn" data-tab="aria">Ask ARIA</button>
+            <button class="tab-btn" data-tab="aria">Ask an Expert: ARIA</button>
             <button class="tab-btn" data-tab="breach">Breach checker</button>
         </nav>
 
@@ -141,7 +141,7 @@
                 </div>
                 
                 <div class="chat-log" id="chat-log">
-                    <div class="msg msg-aria">Hi! I'm ARIA. How can I help you stay safe online today?</div>
+                    <div class="msg msg-aria">Hi! I'm ARIA, your expert cybersecurity guide. How can I help you stay safe online today?</div>
                 </div>
 
                 <div id="chat-chips" class="chips">
@@ -153,7 +153,7 @@
                 </div>
 
                 <div class="chat-input-area">
-                    <textarea id="chat-input" class="chat-textarea" placeholder="Ask a question..."></textarea>
+                    <textarea id="chat-input" class="chat-textarea" placeholder="Ask an expert..."></textarea>
                     <button class="send-btn" id="btn-chat-send">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
@@ -321,6 +321,58 @@
         const chatInput = $('chat-input');
         const btnSend = $('btn-chat-send');
 
+        function formatAriaReply(text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'msg-content';
+
+            const normalized = (text || '').replace(/\r\n/g, '\n').trim();
+            if (!normalized) return wrapper;
+
+            const lines = normalized
+                .split('\n')
+                .map(l => l.trim())
+                .filter(Boolean);
+
+            const hasList = lines.some(l => /^(\d+[\.\)]\s+|[-*]\s+)/.test(l));
+
+            if (hasList) {
+                let currentList = null;
+                lines.forEach(line => {
+                    if (/^\d+[\.\)]\s+/.test(line)) {
+                        if (!currentList || currentList.tagName !== 'OL') {
+                            currentList = document.createElement('ol');
+                            wrapper.appendChild(currentList);
+                        }
+                        const item = document.createElement('li');
+                        item.textContent = line.replace(/^\d+[\.\)]\s+/, '');
+                        currentList.appendChild(item);
+                    } else if (/^[-*]\s+/.test(line)) {
+                        if (!currentList || currentList.tagName !== 'UL') {
+                            currentList = document.createElement('ul');
+                            wrapper.appendChild(currentList);
+                        }
+                        const item = document.createElement('li');
+                        item.textContent = line.replace(/^[-*]\s+/, '');
+                        currentList.appendChild(item);
+                    } else {
+                        currentList = null;
+                        const p = document.createElement('p');
+                        p.textContent = line;
+                        wrapper.appendChild(p);
+                    }
+                });
+            } else {
+                const chunks = normalized.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean);
+                chunks.forEach(chunk => {
+                    const p = document.createElement('p');
+                    p.textContent = chunk;
+                    wrapper.appendChild(p);
+                });
+            }
+
+            return wrapper;
+        }
+
         async function sendChat(msg) {
             msg = msg.trim();
             if (!msg) return;
@@ -349,7 +401,7 @@
                 
                 const ariaMsg = document.createElement('div');
                 ariaMsg.className = 'msg msg-aria';
-                ariaMsg.textContent = data.reply;
+                ariaMsg.appendChild(formatAriaReply(data.reply));
                 chatLog.appendChild(ariaMsg);
                 chatHistory = data.history;
                 chatLog.scrollTop = chatLog.scrollHeight;
@@ -377,7 +429,7 @@
         });
 
         $('btn-clear-chat').addEventListener('click', () => {
-            chatLog.innerHTML = '<div class="msg msg-aria">Chat cleared. How else can I help you?</div>';
+            chatLog.innerHTML = '<div class="msg msg-aria">Chat cleared. Ask an expert anytime.</div>';
             chatHistory = [];
             show($('chat-chips'));
         });
