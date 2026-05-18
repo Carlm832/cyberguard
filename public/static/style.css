@@ -481,6 +481,62 @@ body {
   border-top: 1px solid var(--card-border);
 }
 
+.upload-btn {
+  width: 52px;
+  height: 44px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--purple-bg);
+  color: var(--purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.upload-btn:hover {
+  border-color: var(--purple-border);
+}
+
+.image-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.image-preview img,
+.chat-uploaded-image {
+  max-width: 180px;
+  max-height: 110px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  object-fit: cover;
+}
+
+.chat-uploaded-image {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.image-preview button {
+  border: none;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .chat-textarea {
   flex: 1;
   padding: 12px;

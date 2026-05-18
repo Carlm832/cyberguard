@@ -10,7 +10,7 @@ from urllib.parse import quote_plus
 
 # Load API keys from environment (uses python-dotenv in app.py)
 # Helper to call Gemini API (gemini-pro model) with a list of messages
-def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "") -> Dict[str, Any]:
+def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: Dict[str, str] = None) -> Dict[str, Any]:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return {"error": True, "message": "Gemini API key not set"}
@@ -18,9 +18,20 @@ def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "") -> Dic
     # Use v1beta for proper system_instruction support
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
     
-    payload = {
-        "contents": [{"role": m["role"], "parts": [{"text": m["content"]}]} for m in messages]
-    }
+    contents = []
+    for index, message in enumerate(messages):
+        parts = []
+        if image and index == len(messages) - 1 and message["role"] == "user":
+            parts.append({
+                "inline_data": {
+                    "mime_type": image["mime_type"],
+                    "data": image["data"],
+                }
+            })
+        parts.append({"text": message["content"]})
+        contents.append({"role": message["role"], "parts": parts})
+
+    payload = {"contents": contents}
     
     if system_prompt:
         payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
@@ -281,7 +292,7 @@ class ARIAEngine:
     def __init__(self, history: List[Dict[str, str]] = None):
         self.history = history or []
 
-    def ask(self, user_message: str) -> Dict[str, Any]:
+    def ask(self, user_message: str, image: Dict[str, str] = None) -> Dict[str, Any]:
         # Append user message
         self.history.append({"role": "user", "content": user_message})
         # Build messages for Gemini
@@ -290,7 +301,7 @@ class ARIAEngine:
             role = "user" if h["role"] == "user" else "model"
             messages.append({"role": role, "content": h["content"]})
         
-        result = _gemini_chat(messages, system_prompt=self.SYSTEM_PROMPT)
+        result = _gemini_chat(messages, system_prompt=self.SYSTEM_PROMPT, image=image)
         if result.get("error"):
             reply = "I'm having trouble connecting right now. Please try again in a moment."
         else:

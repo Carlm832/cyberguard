@@ -28,9 +28,9 @@
 
         <!-- Tabs -->
         <nav class="tabs">
-            <button class="tab-btn active" data-tab="check">Quick check</button>
-            <button class="tab-btn" data-tab="aria">Ask an Expert: ARIA</button>
-            <button class="tab-btn" data-tab="breach">Breach checker</button>
+            <button class="tab-btn active" data-tab="check">Quick Check</button>
+            <button class="tab-btn" data-tab="aria">Ask Cyber Expert: ARIA</button>
+            <button class="tab-btn" data-tab="breach">Breach & Password Tools</button>
         </nav>
 
         <!-- Tab 1: Quick Check -->
@@ -152,8 +152,17 @@
                     <button class="chip">What is a password manager?</button>
                 </div>
 
+                <div id="chat-image-preview" class="image-preview hidden">
+                    <img id="chat-preview-img" src="" alt="Selected screenshot preview">
+                    <button type="button" id="btn-clear-image" aria-label="Remove selected screenshot">Remove</button>
+                </div>
+
                 <div class="chat-input-area">
-                    <textarea id="chat-input" class="chat-textarea" placeholder="Ask an expert..."></textarea>
+                    <label class="upload-btn" for="chat-file-input" title="Upload screenshot or image">
+                        Image
+                        <input type="file" id="chat-file-input" accept="image/*" class="hidden">
+                    </label>
+                    <textarea id="chat-input" class="chat-textarea" placeholder="Ask an expert or upload a screenshot..."></textarea>
                     <button class="send-btn" id="btn-chat-send">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
@@ -194,6 +203,7 @@
     <script>
         // --- State ---
         let chatHistory = [];
+        let chatImageData = null;
         const state = {
             loading: false
         };
@@ -321,6 +331,30 @@
         const chatInput = $('chat-input');
         const btnSend = $('btn-chat-send');
 
+        $('chat-file-input').addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result;
+                chatImageData = {
+                    mime_type: file.type,
+                    data: result.split(',')[1]
+                };
+                $('chat-preview-img').src = result;
+                show($('chat-image-preview'));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        $('btn-clear-image').addEventListener('click', () => {
+            chatImageData = null;
+            $('chat-file-input').value = '';
+            $('chat-preview-img').src = '';
+            hide($('chat-image-preview'));
+        });
+
         function formatAriaReply(text) {
             const wrapper = document.createElement('div');
             wrapper.className = 'msg-content';
@@ -375,12 +409,27 @@
 
         async function sendChat(msg) {
             msg = msg.trim();
-            if (!msg) return;
+            if (!msg && !chatImageData) return;
+
+            const currentImage = chatImageData;
+            chatImageData = null;
+            $('chat-file-input').value = '';
+            hide($('chat-image-preview'));
+            $('chat-preview-img').src = '';
 
             // User msg
             const userMsg = document.createElement('div');
             userMsg.className = 'msg msg-user';
-            userMsg.textContent = msg;
+            if (currentImage) {
+                const image = document.createElement('img');
+                image.src = `data:${currentImage.mime_type};base64,${currentImage.data}`;
+                image.alt = 'Uploaded screenshot';
+                image.className = 'chat-uploaded-image';
+                userMsg.appendChild(image);
+            }
+            if (msg) {
+                userMsg.appendChild(document.createTextNode(msg));
+            }
             chatLog.appendChild(userMsg);
             chatLog.scrollTop = chatLog.scrollHeight;
             hide($('chat-chips'));
@@ -396,7 +445,7 @@
             btnSend.disabled = true;
 
             try {
-                const data = await api('chat', { message: msg, history: chatHistory });
+                const data = await api('chat', { message: msg || 'Please review this screenshot and explain anything suspicious in plain English.', history: chatHistory, image: currentImage });
                 chatLog.removeChild(typing);
                 
                 const ariaMsg = document.createElement('div');

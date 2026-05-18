@@ -67,6 +67,7 @@ class AssessRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: List[Dict[str, str]] = []
+    image: Dict[str, str] = None
 
 class BreachRequest(BaseModel):
     password: str
@@ -103,7 +104,7 @@ async def assess(req: AssessRequest):
 async def chat(req: ChatRequest):
     # History comes in as [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
     aria = ARIAEngine(history=req.history)
-    result = aria.ask(req.message)
+    result = aria.ask(req.message, image=req.image)
     return result
 
 

@@ -1,6 +1,10 @@
 # System Guard Removal & Module Verification Report
 
-We have successfully removed the **System Guard** diagnostic scan feature and cleaned up both the frontend templates and backend FastAPI routes. CyberGuard now focuses completely on the three primary pillars of advanced cybersecurity assessment.
+We have successfully removed the **System Guard** diagnostic scan feature and cleaned up both the frontend templates and backend FastAPI routes. CyberGuard now focuses completely on the three primary pillars of advanced cybersecurity assessment:
+
+- **Quick Check**: phishing indicators and password rating
+- **Ask Cyber Expert: ARIA**: AI consultation with image/screenshot analysis
+- **Breach & Password Tools**: exposure scanner using Have I Been Pwned
 
 Below is a detailed report of the changes and a visual tour of the updated command center.
 
@@ -24,11 +28,11 @@ Below is a detailed report of the changes and a visual tour of the updated comma
 Here is a visual walkthrough of the three primary cybersecurity modules:
 
 ````carousel
-![1. Quick Check - Updated Dashboard without System Guard](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094147493.png)
+![1. Quick Check - Phishing indicators and password rating](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094147493.png)
 <!-- slide -->
-![2. Ask Cyber Expert: ARIA - Interactive AI Chat](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094158607.png)
+![2. Ask Cyber Expert: ARIA - AI consultation and screenshot analysis](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094158607.png)
 <!-- slide -->
-![3. Breach & Password Tools - Integrated Account Tools](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094170778.png)
+![3. Breach & Password Tools - HIBP exposure scanner](C:/Users/Carl/.gemini/antigravity/brain/37f82c8d-ffdf-4b43-9d16-008cebdcc152/.tempmediaStorage/media_37f82c8d-ffdf-4b43-9d16-008cebdcc152_1779094170778.png)
 ````
 
 > [!NOTE]
