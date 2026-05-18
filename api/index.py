@@ -21,13 +21,22 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
-from logic import (
-    ARIAEngine,
-    FuzzyRiskEngine,
-    HIBPExpert,
-    PasswordExpert,
-    PhishingExpert,
-)
+try:
+    from .logic import (
+        ARIAEngine,
+        FuzzyRiskEngine,
+        HIBPExpert,
+        PasswordExpert,
+        PhishingExpert,
+    )
+except ImportError:
+    from logic import (
+        ARIAEngine,
+        FuzzyRiskEngine,
+        HIBPExpert,
+        PasswordExpert,
+        PhishingExpert,
+    )
 
 # ---------------------------------------------------------------------------
 # Bootstrap
@@ -48,8 +57,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files are served by Vercel via the /public folder.
-# No need to mount StaticFiles here for production.
+app.mount("/static", StaticFiles(directory=str(BASE_DIR.parent / "public" / "static")), name="static")
 
 @app.get("/", response_class=FileResponse)
 async def serve_index():
