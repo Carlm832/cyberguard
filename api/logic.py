@@ -308,6 +308,36 @@ class ARIAEngine:
             reply = result["content"]
         # Append assistant reply to history for future context
         self.history.append({"role": "assistant", "content": reply})
-        return {"reply": reply, "history": self.history}
+        return {"reply": reply, "history": self.history, "follow_ups": self._follow_ups_for(user_message, reply)}
+
+    def _follow_ups_for(self, user_message: str, reply: str) -> List[str]:
+        text = f"{user_message} {reply}".lower()
+        if any(word in text for word in ["phish", "scam", "email"]):
+            return [
+                "What should I do first?",
+                "Should I report this email?",
+                "How do I check the sender?",
+                "What if I clicked the link?",
+            ]
+        if any(word in text for word in ["password", "breach", "leaked"]):
+            return [
+                "How do I make it stronger?",
+                "Should I change reused passwords?",
+                "What is a password manager?",
+                "How do I turn on two-step login?",
+            ]
+        if any(word in text for word in ["screenshot", "image", "link", "url"]):
+            return [
+                "What warning signs do you see?",
+                "Is this link safe?",
+                "What should I avoid clicking?",
+                "How can I verify this safely?",
+            ]
+        return [
+            "What should I do next?",
+            "How can I stay safer?",
+            "Can you explain that simply?",
+            "What warning signs matter most?",
+        ]
 
 # End of module

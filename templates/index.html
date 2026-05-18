@@ -142,14 +142,13 @@
                 
                 <div class="chat-log" id="chat-log">
                     <div class="msg msg-aria">Hi! I'm ARIA, your expert cybersecurity guide. How can I help you stay safe online today?</div>
-                </div>
-
-                <div id="chat-chips" class="chips">
-                    <button class="chip">I think I got phished</button>
-                    <button class="chip">Is my password safe?</button>
-                    <button class="chip">What is two-step login?</button>
-                    <button class="chip">How do I report a scam?</button>
-                    <button class="chip">What is a password manager?</button>
+                    <div id="chat-chips" class="chips">
+                        <button class="chip">I think I got phished</button>
+                        <button class="chip">Is my password safe?</button>
+                        <button class="chip">What is two-step login?</button>
+                        <button class="chip">How do I report a scam?</button>
+                        <button class="chip">What is a password manager?</button>
+                    </div>
                 </div>
 
                 <div id="chat-image-preview" class="image-preview hidden">
@@ -330,6 +329,13 @@
         const chatLog = $('chat-log');
         const chatInput = $('chat-input');
         const btnSend = $('btn-chat-send');
+        const defaultChatChips = [
+            'I think I got phished',
+            'Is my password safe?',
+            'What is two-step login?',
+            'How do I report a scam?',
+            'What is a password manager?'
+        ];
 
         $('chat-file-input').addEventListener('change', event => {
             const file = event.target.files[0];
@@ -407,6 +413,30 @@
             return wrapper;
         }
 
+        function bindChipClickListeners(container) {
+            container.querySelectorAll('.chip').forEach(chip => {
+                chip.addEventListener('click', () => sendChat(chip.textContent));
+            });
+        }
+
+        function updateFollowUpChips(followUps) {
+            const chips = $('chat-chips');
+            chips.innerHTML = '';
+
+            const questions = Array.isArray(followUps) && followUps.length ? followUps : defaultChatChips;
+            questions.slice(0, 5).forEach(text => {
+                const chip = document.createElement('button');
+                chip.className = 'chip';
+                chip.textContent = text;
+                chips.appendChild(chip);
+            });
+
+            bindChipClickListeners(chips);
+            chatLog.appendChild(chips);
+            show(chips);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
         async function sendChat(msg) {
             msg = msg.trim();
             if (!msg && !chatImageData) return;
@@ -432,7 +462,8 @@
             }
             chatLog.appendChild(userMsg);
             chatLog.scrollTop = chatLog.scrollHeight;
-            hide($('chat-chips'));
+            const chips = $('chat-chips');
+            hide(chips);
 
             // Typing indicator
             const typing = document.createElement('div');
@@ -453,6 +484,7 @@
                 ariaMsg.appendChild(formatAriaReply(data.reply));
                 chatLog.appendChild(ariaMsg);
                 chatHistory = data.history;
+                updateFollowUpChips(data.follow_ups);
                 chatLog.scrollTop = chatLog.scrollHeight;
             } catch (err) {
                 chatLog.removeChild(typing);
@@ -473,14 +505,16 @@
             }
         });
 
-        document.querySelectorAll('.chip').forEach(chip => {
-            chip.addEventListener('click', () => sendChat(chip.textContent));
-        });
+        bindChipClickListeners($('chat-chips'));
 
         $('btn-clear-chat').addEventListener('click', () => {
             chatLog.innerHTML = '<div class="msg msg-aria">Chat cleared. Ask an expert anytime.</div>';
             chatHistory = [];
-            show($('chat-chips'));
+            const chips = document.createElement('div');
+            chips.id = 'chat-chips';
+            chips.className = 'chips';
+            chatLog.appendChild(chips);
+            updateFollowUpChips(defaultChatChips);
         });
 
 
