@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+
 from pydantic import BaseModel
 import uvicorn
 
@@ -57,7 +57,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory=str(BASE_DIR.parent / "public" / "static")), name="static")
+# Static files are served directly by Vercel's CDN from the public/ directory.
+# Do NOT mount StaticFiles here — the directory doesn't exist in the serverless /var/task/ sandbox.
 
 @app.get("/", response_class=FileResponse)
 async def serve_index():
