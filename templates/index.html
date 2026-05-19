@@ -1,568 +1,1125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberGuard | Your Personal Security Assistant</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberGuard — Security Expert System & ARIA AI</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Top Bar -->
-        <header class="top-bar">
-            <div class="logo">
-                <div class="logo-icon">🛡️</div>
-                <div class="logo-text">
-                    <h1>CyberGuard</h1>
-                    <p>your personal security assistant</p>
-                </div>
-            </div>
-            <div class="status-badge">
-                <span class="dot"></span>
-                <span>ARIA is ready</span>
-            </div>
-        </header>
+  <div class="container">
+    
+    <!-- Top Bar / Header -->
+    <header class="top-bar">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>CyberGuard</h1>
+          <p>Rule-Based Expert System</p>
+        </div>
+      </div>
+      <div class="status-badge">
+        <span class="dot" id="system-status-dot"></span>
+        <span id="system-status-text">System Ready</span>
+      </div>
+    </header>
 
-        <!-- Tabs -->
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="check">Quick Check</button>
-            <button class="tab-btn" data-tab="aria">Ask Cyber Expert: ARIA</button>
-            <button class="tab-btn" data-tab="breach">Breach & Password Tools</button>
-        </nav>
-
-        <!-- Tab 1: Quick Check -->
-        <section id="tab-check" class="tab-panel active">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Does this email look suspicious?</h2>
-                    <p>Tick everything that applies to the email you received</p>
-                </div>
-                <div class="checkbox-grid">
-                    <label class="check-item">
-                        <input type="checkbox" id="check-sender">
-                        <span>I don't know the sender</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-urgency">
-                        <span>It feels urgent or threatening</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-link">
-                        <span>There's a link to click</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-creds">
-                        <span>It asks for my password</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-attach">
-                        <span>There's an attachment</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-odd">
-                        <span>The email address looks odd</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-generic">
-                        <span>It says 'Dear Customer'</span>
-                    </label>
-                    <label class="check-item">
-                        <input type="checkbox" id="check-offer">
-                        <span>It offers a prize or reward</span>
-                    </label>
-                </div>
-
-                <div class="mt-16">
-                    <div class="card-header">
-                        <h2>How strong is your password?</h2>
-                        <p>Type a password below to check it — we never save it</p>
-                    </div>
-                    <div class="input-with-icon">
-                        <input type="password" id="check-password" class="password-input" placeholder="Enter password here...">
-                        <button type="button" class="toggle-btn" id="toggle-check-pw">Show</button>
-                    </div>
-                </div>
-
-                <button class="btn-primary mt-16" id="btn-assess">
-                    <span>Check my security</span>
-                    <div class="spinner hidden"></div>
-                </button>
-            </div>
-
-            <!-- Quick Check Results -->
-            <div id="check-results" class="result-section hidden">
-                <div class="card">
-                    <div id="verdict-banner" class="verdict-banner">
-                        <div class="verdict-icon" id="verdict-icon">✅</div>
-                        <div class="verdict-content">
-                            <h3 id="verdict-title">You look protected</h3>
-                            <p id="verdict-subtitle">Everything seems to be in order.</p>
-                        </div>
-                    </div>
-
-                    <div class="strength-row">
-                        <div class="strength-labels">
-                            <span>Your password</span>
-                            <span id="strength-label" class="mono">Fair</span>
-                        </div>
-                        <div class="strength-bar">
-                            <div id="strength-fill" class="strength-fill"></div>
-                        </div>
-                        <div id="breach-warning" class="indicator-item mt-12 hidden" style="background: var(--danger-bg); color: var(--danger-text);">
-                            ⚠️ This password has been seen in data breaches — change it now
-                        </div>
-                    </div>
-
-                    <div class="recommendations">
-                        <h4>What you should do</h4>
-                        <div id="check-recs">
-                            <!-- Items populated via JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Tab 2: Ask ARIA -->
-        <section id="tab-aria" class="tab-panel">
-            <div class="card chat-container">
-                <div class="chat-header">
-                    <div class="aria-info">
-                        <div class="aria-avatar">AR</div>
-                        <div>
-                            <div class="aria-name">ARIA</div>
-                            <div class="aria-tag">Awareness & Risk Intelligence Advisor</div>
-                        </div>
-                    </div>
-                    <button class="chat-action-btn" id="btn-clear-chat" title="Clear chat history">Clear chat 🔄</button>
-                </div>
-                
-                <div class="chat-log" id="chat-log">
-                    <div class="msg msg-aria">Hi! I'm ARIA, your expert cybersecurity guide. How can I help you stay safe online today?</div>
-                    <div id="chat-chips" class="chips">
-                        <button class="chip">I think I got phished</button>
-                        <button class="chip">Is my password safe?</button>
-                        <button class="chip">What is two-step login?</button>
-                        <button class="chip">How do I report a scam?</button>
-                        <button class="chip">What is a password manager?</button>
-                    </div>
-                </div>
-
-                <div id="chat-image-preview" class="image-preview hidden">
-                    <img id="chat-preview-img" src="" alt="Selected screenshot preview">
-                    <button type="button" id="btn-clear-image" aria-label="Remove selected screenshot">Remove</button>
-                </div>
-
-                <div class="chat-input-area">
-                    <label class="upload-btn" for="chat-file-input" title="Upload screenshot or image">
-                        Image
-                        <input type="file" id="chat-file-input" accept="image/*" class="hidden">
-                    </label>
-                    <textarea id="chat-input" class="chat-textarea" placeholder="Ask an expert or upload a screenshot..."></textarea>
-                    <button class="send-btn" id="btn-chat-send">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-
-
-        <!-- Tab 4: Breach Checker -->
-        <section id="tab-breach" class="tab-panel">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Has your password been leaked?</h2>
-                    <p>We check against millions of known stolen passwords — your password is never shared with anyone</p>
-                </div>
-                <div class="input-with-icon">
-                    <input type="password" id="breach-password" class="password-input" placeholder="Enter password to check...">
-                    <button type="button" class="toggle-btn" id="toggle-breach-pw">Show</button>
-                </div>
-                <button class="btn-primary mt-16" id="btn-breach">
-                    <span>Check this password</span>
-                    <div class="spinner hidden"></div>
-                </button>
-                <div class="breach-note">
-                    <span style="font-size: 16px;">🔒</span>
-                    <span>Only an anonymous code is sent — your actual password stays on your device</span>
-                </div>
-            </div>
-
-            <!-- Breach Result -->
-            <div id="breach-result" class="result-section hidden">
-                <!-- Populated via JS -->
-            </div>
-        </section>
+    <!-- Context Strip -->
+    <div class="context-strip hidden" id="context-strip">
+      <div>
+        <span>Active Posture Context: </span>
+        <span class="context-strip-badge" id="context-posture-badge"></span>
+      </div>
+      <div>
+        <span>Threat Score: </span>
+        <span class="bold" id="context-score-text">0%</span>
+      </div>
     </div>
 
-    <script>
-        // --- State ---
-        let chatHistory = [];
-        let chatImageData = null;
-        const state = {
-            loading: false
-        };
+    <!-- Navigation Tabs -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="password">Password Analyzer</button>
+      <button class="tab-btn" data-tab="breaches">Breach Database</button>
+      <button class="tab-btn" data-tab="kb">Knowledge Base</button>
+      <button class="tab-btn" data-tab="chat">Ask ARIA</button>
+    </nav>
 
-        // --- Helpers ---
-        const $ = id => document.getElementById(id);
-        const hide = el => el.classList.add('hidden');
-        const show = el => el.classList.remove('hidden');
+    <!-- TAB: Dashboard -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="dashboard-grid">
+        
+        <!-- Left Column: ARIA Avatar & Stats -->
+        <div class="left-col">
+          <div class="avatar-container">
+            <div class="pulse-ring-outer">
+              <div class="pulse-ring level-LOW" id="aria-pulse"></div>
+              <div class="aria-shield-face level-LOW" id="aria-face">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+            </div>
+            <div class="avatar-label">ARIA</div>
+            <div class="avatar-status-sub" id="aria-status-sub">Monitoring threats</div>
 
-        // --- Navigation ---
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                $(`tab-${btn.dataset.tab}`).classList.add('active');
-            });
+            <div class="summary-stat-row">
+              <div class="stat-box">
+                <div class="stat-val" id="stat-rules-evaluated">0</div>
+                <div class="stat-label">Rules Run</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val" id="stat-threat-rating">LOW</div>
+                <div class="stat-label">Threat Verdict</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Threat Intel Ticker -->
+          <div class="ticker-wrap">
+            <div class="ticker-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              Live Threat Intel Feed
+            </div>
+            <div class="ticker-content" id="ticker-container">
+              <div class="ticker-item active">New ransomware campaign targeting weak employee passwords.</div>
+              <div class="ticker-item">MFA bypass techniques detected on commercial public WiFi portals.</div>
+              <div class="ticker-item">Phishing campaign imitating IT support requires multi-factor audit.</div>
+              <div class="ticker-item">Unencrypted credential dumps containing shared workspace details.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Checklists & Evaluation Panel -->
+        <div class="right-col">
+          <div class="card">
+            <div class="card-header">
+              <h2>Phishing Threat Checklist</h2>
+              <p>Select the suspicious indicators observed in the email threat posture.</p>
+            </div>
+
+            <div class="checkbox-grid">
+              <label class="check-item">
+                <input type="checkbox" id="check-requests_credentials">
+                <span>Asks for passwords/sensitive info</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-suspicious_link">
+                <span>Obfuscated or suspicious link</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-urgency">
+                <span>Time pressure or urgency framing</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-spoofed_domain">
+                <span>Spoofed or irregular sender domain</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-unknown_sender">
+                <span>Unknown or unverified sender</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-unexpected_attachment">
+                <span>Unexpected attachment (.exe, .zip)</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-generic_greeting">
+                <span>Generic impersonal greeting</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-too_good_offer">
+                <span>Too-good-to-be-true offer / prize</span>
+              </label>
+            </div>
+
+            <div class="mt-24">
+              <button class="btn-primary" id="btn-evaluate">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                <span>Run Phishing Inference</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sequential Rules Evaluation Visualizer -->
+          <div class="eval-animation-box hidden" id="eval-visualizer">
+            <div class="eval-animation-title">Inference Rule Firing Trace</div>
+            <div id="eval-rules-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Evaluation Results -->
+          <div class="card hidden" id="eval-results-card">
+            <div class="card-header">
+              <h2>Analysis Report</h2>
+              <p>Risk score calculated using baseline rule certainty factors.</p>
+            </div>
+
+            <div class="results-grid">
+              <!-- Gauge -->
+              <div class="circle-score-container">
+                <div class="circular-progress">
+                  <svg>
+                    <circle class="bg-circle" cx="65" cy="65" r="60"/>
+                    <circle class="progress-circle level-LOW" id="results-svg-circle" cx="65" cy="65" r="60"/>
+                  </svg>
+                  <div class="score-text-overlay">
+                    <span class="score-num" id="results-score-num">0%</span>
+                    <span class="score-label">Risk Rating</span>
+                  </div>
+                </div>
+                <div class="verdict-text-label level-LOW" id="results-verdict-text">LOW RISK</div>
+              </div>
+
+              <!-- Fired rules & details -->
+              <div>
+                <div class="fired-rules-container">
+                  <div class="fired-rules-title">Fired Rules Inference Chain</div>
+                  <div id="results-fired-rules-list">
+                    <!-- Fired rules cards -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ARIA Explanation Block -->
+            <div class="aria-verdict-box level-LOW" id="aria-explanation-box">
+              <div class="aria-box-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                ARIA Security Assessment
+              </div>
+              <div class="aria-box-content" id="aria-explanation-text">
+                No evaluation run yet.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Password Analyzer -->
+    <div class="tab-panel" id="tab-password">
+      <div class="card">
+        <div class="card-header">
+          <h2>Password Strength & Entropy Analyzer</h2>
+          <p>Real-time client-side analysis and HIBP breach query with ARIA audit advice.</p>
+        </div>
+
+        <div class="input-with-icon">
+          <input type="password" class="password-input" id="pwd-input" placeholder="Type a security password to verify...">
+          <button class="toggle-btn" id="pwd-toggle">SHOW</button>
+        </div>
+        <div class="entropy-indicator">
+          <span>Length: <span class="bold" id="pwd-length-label">0</span> chars</span>
+          <span>Entropy: <span class="bold" id="pwd-entropy-label">0</span> bits</span>
+        </div>
+
+        <!-- Progress bar visual -->
+        <div class="rule-kb-cf-bar-container mt-12">
+          <div class="rule-kb-cf-bar-fill" id="pwd-strength-bar" style="width: 0%; background-color: var(--red);"></div>
+        </div>
+
+        <div class="pwd-checks-grid">
+          <div class="pwd-check-row">
+            <span>Minimum 8 Characters</span>
+            <span class="pwd-check-status failed" id="pwd-chk-len">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Upper & Lower Case Mixed</span>
+            <span class="pwd-check-status failed" id="pwd-chk-case">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Contains Number / Digit</span>
+            <span class="pwd-check-status failed" id="pwd-chk-digit">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Contains Special Character</span>
+            <span class="pwd-check-status failed" id="pwd-chk-special">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>No Keyboard patterns (qwerty...)</span>
+            <span class="pwd-check-status failed" id="pwd-chk-seq">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>No Consecutive Repeat Characters</span>
+            <span class="pwd-check-status failed" id="pwd-chk-repeat">✕ FAIL</span>
+          </div>
+        </div>
+
+        <div class="mt-24">
+          <button class="btn-primary" id="btn-sync-password-threat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Verify Password with Expert System</span>
+          </button>
+        </div>
+
+        <!-- Password evaluation result -->
+        <div class="card hidden mt-24" id="password-results-card" style="border: 1px solid var(--border); padding: 20px; background: rgba(29, 158, 117, 0.02);">
+          <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 8px;">Expert System Password Verdict</h3>
+          <p style="font-size: 14px; margin-bottom: 12px;">
+            Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span id="pwd-res-score">0</span>/100) | 
+            Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
+          </p>
+          <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
+            <div class="aria-box-header">ARIA Remediation Recommendations</div>
+            <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Breach Database -->
+    <div class="tab-panel" id="tab-breaches">
+      <div class="card">
+        <div class="card-header">
+          <h2>Seeded email Breach Lookup</h2>
+          <p>Query compromise records from the seeded breach catalog database.</p>
+        </div>
+
+        <div class="input-with-icon mb-16" style="display: flex; gap: 10px;">
+          <input type="text" class="email-input" id="breach-email-input" placeholder="Enter target email (e.g. test@example.com, demo@gmail.com)" style="flex: 1;">
+          <button class="btn-primary" id="btn-breach-search" style="width: 140px; padding: 0 16px;">Search</button>
+        </div>
+
+        <div id="breach-results-section" class="hidden">
+          <div class="timeline" id="breach-timeline">
+            <!-- Timeline elements loaded here -->
+          </div>
+          
+          <div class="aria-verdict-box level-HIGH mt-24" id="breach-aria-box">
+            <div class="aria-box-header">ARIA Prioritized Action Plan</div>
+            <div class="aria-box-content" id="breach-aria-text">...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Knowledge Base -->
+    <div class="tab-panel" id="tab-kb">
+      <div class="card">
+        <div class="card-header">
+          <h2>Security Inference Rule Base</h2>
+          <p>Interactive tree detailing active system rules, certainty factors, and reasoning chains.</p>
+        </div>
+
+        <div class="kb-stats-grid">
+          <div class="kb-stat-card">
+            <div class="kb-stat-val">10</div>
+            <div class="kb-stat-label">Total Rules</div>
+          </div>
+          <div class="kb-stat-card">
+            <div class="kb-stat-val">0.25</div>
+            <div class="kb-stat-label">Max Rule CF</div>
+          </div>
+          <div class="kb-stat-card">
+            <div class="kb-stat-val">5</div>
+            <div class="kb-stat-label">Categories</div>
+          </div>
+          <div class="kb-stat-card">
+            <div class="kb-stat-val">Certainty</div>
+            <div class="kb-stat-label">Logic Type</div>
+          </div>
+        </div>
+
+        <div class="rule-tree-container" id="kb-rules-tree">
+          <!-- Rule cards generated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Ask ARIA -->
+    <div class="tab-panel" id="tab-chat">
+      <div class="chat-viewport">
+        <div class="chat-viewport-header">
+          <div class="chat-viewport-title">
+            <div class="chat-avatar-circle">A</div>
+            <div>
+              <div class="bold" style="font-size: 14.5px;">ARIA Security Assistant</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Expert system interface</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-viewport-messages" id="chat-messages-box">
+          <div class="chat-msg aria">
+            <p>Hello! I am ARIA, your Cybersecurity Assistant. I interact directly with the rule engine backend.</p>
+            <p>You can run a threat assessment on the Dashboard, ask me about specific security rules, or request tips to harden your environment.</p>
+          </div>
+        </div>
+
+        <!-- Suggestion chips container -->
+        <div class="chat-chips-container" id="chat-suggestion-chips">
+          <div class="chat-followup-chip" data-query="Explain Rule R01 in details">Explain R01</div>
+          <div class="chat-followup-chip" data-query="How does certainty factor calculation work?">Certainty Factors?</div>
+          <div class="chat-followup-chip" data-query="Give me threat posture advice">Posture Hardening Tips</div>
+          <div class="chat-followup-chip" data-query="What triggers High threat level?">What triggers HIGH threat?</div>
+        </div>
+
+        <div class="chat-viewport-input-area">
+          <textarea class="chat-textarea" id="chat-input-text" placeholder="Type a message or click a suggestion chip..."></textarea>
+          <button class="chat-send-btn" id="chat-send-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // State management
+    const state = {
+      checklist: {
+        requests_credentials: false,
+        suspicious_link: false,
+        urgency: false,
+        spoofed_domain: false,
+        unknown_sender: false,
+        unexpected_attachment: false,
+        generic_greeting: false,
+        too_good_offer: false
+      },
+      evaluation: null, // latest evaluate response
+      chatSession: [] // chat history
+    };
+
+    // Hardcoded rules data for Knowledge Base
+    const KB_RULES = [
+      {
+        id: "R01",
+        name: "Credential harvesting attempt",
+        category: "high_risk",
+        cf: 0.25,
+        antecedents: "indicator: requests_credentials",
+        consequents: "Increases risk level (CF = 0.25)",
+        explanation: "Legitimate services never ask for passwords via email. This is the strongest single phishing indicator."
+      },
+      {
+        id: "R02",
+        name: "Suspicious or obfuscated link",
+        category: "high_risk",
+        cf: 0.20,
+        antecedents: "indicator: suspicious_link",
+        consequents: "Increases risk level (CF = 0.20)",
+        explanation: "Phishing emails use links that disguise the real destination URL."
+      },
+      {
+        id: "R03",
+        name: "Urgency or threat framing",
+        category: "social_engineering",
+        cf: 0.15,
+        antecedents: "indicator: urgency",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Creating time pressure prevents the recipient from thinking critically."
+      },
+      {
+        id: "R04",
+        name: "Spoofed or irregular sender domain",
+        category: "identity",
+        cf: 0.15,
+        antecedents: "indicator: spoofed_domain",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Attackers register lookalike domains or spoof display names to impersonate trusted senders."
+      },
+      {
+        id: "R05",
+        name: "Unknown sender",
+        category: "identity",
+        cf: 0.10,
+        antecedents: "indicator: unknown_sender",
+        consequents: "Increases risk level (CF = 0.10)",
+        explanation: "Unsolicited contact from an unrecognised sender is a baseline phishing signal."
+      },
+      {
+        id: "R06",
+        name: "Unexpected attachment",
+        category: "payload",
+        cf: 0.08,
+        antecedents: "indicator: unexpected_attachment",
+        consequents: "Increases risk level (CF = 0.08)",
+        explanation: "Malicious attachments are a primary malware delivery vector."
+      },
+      {
+        id: "R07",
+        name: "Generic impersonal greeting",
+        category: "social_engineering",
+        cf: 0.04,
+        antecedents: "indicator: generic_greeting",
+        consequents: "Increases risk level (CF = 0.04)",
+        explanation: "Bulk phishing campaigns use generic salutations because they don't know your name."
+      },
+      {
+        id: "R08",
+        name: "Implausible prize or reward",
+        category: "social_engineering",
+        cf: 0.03,
+        antecedents: "indicator: too_good_offer",
+        consequents: "Increases risk level (CF = 0.03)",
+        explanation: "Reward-based lures exploit greed and curiosity to override caution."
+      },
+      {
+        id: "R09",
+        name: "Compound: urgency + unknown sender",
+        category: "compound",
+        cf: 0.10,
+        antecedents: "indicator: urgency AND unknown_sender",
+        consequents: "Increases risk level (CF = 0.10)",
+        explanation: "Urgency framing from an unrecognised source is a textbook social engineering pattern."
+      },
+      {
+        id: "R10",
+        name: "Compound: credential request + spoofed domain",
+        category: "compound",
+        cf: 0.15,
+        antecedents: "indicator: requests_credentials AND spoofed_domain",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Asking for credentials via a lookalike domain is the definitive phishing pattern."
+      }
+    ];
+
+    // Simulated threat intel ticker interval
+    let tickerIndex = 0;
+    setInterval(() => {
+      const items = document.querySelectorAll('.ticker-item');
+      if (items.length > 0) {
+        items[tickerIndex].classList.remove('active');
+        tickerIndex = (tickerIndex + 1) % items.length;
+        items[tickerIndex].classList.add('active');
+      }
+    }, 4500);
+
+    // Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      initTabs();
+      initChecklist();
+      initPasswordAnalyzer();
+      initBreachDatabase();
+      initKnowledgeBase();
+      initChat();
+      
+      // Initial system status display
+      updateGlobalStatus("LOW", 0);
+    });
+
+    // Navigation Tabs Toggle
+    function initTabs() {
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          const tabName = btn.getAttribute('data-tab');
+          document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+          });
+          document.getElementById(`tab-${tabName}`).classList.add('active');
         });
+      });
+    }
 
-        // --- Password Toggles ---
-        const setupPwToggle = (inputId, btnId) => {
-            $(btnId).addEventListener('click', () => {
-                const input = $(inputId);
-                const isPw = input.type === 'password';
-                input.type = isPw ? 'text' : 'password';
-                $(btnId).textContent = isPw ? 'Hide' : 'Show';
-            });
-        };
-        setupPwToggle('check-password', 'toggle-check-pw');
-        setupPwToggle('breach-password', 'toggle-breach-pw');
+    // Sync Checklist state from UI elements
+    function initChecklist() {
+      const checkboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]');
+      checkboxes.forEach(chk => {
+        const fieldName = chk.id.replace('check-', '');
+        chk.addEventListener('change', () => {
+          state.checklist[fieldName] = chk.checked;
+        });
+      });
 
-        // --- API Calls ---
-        async function api(endpoint, body) {
-            const res = await fetch(`/api/${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+      document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+    }
+
+    // Run threat logic on backend
+    async function runThreatEvaluation() {
+      const btn = document.getElementById('btn-evaluate');
+      const visualizer = document.getElementById('eval-visualizer');
+      const resultsCard = document.getElementById('eval-results-card');
+      
+      btn.disabled = true;
+      visualizer.classList.remove('hidden');
+      resultsCard.classList.add('hidden');
+
+      // Populate rules animation list
+      const rulesList = document.getElementById('eval-rules-list');
+      rulesList.innerHTML = '';
+      
+      KB_RULES.forEach(r => {
+        rulesList.innerHTML += `
+          <div class="eval-rule-row">
+            <div>
+              <span class="eval-rule-id">${r.id}</span>
+              <span style="margin-left: 8px;">${r.name}</span>
+            </div>
+            <span class="eval-rule-status eval-status-pending" id="anim-status-${r.id}">PENDING</span>
+          </div>
+        `;
+      });
+
+      // Sequential delay visualization to demonstrate expert engine firing rules
+      for (let i = 0; i < KB_RULES.length; i++) {
+        const rule = KB_RULES[i];
+        const label = document.getElementById(`anim-status-${rule.id}`);
+        label.className = 'eval-rule-status eval-status-testing';
+        label.innerText = 'TESTING...';
+        await new Promise(r => setTimeout(r, 150));
+        label.className = 'eval-rule-status eval-status-skipped';
+        label.innerText = 'PROCESSED';
+      }
+
+      try {
+        const res = await fetch('/api/phishing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ indicators: state.checklist })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          state.evaluation = data;
+          
+          // Mark fired rules in animation list
+          data.fired_rules.forEach(fr => {
+            const label = document.getElementById(`anim-status-${fr.id}`);
+            if (label) {
+              label.className = 'eval-rule-status eval-status-fired';
+              label.innerText = `FIRED (CF = ${fr.cf})`;
+            }
+          });
+
+          // Show Results Panel
+          resultsCard.classList.remove('hidden');
+          
+          const threatLevel = data.risk_level; // LOW, MEDIUM, HIGH
+          const scorePercent = Math.round(data.risk_score * 100);
+          
+          document.getElementById('results-score-num').innerText = `${scorePercent}%`;
+          document.getElementById('results-verdict-text').innerText = `${threatLevel} RISK`;
+          document.getElementById('results-verdict-text').className = `verdict-text-label level-${threatLevel}`;
+          
+          const circle = document.getElementById('results-svg-circle');
+          circle.className = `progress-circle level-${threatLevel}`;
+          const offset = 377 - (377 * scorePercent) / 100;
+          circle.style.strokeDashoffset = offset;
+
+          // Render fired rules list cards
+          const firedList = document.getElementById('results-fired-rules-list');
+          firedList.innerHTML = '';
+          
+          if (data.fired_rules.length === 0) {
+            firedList.innerHTML = `<div style="color: var(--text-secondary); font-size: 13.5px;">No risk-based rules triggered. Safe operating limits verified.</div>`;
+          } else {
+            data.fired_rules.forEach(fr => {
+              const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
+              firedList.innerHTML += `
+                <div class="fired-rule-card">
+                  <div class="fired-rule-header">
+                    <span class="rule-id-badge">${fr.id}</span>
+                    <span class="rule-cf-mono">CF = ${fr.cf}</span>
+                  </div>
+                  <div class="fired-rule-name">${fr.name}</div>
+                  <div class="fired-rule-desc mt-8">${ruleMeta.explanation || fr.explanation || ''}</div>
+                </div>
+              `;
             });
-            return res.json();
+          }
+
+          // Render ARIA explanation box
+          const explainBox = document.getElementById('aria-explanation-box');
+          explainBox.className = `aria-verdict-box level-${threatLevel}`;
+          document.getElementById('aria-explanation-text').innerHTML = formatMarkdown(data.aria_explanation);
+
+          // Update Dashboard sidebar stats
+          document.getElementById('stat-rules-evaluated').innerText = data.fired_rules.length;
+          document.getElementById('stat-threat-rating').innerText = threatLevel;
+          
+          updateGlobalStatus(threatLevel, scorePercent);
+          highlightKBFiredRules(data.fired_rules);
+        } else {
+          alert("Error executing logic server: " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network/server failure while contacting expert system engine.");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Update status dot and header badge classes
+    function updateGlobalStatus(level, score) {
+      const dot = document.getElementById('system-status-dot');
+      const text = document.getElementById('system-status-text');
+      const ariaFace = document.getElementById('aria-face');
+      const ariaPulse = document.getElementById('aria-pulse');
+      const ariaStatusSub = document.getElementById('aria-status-sub');
+      const contextStrip = document.getElementById('context-strip');
+      const contextBadge = document.getElementById('context-posture-badge');
+      const contextScore = document.getElementById('context-score-text');
+
+      dot.className = `dot state-${level}`;
+      text.innerText = `Threat Level: ${level}`;
+
+      ariaFace.className = `aria-shield-face level-${level}`;
+      ariaPulse.className = `pulse-ring level-${level}`;
+      
+      if (level === 'LOW') {
+        ariaStatusSub.innerText = "System secure. No issues.";
+      } else if (level === 'MEDIUM') {
+        ariaStatusSub.innerText = "Vulnerabilities detected. Harden posture.";
+      } else {
+        ariaStatusSub.innerText = "WARNING: Critical compromise threats!";
+      }
+
+      if (score > 0) {
+        contextStrip.classList.remove('hidden');
+        contextBadge.innerText = level;
+        contextBadge.style.backgroundColor = level === 'LOW' ? 'rgba(29,158,117,0.2)' : (level === 'MEDIUM' ? 'rgba(239,159,39,0.2)' : 'rgba(226,75,74,0.2)');
+        contextBadge.style.color = level === 'LOW' ? 'var(--teal)' : (level === 'MEDIUM' ? 'var(--amber)' : 'var(--red)');
+        contextScore.innerText = `${score}%`;
+      } else {
+        contextStrip.classList.add('hidden');
+      }
+    }
+
+    // Password Analyzer Tab Client-Side Checks
+    function initPasswordAnalyzer() {
+      const input = document.getElementById('pwd-input');
+      const toggle = document.getElementById('pwd-toggle');
+      const verifyBtn = document.getElementById('btn-sync-password-threat');
+      const resultsCard = document.getElementById('password-results-card');
+
+      toggle.addEventListener('click', () => {
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.innerText = 'HIDE';
+        } else {
+          input.type = 'password';
+          toggle.innerText = 'SHOW';
+        }
+      });
+
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.getElementById('pwd-length-label').innerText = val.length;
+        
+        // criteria evaluations
+        const cLen = val.length >= 8;
+        const cCase = /[a-z]/.test(val) && /[A-Z]/.test(val);
+        const cDigit = /[0-9]/.test(val);
+        const cSpecial = /[^A-Za-z0-9]/.test(val);
+        
+        // sequence check (qwerty, asdf, etc.)
+        let cSeq = true;
+        const sequences = ["qwerty", "asdf", "zxcv", "12345", "09876"];
+        sequences.forEach(s => {
+          if (val.toLowerCase().includes(s)) cSeq = false;
+        });
+        
+        // repeat check
+        let cRepeat = true;
+        for (let i = 0; i < val.length - 2; i++) {
+          if (val[i] === val[i+1] && val[i] === val[i+2]) {
+            cRepeat = false;
+            break;
+          }
         }
 
-        // --- Tab 1: Quick Check ---
-        $('btn-assess').addEventListener('click', async () => {
-            const btn = $('btn-assess');
-            const spinner = btn.querySelector('.spinner');
-            const indicators = {
-                unknown_sender: $('check-sender').checked,
-                urgency: $('check-urgency').checked,
-                suspicious_link: $('check-link').checked,
-                requests_credentials: $('check-creds').checked,
-                unexpected_attachment: $('check-attach').checked,
-                spoofed_domain: $('check-odd').checked,
-                generic_greeting: $('check-generic').checked,
-                too_good_offer: $('check-offer').checked
-            };
-            const password = $('check-password').value;
+        // update UI rows
+        updateCheckRow('pwd-chk-len', cLen);
+        updateCheckRow('pwd-chk-case', cCase);
+        updateCheckRow('pwd-chk-digit', cDigit);
+        updateCheckRow('pwd-chk-special', cSpecial);
+        updateCheckRow('pwd-chk-seq', cSeq && val.length > 0);
+        updateCheckRow('pwd-chk-repeat', cRepeat && val.length > 0);
 
-            btn.disabled = true;
-            show(spinner);
+        // Entropy calculation
+        let charsetSize = 0;
+        if (/[a-z]/.test(val)) charsetSize += 26;
+        if (/[A-Z]/.test(val)) charsetSize += 26;
+        if (/[0-9]/.test(val)) charsetSize += 10;
+        if (/[!@#$%^&*(),.?\":{}|<>]/.test(val)) charsetSize += 32;
 
-            try {
-                const data = await api('assess', { indicators, password });
-                renderAssessResults(data);
-            } finally {
-                btn.disabled = false;
-                hide(spinner);
-            }
-        });
+        let entropy = 0;
+        if (val.length > 0 && charsetSize > 0) {
+          entropy = Math.round(val.length * Math.log2(charsetSize));
+        }
+        document.getElementById('pwd-entropy-label').innerText = entropy;
 
-        function renderAssessResults(data) {
-            const banner = $('verdict-banner');
-            const title = $('verdict-title');
-            const subtitle = $('verdict-subtitle');
-            const icon = $('verdict-icon');
+        // Strength progress indicator
+        const strengthBar = document.getElementById('pwd-strength-bar');
+        let strengthPct = 0;
+        if (val.length > 0) {
+          const passedCount = [cLen, cCase, cDigit, cSpecial, cSeq, cRepeat].filter(Boolean).length;
+          strengthPct = (passedCount / 6) * 100;
+        }
+        
+        strengthBar.style.width = `${strengthPct}%`;
+        if (strengthPct < 40) {
+          strengthBar.style.backgroundColor = 'var(--red)';
+        } else if (strengthPct < 80) {
+          strengthBar.style.backgroundColor = 'var(--amber)';
+        } else {
+          strengthBar.style.backgroundColor = 'var(--teal)';
+        }
+      });
 
-            banner.className = 'verdict-banner';
-            if (data.overall.overall_status === 'Great') {
-                banner.classList.add('level-great');
-                title.textContent = 'You look protected';
-                subtitle.textContent = 'Everything seems to be in order.';
-                icon.textContent = '✅';
-            } else if (data.overall.overall_status === 'Fair') {
-                banner.classList.add('level-fair');
-                title.textContent = 'A few things to watch';
-                subtitle.textContent = 'Some settings could be improved.';
-                icon.textContent = '⚠️';
-            } else {
-                banner.classList.add('level-needs-work');
-                title.textContent = 'Action needed';
-                subtitle.textContent = 'We found some security risks.';
-                icon.textContent = '🚨';
-            }
+      // Verify with backend Password API
+      verifyBtn.addEventListener('click', async () => {
+        const val = input.value.trim();
+        if (!val) {
+          alert("Please type a password first.");
+          return;
+        }
 
-            // Strength Bar
-            const fill = $('strength-fill');
-            const label = $('strength-label');
-            const score = data.password.score;
-            fill.style.width = `${score}%`;
-            label.textContent = data.password.strength_label;
+        verifyBtn.disabled = true;
+        try {
+          const res = await fetch('/api/password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: val })
+          });
+          const data = await res.json();
+          
+          if (res.ok) {
+            resultsCard.classList.remove('hidden');
             
-            if (score >= 80) fill.className = 'strength-fill bg-safe';
-            else if (score >= 40) fill.className = 'strength-fill bg-warn';
-            else fill.className = 'strength-fill bg-danger';
+            document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
+            document.getElementById('pwd-res-score').innerText = data.password.score;
+            document.getElementById('pwd-res-crack').innerText = data.password.crack_time;
 
-            // HIBP Warning
-            if (data.hibp.breached) show($('breach-warning'));
-            else hide($('breach-warning'));
-
-            // Recs
-            const recsWrap = $('check-recs');
-            recsWrap.innerHTML = '';
-            data.phishing.recommendations.forEach(r => {
-                const item = document.createElement('div');
-                item.className = 'rec-item';
-                item.innerHTML = `<span class="rec-icon">💜</span><span>${r}</span>`;
-                recsWrap.appendChild(item);
-            });
-
-            show($('check-results'));
-            $('check-results').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // --- Tab 2: Ask ARIA ---
-        const chatLog = $('chat-log');
-        const chatInput = $('chat-input');
-        const btnSend = $('btn-chat-send');
-        const defaultChatChips = [
-            'I think I got phished',
-            'Is my password safe?',
-            'What is two-step login?',
-            'How do I report a scam?',
-            'What is a password manager?'
-        ];
-
-        $('chat-file-input').addEventListener('change', event => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                const result = reader.result;
-                chatImageData = {
-                    mime_type: file.type,
-                    data: result.split(',')[1]
-                };
-                $('chat-preview-img').src = result;
-                show($('chat-image-preview'));
-            };
-            reader.readAsDataURL(file);
-        });
-
-        $('btn-clear-image').addEventListener('click', () => {
-            chatImageData = null;
-            $('chat-file-input').value = '';
-            $('chat-preview-img').src = '';
-            hide($('chat-image-preview'));
-        });
-
-        function formatAriaReply(text) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'msg-content';
-
-            const normalized = (text || '').replace(/\r\n/g, '\n').trim();
-            if (!normalized) return wrapper;
-
-            const lines = normalized
-                .split('\n')
-                .map(l => l.trim())
-                .filter(Boolean);
-
-            const hasList = lines.some(l => /^(\d+[\.\)]\s+|[-*]\s+)/.test(l));
-
-            if (hasList) {
-                let currentList = null;
-                lines.forEach(line => {
-                    if (/^\d+[\.\)]\s+/.test(line)) {
-                        if (!currentList || currentList.tagName !== 'OL') {
-                            currentList = document.createElement('ol');
-                            wrapper.appendChild(currentList);
-                        }
-                        const item = document.createElement('li');
-                        item.textContent = line.replace(/^\d+[\.\)]\s+/, '');
-                        currentList.appendChild(item);
-                    } else if (/^[-*]\s+/.test(line)) {
-                        if (!currentList || currentList.tagName !== 'UL') {
-                            currentList = document.createElement('ul');
-                            wrapper.appendChild(currentList);
-                        }
-                        const item = document.createElement('li');
-                        item.textContent = line.replace(/^[-*]\s+/, '');
-                        currentList.appendChild(item);
-                    } else {
-                        currentList = null;
-                        const p = document.createElement('p');
-                        p.textContent = line;
-                        wrapper.appendChild(p);
-                    }
-                });
+            // Highlight color based on score
+            const ratingEl = document.getElementById('pwd-res-rating');
+            if (data.password.score < 40) {
+              ratingEl.style.color = 'var(--red)';
+            } else if (data.password.score < 85) {
+              ratingEl.style.color = 'var(--amber)';
             } else {
-                const chunks = normalized.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean);
-                chunks.forEach(chunk => {
-                    const p = document.createElement('p');
-                    p.textContent = chunk;
-                    wrapper.appendChild(p);
-                });
+              ratingEl.style.color = 'var(--teal)';
             }
 
-            return wrapper;
-        }
-
-        function bindChipClickListeners(container) {
-            container.querySelectorAll('.chip').forEach(chip => {
-                chip.addEventListener('click', () => sendChat(chip.textContent));
-            });
-        }
-
-        function updateFollowUpChips(followUps) {
-            const chips = $('chat-chips');
-            chips.innerHTML = '';
-
-            const questions = Array.isArray(followUps) && followUps.length ? followUps : defaultChatChips;
-            questions.slice(0, 5).forEach(text => {
-                const chip = document.createElement('button');
-                chip.className = 'chip';
-                chip.textContent = text;
-                chips.appendChild(chip);
-            });
-
-            bindChipClickListeners(chips);
-            chatLog.appendChild(chips);
-            show(chips);
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
-
-        async function sendChat(msg) {
-            msg = msg.trim();
-            if (!msg && !chatImageData) return;
-
-            const currentImage = chatImageData;
-            chatImageData = null;
-            $('chat-file-input').value = '';
-            hide($('chat-image-preview'));
-            $('chat-preview-img').src = '';
-
-            // User msg
-            const userMsg = document.createElement('div');
-            userMsg.className = 'msg msg-user';
-            if (currentImage) {
-                const image = document.createElement('img');
-                image.src = `data:${currentImage.mime_type};base64,${currentImage.data}`;
-                image.alt = 'Uploaded screenshot';
-                image.className = 'chat-uploaded-image';
-                userMsg.appendChild(image);
+            // HIBP context in remediation
+            let remediationHTML = formatMarkdown(data.aria_explanation);
+            if (data.hibp.breached) {
+              remediationHTML = `<div style="color: var(--red); font-weight: bold; margin-bottom: 8px;">
+                ⚠️ CRITICAL COMPROMISE WARNING: This password was discovered in ${data.hibp.breach_count.toLocaleString()} known corporate data breaches!
+              </div>` + remediationHTML;
+            } else {
+              remediationHTML = `<div style="color: var(--teal); font-weight: bold; margin-bottom: 8px;">
+                ✓ Safe Check: This password was not found in the public database of leaked accounts.
+              </div>` + remediationHTML;
             }
-            if (msg) {
-                userMsg.appendChild(document.createTextNode(msg));
-            }
-            chatLog.appendChild(userMsg);
-            chatLog.scrollTop = chatLog.scrollHeight;
-            const chips = $('chat-chips');
-            hide(chips);
 
-            // Typing indicator
-            const typing = document.createElement('div');
-            typing.className = 'msg msg-aria typing';
-            typing.innerHTML = '<span></span><span></span><span></span>';
-            chatLog.appendChild(typing);
-            chatLog.scrollTop = chatLog.scrollHeight;
-
-            chatInput.value = '';
-            btnSend.disabled = true;
-
-            try {
-                const data = await api('chat', { message: msg || 'Please review this screenshot and explain anything suspicious in plain English.', history: chatHistory, image: currentImage });
-                chatLog.removeChild(typing);
-                
-                const ariaMsg = document.createElement('div');
-                ariaMsg.className = 'msg msg-aria';
-                ariaMsg.appendChild(formatAriaReply(data.reply));
-                chatLog.appendChild(ariaMsg);
-                chatHistory = data.history;
-                updateFollowUpChips(data.follow_ups);
-                chatLog.scrollTop = chatLog.scrollHeight;
-            } catch (err) {
-                chatLog.removeChild(typing);
-                const errMsg = document.createElement('div');
-                errMsg.className = 'msg msg-aria';
-                errMsg.textContent = "I'm having trouble connecting right now. Please try again.";
-                chatLog.appendChild(errMsg);
-            } finally {
-                btnSend.disabled = false;
-            }
-        }
-
-        btnSend.addEventListener('click', () => sendChat(chatInput.value));
-        chatInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendChat(chatInput.value);
-            }
-        });
-
-        bindChipClickListeners($('chat-chips'));
-
-        $('btn-clear-chat').addEventListener('click', () => {
-            chatLog.innerHTML = '<div class="msg msg-aria">Chat cleared. Ask an expert anytime.</div>';
-            chatHistory = [];
-            const chips = document.createElement('div');
-            chips.id = 'chat-chips';
-            chips.className = 'chips';
-            chatLog.appendChild(chips);
-            updateFollowUpChips(defaultChatChips);
-        });
-
-
-
-        // --- Tab 4: Breach Checker ---
-        $('btn-breach').addEventListener('click', async () => {
-            const btn = $('btn-breach');
-            const spinner = btn.querySelector('.spinner');
-            const password = $('breach-password').value;
-
-            if (!password) return;
-
-            btn.disabled = true;
-            show(spinner);
-
-            try {
-                const data = await api('breach', { password });
-                renderBreach(data);
-            } finally {
-                btn.disabled = false;
-                hide(spinner);
-            }
-        });
-
-        function renderBreach(data) {
-            const wrap = $('breach-result');
-            wrap.innerHTML = '';
+            document.getElementById('pwd-aria-explanation-text').innerHTML = remediationHTML;
             
-            const card = document.createElement('div');
-            if (data.breached) {
-                card.className = 'breach-result-card danger';
-                card.innerHTML = `
-                    <div class="brc-icon">🚨</div>
-                    <h3>This password has been leaked!</h3>
-                    <p>It appeared in over <strong>${data.breach_count.toLocaleString()}</strong> data breaches. Anyone could use it to access your accounts. Change this password immediately on every website where you use it.</p>
-                `;
-            } else {
-                card.className = 'breach-result-card safe';
-                card.innerHTML = `
-                    <div class="brc-icon">🛡️</div>
-                    <h3>This password hasn't been leaked</h3>
-                    <p>Great news — we didn't find this password in any known data breaches. Make sure you're not using it on multiple sites.</p>
-                `;
-            }
-            wrap.appendChild(card);
-            show(wrap);
-            wrap.scrollIntoView({ behavior: 'smooth' });
+            // Sync status to main dashboard (if weak password score is < 60)
+            const isWeak = data.password.score < 60;
+            state.checklist.requests_credentials = isWeak; // as an indicator or sync
+            document.getElementById('check-requests_credentials').checked = isWeak;
+          } else {
+            alert("Error: " + data.error);
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Failed to communicate with password evaluation engine.");
+        } finally {
+          verifyBtn.disabled = false;
         }
-    </script>
+      });
+    }
+
+    function updateCheckRow(id, passed) {
+      const el = document.getElementById(id);
+      if (passed) {
+        el.className = 'pwd-check-status passed';
+        el.innerText = '✓ PASS';
+      } else {
+        el.className = 'pwd-check-status failed';
+        el.innerText = '✕ FAIL';
+      }
+    }
+
+    // Seeded Breach Database Lookup Tab
+    function initBreachDatabase() {
+      const btn = document.getElementById('btn-breach-search');
+      const input = document.getElementById('breach-email-input');
+      const timeline = document.getElementById('breach-timeline');
+      const resultsSection = document.getElementById('breach-results-section');
+      const ariaBox = document.getElementById('breach-aria-box');
+      const ariaText = document.getElementById('breach-aria-text');
+
+      btn.addEventListener('click', async () => {
+        const email = input.value.trim();
+        if (!email) {
+          alert("Please enter an email address.");
+          return;
+        }
+
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/breach-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          });
+          const data = await res.json();
+          
+          if (res.ok) {
+            resultsSection.classList.remove('hidden');
+            timeline.innerHTML = '';
+            
+            if (!data.breached) {
+              timeline.innerHTML = `<div style="padding: 16px; color: var(--text-secondary); text-align: center;">
+                ✓ Safe: 0 matching records found for ${email} in our current threat databases.
+              </div>`;
+              ariaBox.className = "aria-verdict-box level-LOW mt-24";
+            } else {
+              ariaBox.className = "aria-verdict-box level-HIGH mt-24";
+              data.breaches.forEach(b => {
+                const chips = b.data_types.map(t => `<span class="timeline-chip">${t}</span>`).join('');
+                timeline.innerHTML += `
+                  <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-header">
+                      <span class="timeline-service">${b.service}</span>
+                      <div>
+                        <span class="timeline-year">${b.year}</span>
+                        <span class="severity-badge ${b.severity}">${b.severity} IMPACT</span>
+                      </div>
+                    </div>
+                    <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 4px;">
+                      Estimated compromised records: ${b.records.toLocaleString()} profiles.
+                    </div>
+                    <div class="timeline-data-chips">${chips}</div>
+                  </div>
+                `;
+              });
+            }
+
+            ariaText.innerHTML = formatMarkdown(data.aria_explanation);
+          } else {
+            alert("Error querying breach system.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Failed to communicate with breach database.");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    // Knowledge Base Rule Tree
+    function initKnowledgeBase() {
+      const container = document.getElementById('kb-rules-tree');
+      container.innerHTML = '';
+
+      KB_RULES.forEach(r => {
+        container.innerHTML += `
+          <div class="rule-kb-card" id="kb-card-${r.id}" onclick="toggleRuleDrawer('${r.id}')">
+            <div class="rule-kb-header">
+              <div class="bold" style="font-size: 15px; color: var(--text-primary);">${r.id} : ${r.name}</div>
+              <span class="rule-category-badge">${r.category}</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+              ${r.explanation.substring(0, 75)}...
+            </div>
+            <div class="rule-kb-cf-bar-container">
+              <div class="rule-kb-cf-bar-fill" style="width: ${r.cf * 100}%;"></div>
+            </div>
+            <div class="rule-details-drawer hidden" id="kb-drawer-${r.id}">
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">IF (Antecedent Indicators)</div>
+                <div class="mono" style="color: var(--amber);">${r.antecedents}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">THEN (Consequent CF Increase)</div>
+                <div class="mono" style="color: var(--teal);">${r.consequents}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">Rule CF Weight</div>
+                <div class="bold mono">${r.cf}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">Expert Domain Reason</div>
+                <div>${r.explanation}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.toggleRuleDrawer = function(ruleId) {
+      const drawer = document.getElementById(`kb-drawer-${ruleId}`);
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+      }
+    };
+
+    function highlightKBFiredRules(firedRules) {
+      document.querySelectorAll('.rule-kb-card').forEach(card => {
+        card.classList.remove('fired-highlight');
+      });
+
+      firedRules.forEach(fr => {
+        const card = document.getElementById(`kb-card-${fr.id}`);
+        if (card) {
+          card.classList.add('fired-highlight');
+        }
+      });
+    }
+
+    // Conversational Ask ARIA implementation
+    function initChat() {
+      const sendBtn = document.getElementById('chat-send-btn');
+      const input = document.getElementById('chat-input-text');
+      const box = document.getElementById('chat-messages-box');
+      
+      const chips = document.querySelectorAll('.chat-followup-chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const query = chip.getAttribute('data-query');
+          input.value = query;
+          submitChatMessage();
+        });
+      });
+
+      sendBtn.addEventListener('click', submitChatMessage);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          submitChatMessage();
+        }
+      });
+
+      async function submitChatMessage() {
+        const query = input.value.trim();
+        if (!query) return;
+
+        appendMessage('user', query);
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+
+        const typingId = appendTypingIndicator();
+        box.scrollTop = box.scrollHeight;
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: query,
+              history: state.chatSession
+            })
+          });
+          const data = await res.json();
+          
+          document.getElementById(typingId).remove();
+
+          if (res.ok) {
+            appendMessage('aria', data.reply);
+            
+            // update history state locally
+            state.chatSession.push({ role: 'user', content: query });
+            state.chatSession.push({ role: 'assistant', content: data.reply });
+
+            if (data.follow_ups && data.follow_ups.length > 0) {
+              renderSuggestionChips(data.follow_ups);
+            }
+          } else {
+            appendMessage('aria', "Apologies, I encountered an operational breakdown in my expert communication link: " + data.message);
+          }
+        } catch (err) {
+          document.getElementById(typingId).remove();
+          appendMessage('aria', "Error: Critical timeout contacting ARIA interface server.");
+        } finally {
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+
+      function appendMessage(sender, text) {
+        const msg = document.createElement('div');
+        msg.className = `chat-msg ${sender}`;
+        msg.innerHTML = formatMarkdown(text);
+        box.appendChild(msg);
+      }
+
+      function appendTypingIndicator() {
+        const id = 'typing-' + Math.random().toString(36).substr(2, 9);
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg aria';
+        msg.id = id;
+        msg.innerHTML = `
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        `;
+        box.appendChild(msg);
+        return id;
+      }
+
+      function renderSuggestionChips(chipsList) {
+        const container = document.getElementById('chat-suggestion-chips');
+        container.innerHTML = '';
+        chipsList.forEach(c => {
+          const chip = document.createElement('div');
+          chip.className = 'chat-followup-chip';
+          chip.setAttribute('data-query', c);
+          chip.innerText = c.length > 30 ? c.substring(0, 27) + '...' : c;
+          chip.addEventListener('click', () => {
+            input.value = c;
+            submitChatMessage();
+          });
+          container.appendChild(chip);
+        });
+      }
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return '';
+      let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+      html = html.replace(/<\/ul>\s*<ul>/g, '');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+  </script>
 </body>
 </html>

@@ -1,14 +1,13 @@
 """
-CyberGuard — FastAPI Application Entry Point
-Updated to use Gemini and FastAPI with the new Hybrid Expert System logic.
+CyberGuard — FastAPI Entry Point (v3.1)
+Uses SessionMiddleware for serverless-safe session storage.
 """
 
 import os
 import sys
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
-# Ensure the api directory is in sys.path for importing logic.py
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
@@ -17,116 +16,278 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 import uvicorn
 
 try:
-    from .logic import (
-        ARIAEngine,
-        FuzzyRiskEngine,
-        HIBPExpert,
-        PasswordExpert,
-        PhishingExpert,
-    )
+    from .logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
 except ImportError:
-    from logic import (
-        ARIAEngine,
-        FuzzyRiskEngine,
-        HIBPExpert,
-        PasswordExpert,
-        PhishingExpert,
-    )
-
-# ---------------------------------------------------------------------------
-# Bootstrap
-# ---------------------------------------------------------------------------
+    from logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
 
 load_dotenv(BASE_DIR.parent / ".env")
 
-# ---------------------------------------------------------------------------
-# App Initialization
-# ---------------------------------------------------------------------------
+app = FastAPI(title="CyberGuard", version="3.1.0")
 
-app = FastAPI(title="CyberGuard", version="2.1.0")
+# Mount static folder
+app.mount("/static", StaticFiles(directory=str(BASE_DIR.parent / "public" / "static")), name="static")
+
+# SessionMiddleware uses secure cookies to store session data across serverless calls
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET_KEY", "cyberguard-expert-system-secret-18239"),
+    max_age=3600
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:8000", "*"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Static files are served directly by Vercel's CDN from the public/ directory.
-# Do NOT mount StaticFiles here — the directory doesn't exist in the serverless /var/task/ sandbox.
 
 @app.get("/", response_class=FileResponse)
 async def serve_index():
-    index_path = BASE_DIR.parent / "templates" / "index.html"
-    return FileResponse(str(index_path))
+    return FileResponse(str(BASE_DIR.parent / "templates" / "index.html"))
+
 
 # ---------------------------------------------------------------------------
-# Request / Response models
+# Request models
 # ---------------------------------------------------------------------------
 
-class AssessRequest(BaseModel):
+class PhishingRequest(BaseModel):
     indicators: Dict[str, bool] = {}
+
+class PasswordRequest(BaseModel):
     password: str = ""
+
+class PostureRequest(BaseModel):
+    phishing_score: float = 0.0
+    password_score: float = 50.0
 
 class ChatRequest(BaseModel):
     message: str
     history: List[Dict[str, str]] = []
-    image: Dict[str, str] = None
+    image: Optional[Dict[str, str]] = None
 
-class BreachRequest(BaseModel):
-    password: str
 
 # ---------------------------------------------------------------------------
-# API Routes
+# /api/rules — Knowledge Base
+# ---------------------------------------------------------------------------
+
+@app.get("/api/rules")
+async def get_rules():
+    return JSONResponse({"rules": PHISHING_RULES, "total": len(PHISHING_RULES)})
+
+
+# ---------------------------------------------------------------------------
+# /api/phishing — Phishing detector
+# ---------------------------------------------------------------------------
+
+@app.post("/api/phishing")
+async def run_phishing(req: PhishingRequest, request: Request):
+    expert = PhishingExpert(req.indicators)
+    verdict = expert.evaluate()
+
+    # Store in session
+    request.session["phishing_verdict"] = verdict
+    
+    # Track statistics in session
+    analyses = request.session.get("analyses_run", 0) + 1
+    request.session["analyses_run"] = analyses
+    
+    fired_ids = [r["id"] for r in verdict["fired_rules"]]
+    all_fired = request.session.get("all_fired_rules", [])
+    for f_id in fired_ids:
+        if f_id not in all_fired:
+            all_fired.append(f_id)
+    request.session["all_fired_rules"] = all_fired
+
+    highest = request.session.get("highest_threat", "LOW")
+    threat_ranks = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+    if threat_ranks.get(verdict["risk_level"], 1) > threat_ranks.get(highest, 1):
+        request.session["highest_threat"] = verdict["risk_level"]
+
+    # Re-evaluate posture if we have password verdict
+    pwd_verdict = request.session.get("password_verdict")
+    if pwd_verdict:
+        posture_engine = FuzzyRiskEngine(verdict["risk_score"], pwd_verdict["score"])
+        request.session["posture"] = posture_engine.evaluate()
+
+    # Generate ARIA verdict
+    aria = ARIAEngine()
+    fired_str = ", ".join(f_id for f_id in fired_ids) or "none"
+    if verdict["risk_score"] < 0.1:
+        aria_prompt = (
+            "The phishing analysis found no significant indicators. "
+            "Tell the user in 2 sentences that no strong phishing signals were detected, "
+            "and remind them to stay vigilant."
+        )
+    else:
+        aria_prompt = (
+            f"The inference engine fired rules {fired_str} with a total confidence of "
+            f"{verdict['risk_score']} (risk level: {verdict['risk_level']}). "
+            f"Explain this to a non-technical user in 3–4 sentences, citing the rule IDs. "
+            f"Do not invent reasoning beyond these rules."
+        )
+
+    aria_result = aria.ask(aria_prompt, session_context=request.session)
+    verdict["aria_explanation"] = aria_result["reply"]
+    verdict["follow_ups"] = aria_result["follow_ups"]
+    
+    # Save back updated session info
+    request.session["phishing_verdict"] = verdict
+    return JSONResponse(verdict)
+
+
+# ---------------------------------------------------------------------------
+# /api/password — Password analyser
+# ---------------------------------------------------------------------------
+
+@app.post("/api/password")
+async def run_password(req: PasswordRequest, request: Request):
+    if not req.password:
+        return JSONResponse({"error": "No password provided"}, status_code=400)
+
+    pwd_expert = PasswordExpert(req.password)
+    pwd_verdict = pwd_expert.evaluate()
+
+    hibp_expert = HIBPExpert(req.password)
+    hibp_result = hibp_expert.check()
+
+    # Store in session
+    request.session["password_verdict"] = pwd_verdict
+    request.session["hibp_result"] = hibp_result
+
+    analyses = request.session.get("analyses_run", 0) + 1
+    request.session["analyses_run"] = analyses
+
+    # Re-evaluate posture if we have phishing verdict
+    phish_verdict = request.session.get("phishing_verdict")
+    if phish_verdict:
+        posture_engine = FuzzyRiskEngine(phish_verdict["risk_score"], pwd_verdict["score"])
+        request.session["posture"] = posture_engine.evaluate()
+    else:
+        # Default fallback posture evaluation with 0 phishing risk
+        posture_engine = FuzzyRiskEngine(0.0, pwd_verdict["score"])
+        request.session["posture"] = posture_engine.evaluate()
+
+    aria = ARIAEngine()
+    aria_prompt = (
+        f"Password analysis complete. Strength: {pwd_verdict['strength_label']} "
+        f"({pwd_verdict['score']}/100), entropy: {pwd_verdict['entropy_bits']} bits, "
+        f"estimated crack time: {pwd_verdict['crack_time']}. "
+        + (f"BREACH: found in {hibp_result['breach_count']:,} known data breaches. " if hibp_result.get("breached") else "Not found in known breach databases. ")
+        + f"Issues identified: {', '.join(pwd_verdict['feedback'])}. "
+        f"Give 2–3 specific improvement recommendations referencing the check IDs where relevant."
+    )
+    aria_result = aria.ask(aria_prompt, session_context=request.session)
+
+    return JSONResponse({
+        "password": pwd_verdict,
+        "hibp": hibp_result,
+        "aria_explanation": aria_result["reply"],
+        "follow_ups": aria_result["follow_ups"],
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/posture — Fuzzy overall posture
+# ---------------------------------------------------------------------------
+
+@app.post("/api/posture")
+async def run_posture(req: PostureRequest, request: Request):
+    engine = FuzzyRiskEngine(req.phishing_score, req.password_score)
+    result = engine.evaluate()
+    request.session["posture"] = result
+    return JSONResponse(result)
+
+
+# ---------------------------------------------------------------------------
+# /api/session-summary — Dashboard statistics
+# ---------------------------------------------------------------------------
+
+@app.get("/api/session-summary")
+async def session_summary(request: Request):
+    """Returns aggregated session statistics for the dashboard view."""
+    return JSONResponse({
+        "analyses_run": request.session.get("analyses_run", 0),
+        "highest_threat": request.session.get("highest_threat", "LOW"),
+        "all_fired_rules": request.session.get("all_fired_rules", []),
+        "posture": request.session.get("posture", None)
+    })
+
+
+# ---------------------------------------------------------------------------
+# /api/chat — Full chat page
+# ---------------------------------------------------------------------------
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest, request: Request):
+    aria = ARIAEngine(history=req.history)
+    result = aria.ask(req.message, session_context=request.session, image=req.image)
+    return JSONResponse(result)
+
+
+# ---------------------------------------------------------------------------
+# /api/breach-email — Seeded email breach lookup
+# ---------------------------------------------------------------------------
+
+BREACH_SEED = {
+    "test@example.com": [
+        {"service": "LinkedIn", "year": 2021, "data_types": ["Email", "Password (hashed)", "Username"], "severity": "HIGH", "records": 700000000},
+        {"service": "Adobe", "year": 2013, "data_types": ["Email", "Password (encrypted)", "Username", "Credit card hint"], "severity": "MEDIUM", "records": 153000000},
+        {"service": "Canva", "year": 2019, "data_types": ["Email", "Name", "Username", "Password (hashed)"], "severity": "MEDIUM", "records": 137272116},
+    ],
+    "demo@gmail.com": [
+        {"service": "Dropbox", "year": 2012, "data_types": ["Email", "Password (hashed)"], "severity": "HIGH", "records": 68648009},
+        {"service": "Wattpad", "year": 2020, "data_types": ["Email", "Username", "Password", "IP Address", "Date of birth"], "severity": "HIGH", "records": 270000000},
+    ]
+}
+
+class BreachEmailRequest(BaseModel):
+    email: str = ""
+
+@app.post("/api/breach-email")
+async def breach_email(req: BreachEmailRequest):
+    email = req.email.strip().lower()
+    breaches = BREACH_SEED.get(email, [])
+
+    if not breaches:
+        aria = ARIAEngine()
+        aria_result = aria.ask(
+            f"The email {email} was not found in any known breach databases. "
+            f"Tell the user in 2 sentences that no breaches were found, and give one proactive tip."
+        )
+        return JSONResponse({"email": email, "breached": False, "breaches": [], "aria_explanation": aria_result["reply"]})
+
+    aria = ARIAEngine()
+    breach_summary = "; ".join(f"{b['service']} ({b['year']}, {', '.join(b['data_types'])})" for b in breaches)
+    aria_result = aria.ask(
+        f"Breach lookup for email {email} found {len(breaches)} breach(es): {breach_summary}. "
+        f"Generate a prioritised action plan ordered by urgency — most recent credential breaches first. "
+        f"Be specific about which service to address first and why."
+    )
+
+    return JSONResponse({
+        "email": email,
+        "breached": True,
+        "breach_count": len(breaches),
+        "breaches": sorted(breaches, key=lambda x: x["year"], reverse=True),
+        "aria_explanation": aria_result["reply"],
+    })
+
+
+# ---------------------------------------------------------------------------
+# Legacy assess endpoint
 # ---------------------------------------------------------------------------
 
 @app.post("/api/assess")
-async def assess(req: AssessRequest):
-    phishing_expert = PhishingExpert(req.indicators)
-    phishing_result = phishing_expert.evaluate()
-    
-    password_expert = PasswordExpert(req.password)
-    password_result = password_expert.evaluate()
-    
-    hibp_expert = HIBPExpert(req.password)
-    hibp_result = hibp_expert.check()
-    
-    fuzzy_engine = FuzzyRiskEngine(
-        phishing_score=phishing_result["risk_score"],
-        password_score=password_result["score"]
-    )
-    overall_result = fuzzy_engine.evaluate()
-    
-    return {
-        "phishing": phishing_result,
-        "password": password_result,
-        "hibp": hibp_result,
-        "overall": overall_result,
-    }
+async def assess(req: PhishingRequest, request: Request):
+    return await run_phishing(req, request)
 
-@app.post("/api/chat")
-async def chat(req: ChatRequest):
-    # History comes in as [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
-    aria = ARIAEngine(history=req.history)
-    result = aria.ask(req.message, image=req.image)
-    return result
-
-
-
-@app.post("/api/breach")
-async def breach_check(req: BreachRequest):
-    expert = HIBPExpert(req.password)
-    result = expert.check()
-    return result
-
-# ---------------------------------------------------------------------------
-# Run
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     uvicorn.run("index:app", host="0.0.0.0", port=8000, reload=True)
