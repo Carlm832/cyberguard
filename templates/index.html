@@ -50,7 +50,7 @@
       <button class="tab-btn" data-tab="password">Password Analyzer</button>
       <button class="tab-btn" data-tab="breaches">Breach Database</button>
       <button class="tab-btn" data-tab="kb">Knowledge Base</button>
-      <button class="tab-btn" data-tab="chat">Ask ARIA</button>
+      <button class="tab-btn" data-tab="chat">Ask ARIA Expert</button>
     </nav>
 
     <!-- TAB: Dashboard -->
@@ -166,9 +166,19 @@
 
           <!-- Evaluation Results -->
           <div class="card hidden" id="eval-results-card">
-            <div class="card-header">
-              <h2>Analysis Report</h2>
-              <p>Risk score calculated using baseline rule certainty factors.</p>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h2>Analysis Report</h2>
+                <p>Risk score calculated using baseline rule certainty factors.</p>
+              </div>
+              <button class="btn-secondary" id="btn-download-phishing-report" style="width: auto; padding: 10px 16px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download Report</span>
+              </button>
             </div>
 
             <div class="results-grid">
@@ -276,11 +286,23 @@
 
         <!-- Password evaluation result -->
         <div class="card hidden mt-24" id="password-results-card" style="border: 1px solid var(--border); padding: 20px; background: rgba(29, 158, 117, 0.02);">
-          <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 8px;">Expert System Password Verdict</h3>
-          <p style="font-size: 14px; margin-bottom: 12px;">
-            Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span id="pwd-res-score">0</span>/100) | 
-            Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+            <div>
+              <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 4px;">Expert System Password Verdict</h3>
+              <p style="font-size: 14px;">
+                Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span id="pwd-res-score">0</span>/100) | 
+                Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
+              </p>
+            </div>
+            <button class="btn-secondary" id="btn-download-password-report" style="width: auto; padding: 8px 14px; font-size: 13px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download Report</span>
+            </button>
+          </div>
           <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
             <div class="aria-box-header">ARIA Remediation Recommendations</div>
             <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
@@ -355,7 +377,7 @@
           <div class="chat-viewport-title">
             <div class="chat-avatar-circle">A</div>
             <div>
-              <div class="bold" style="font-size: 14.5px;">ARIA Security Assistant</div>
+              <div class="bold" style="font-size: 14.5px;">ARIA Security Expert Assistant</div>
               <div style="font-size: 11px; color: var(--text-secondary);">Expert system interface</div>
             </div>
           </div>
@@ -363,7 +385,7 @@
 
         <div class="chat-viewport-messages" id="chat-messages-box">
           <div class="chat-msg aria">
-            <p>Hello! I am ARIA, your Cybersecurity Assistant. I interact directly with the rule engine backend.</p>
+            <p>Hello! I am ARIA, your Cybersecurity Expert Assistant. I interact directly with the rule engine backend.</p>
             <p>You can run a threat assessment on the Dashboard, ask me about specific security rules, or request tips to harden your environment.</p>
           </div>
         </div>
@@ -405,6 +427,9 @@
         too_good_offer: false
       },
       evaluation: null, // latest evaluate response
+      passwordEvaluation: null, // latest password check response
+      breachEvaluation: null, // latest breach check response
+      breachEmail: null, // target email analyzed for breach
       chatSession: [] // chat history
     };
 
@@ -554,6 +579,7 @@
       });
 
       document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+      document.getElementById('btn-download-phishing-report').addEventListener('click', downloadSecurityReport);
     }
 
     // Run threat logic on backend
@@ -808,6 +834,7 @@
           const data = await res.json();
           
           if (res.ok) {
+            state.passwordEvaluation = data;
             resultsCard.classList.remove('hidden');
             
             document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
@@ -852,6 +879,8 @@
           verifyBtn.disabled = false;
         }
       });
+
+      document.getElementById('btn-download-password-report').addEventListener('click', downloadSecurityReport);
     }
 
     function updateCheckRow(id, passed) {
@@ -891,6 +920,8 @@
           const data = await res.json();
           
           if (res.ok) {
+            state.breachEvaluation = data;
+            state.breachEmail = email;
             resultsSection.classList.remove('hidden');
             timeline.innerHTML = '';
             
@@ -1104,6 +1135,113 @@
           container.appendChild(chip);
         });
       }
+    }
+
+    function downloadSecurityReport() {
+      let report = `================================================================================
+CYBERGUARD SECURITY POSTURE REPORT
+Generated on: ${new Date().toLocaleString()}
+================================================================================
+
+1. EXECUTIVE THREAT POSTURE SUMMARY
+--------------------------------------------------------------------------------
+`;
+
+      // Phishing evaluation data
+      if (state.evaluation) {
+        const scorePercent = Math.round(state.evaluation.risk_score * 100);
+        report += `Phishing Inference Risk Level : ${state.evaluation.risk_level}
+Phishing Inference Risk Score : ${scorePercent}%
+Total Active Rules Fired       : ${state.evaluation.fired_rules.length}
+
+Triggered Threat Indicators:
+`;
+        let indicatorsFired = false;
+        for (const [ind, active] of Object.entries(state.checklist)) {
+          if (active) {
+            report += `  - [✕] ${ind.replace('_', ' ').toUpperCase()}\n`;
+            indicatorsFired = true;
+          }
+        }
+        if (!indicatorsFired) {
+          report += `  - [✓] No warning indicators flagged.\n`;
+        }
+
+        report += `\nFired Inference Rules:\n`;
+        if (state.evaluation.fired_rules.length === 0) {
+          report += `  No risk-based rules triggered.\n`;
+        } else {
+          state.evaluation.fired_rules.forEach(fr => {
+            const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
+            report += `  * [${fr.id}] ${fr.name} (Certainty Factor Increase: +${fr.cf})\n`;
+            report += `    Reason: ${ruleMeta.explanation || fr.explanation || ''}\n`;
+          });
+        }
+        report += `\nARIA Security Expert Assessment:\n${state.evaluation.aria_explanation}\n`;
+      } else {
+        report += `Phishing Assessment: No inference run yet in this session.\n`;
+      }
+
+      report += `\n--------------------------------------------------------------------------------
+2. PASSWORD STRENGTH & ENTROPY AUDIT
+--------------------------------------------------------------------------------
+`;
+
+      if (state.passwordEvaluation) {
+        const pe = state.passwordEvaluation;
+        report += `Password Strength Verdict     : ${pe.password.strength_label.toUpperCase()}
+Password Security Score        : ${pe.password.score}/100
+Estimated Brute-Force Time    : ${pe.password.crack_time}
+HaveIBeenPwned Leak Status    : ${pe.hibp.breached ? '⚠️ BREACHED (Found in ' + pe.hibp.breach_count.toLocaleString() + ' leaks)' : '✓ SAFE (Not found in public leaks)'}
+
+ARIA Remediation Recommendations:
+${pe.aria_explanation}
+`;
+      } else {
+        report += `Password Audit: No password verified in this session.\n`;
+      }
+
+      report += `\n--------------------------------------------------------------------------------
+3. CORPORATE DATA BREACH DATABASE INVENTORY
+--------------------------------------------------------------------------------
+`;
+
+      if (state.breachEvaluation) {
+        const be = state.breachEvaluation;
+        report += `Target Email Inspected       : ${state.breachEmail}
+Breach Compromise Status      : ${be.breached ? '⚠️ CRITICAL - BREACHED' : '✓ SAFE - NO COMPROMISES FOUND'}
+Total Recorded Data Leaks     : ${be.breaches ? be.breaches.length : 0}
+
+`;
+        if (be.breaches && be.breaches.length > 0) {
+          report += `Compromised Services Timeline:\n`;
+          be.breaches.forEach(b => {
+            report += `  * ${b.service} (${b.year}) - Severity: ${b.severity.toUpperCase()} IMPACT
+    Compromised Data Types: ${b.data_types.join(', ')}
+    Estimated Leaked Records: ${b.records.toLocaleString()} profiles\n`;
+          });
+          report += `\nARIA Prioritized Action Plan:\n${be.aria_explanation}\n`;
+        } else {
+          report += `No compromised corporate data records identified for this identity.\n`;
+        }
+      } else {
+        report += `Breach Search: No email audit conducted in this session.\n`;
+      }
+
+      report += `\n================================================================================
+Report End. CyberGuard Expert System reasoning is traceable and explainable.
+================================================================================`;
+
+      // Download file utility using Blob
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `CyberGuard_Security_Report_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     function formatMarkdown(text) {

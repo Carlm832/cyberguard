@@ -1180,3 +1180,35 @@ body {
   0%, 80%, 100% { opacity: 0.2; }
   40% { opacity: 1; }
 }
+
+/* Secondary Button style for downloads */
+.btn-secondary {
+  background: transparent;
+  color: var(--teal);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(29, 158, 117, 0.05);
+  border-color: var(--teal);
+  box-shadow: 0 0 10px rgba(29, 158, 117, 0.1);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary svg {
+  stroke: var(--teal);
+}
