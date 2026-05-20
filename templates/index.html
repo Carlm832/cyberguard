@@ -447,6 +447,14 @@
             </svg>
           </button>
         </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+            <button class="btn-secondary" id="chat-image-btn" style="width:auto; padding:8px 12px; font-size:12px;">Upload Image</button>
+            <span id="chat-image-name" style="font-size:12px; color:var(--text-secondary);"></span>
+          </div>
+          <button class="btn-secondary" id="chat-summary-btn" style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
+        </div>
       </div>
     </div>
 
@@ -470,7 +478,8 @@
       passwordEvaluation: null, // latest password check response
       breachEvaluation: null, // latest breach check response
       breachEmail: null, // target email analyzed for breach
-      chatSession: [] // chat history
+      chatSession: [], // chat history
+      chatPendingImage: null // { mime_type, data, name }
     };
 
     // Hardcoded rules data for Knowledge Base
@@ -567,16 +576,51 @@
       }
     ];
 
-    // Simulated threat intel ticker interval
+    // Live threat intel ticker
     let tickerIndex = 0;
-    setInterval(() => {
+    function rotateTicker() {
       const items = document.querySelectorAll('.ticker-item');
       if (items.length > 0) {
         items[tickerIndex].classList.remove('active');
         tickerIndex = (tickerIndex + 1) % items.length;
         items[tickerIndex].classList.add('active');
       }
-    }, 4500);
+    }
+
+    function renderTickerItems(items) {
+      const container = document.getElementById('ticker-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const safeItems = (items && items.length > 0) ? items : [{ title: 'Threat feed temporarily unavailable.', source: 'CyberGuard' }];
+      safeItems.slice(0, 8).forEach((it, idx) => {
+        const div = document.createElement('div');
+        div.className = `ticker-item${idx === 0 ? ' active' : ''}`;
+        const sev = (it.severity || 'medium').toUpperCase();
+        const src = it.source ? ` [${it.source}]` : '';
+        const title = String(it.title || '').trim();
+        const summary = String(it.summary || '').trim();
+        const looksLikeCve = /^CVE-\d{4}-\d+/i.test(title);
+        let readable = summary || title || 'Threat item';
+        if (readable.length > 120) readable = readable.substring(0, 117) + '...';
+        if (looksLikeCve && summary) {
+          div.textContent = `[${sev}] ${readable} (${title})${src}`;
+        } else {
+          div.textContent = `[${sev}] ${readable}${src}`;
+        }
+        container.appendChild(div);
+      });
+      tickerIndex = 0;
+    }
+
+    async function loadThreatTicker() {
+      try {
+        const res = await fetch('/api/threat-intel');
+        const data = await res.json();
+        renderTickerItems((data && data.items) ? data.items : []);
+      } catch (err) {
+        renderTickerItems([]);
+      }
+    }
 
     // Initialization
     document.addEventListener("DOMContentLoaded", () => {
@@ -586,6 +630,9 @@
       initBreachDatabase();
       initKnowledgeBase();
       initChat();
+      loadThreatTicker();
+      setInterval(rotateTicker, 4500);
+      setInterval(loadThreatTicker, 300000);
       
       // Initial system status display
       updateGlobalStatus("LOW", 0);
@@ -1077,6 +1124,10 @@
     // Conversational Ask ARIA implementation
     function initChat() {
       const sendBtn = document.getElementById('chat-send-btn');
+      const summaryBtn = document.getElementById('chat-summary-btn');
+      const imageBtn = document.getElementById('chat-image-btn');
+      const imageInput = document.getElementById('chat-image-input');
+      const imageName = document.getElementById('chat-image-name');
       const input = document.getElementById('chat-input-text');
       const box = document.getElementById('chat-messages-box');
       
@@ -1090,6 +1141,44 @@
       });
 
       sendBtn.addEventListener('click', submitChatMessage);
+      summaryBtn.addEventListener('click', generateChatSummary);
+      imageBtn.addEventListener('click', () => imageInput.click());
+      imageInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          imageName.textContent = 'Please choose an image file.';
+          state.chatPendingImage = null;
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          imageName.textContent = 'Image too large (max 5MB).';
+          state.chatPendingImage = null;
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const marker = 'base64,';
+          const idx = result.indexOf(marker);
+          if (idx === -1) {
+            imageName.textContent = 'Could not read image.';
+            state.chatPendingImage = null;
+            return;
+          }
+          state.chatPendingImage = {
+            mime_type: file.type,
+            data: result.substring(idx + marker.length),
+            name: file.name
+          };
+          imageName.textContent = `Attached: ${file.name}`;
+        };
+        reader.onerror = () => {
+          imageName.textContent = 'Could not read image.';
+          state.chatPendingImage = null;
+        };
+        reader.readAsDataURL(file);
+      });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
@@ -1114,7 +1203,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               message: query,
-              history: state.chatSession
+              history: state.chatSession,
+              image: state.chatPendingImage ? {
+                mime_type: state.chatPendingImage.mime_type,
+                data: state.chatPendingImage.data
+              } : null
             })
           });
           const data = await res.json();
@@ -1131,12 +1224,44 @@
             if (data.follow_ups && data.follow_ups.length > 0) {
               renderSuggestionChips(data.follow_ups);
             }
+            if (state.chatPendingImage) {
+              state.chatPendingImage = null;
+              imageInput.value = '';
+              imageName.textContent = '';
+            }
           } else {
             appendMessage('aria', "Apologies, I encountered an operational breakdown in my expert communication link: " + data.message);
           }
         } catch (err) {
           document.getElementById(typingId).remove();
           appendMessage('aria', "Error: Critical timeout contacting ARIA interface server.");
+        } finally {
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+
+      async function generateChatSummary() {
+        if (!state.chatSession || state.chatSession.length === 0) {
+          appendMessage('aria', 'No discussion to summarize yet. Ask a few questions first.');
+          return;
+        }
+        const typingId = appendTypingIndicator();
+        try {
+          const res = await fetch('/api/chat-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history: state.chatSession })
+          });
+          const data = await res.json();
+          document.getElementById(typingId).remove();
+          if (res.ok) {
+            appendMessage('aria', data.summary || 'Unable to generate summary at this time.');
+          } else {
+            appendMessage('aria', 'Summary generation failed. Please try again.');
+          }
+        } catch (err) {
+          document.getElementById(typingId).remove();
+          appendMessage('aria', 'Summary generation failed due to connection error.');
         } finally {
           box.scrollTop = box.scrollHeight;
         }

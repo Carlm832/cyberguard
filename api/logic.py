@@ -340,12 +340,16 @@ class ARIAEngine:
 
     def ask(self, user_message: str, session_context: dict = None, image: Dict[str, str] = None) -> Dict[str, Any]:
         # Submission-safe mode: local engine first, cloud optional.
-        aria_mode = os.getenv("ARIA_MODE", "local").strip().lower()
+        aria_mode = os.getenv("ARIA_MODE", "auto").strip().lower()
         if aria_mode in {"local", "offline", "local_only"}:
             reply = self._local_fallback_reply(user_message, session_context)
             self.history.append({"role": "user", "content": user_message})
             self.history.append({"role": "assistant", "content": reply})
-            return {"reply": reply, "history": self.history, "follow_ups": self._follow_ups(session_context)}
+            return {
+                "reply": reply,
+                "history": self.history,
+                "follow_ups": self._follow_ups(session_context, user_message, self.history),
+            }
 
         context_block = ""
         if session_context:
@@ -385,7 +389,11 @@ class ARIAEngine:
         reply = result["content"] if not result.get("error") else self._local_fallback_reply(user_message, session_context)
         self.history.append({"role": "assistant", "content": reply})
 
-        return {"reply": reply, "history": self.history, "follow_ups": self._follow_ups(session_context)}
+        return {
+            "reply": reply,
+            "history": self.history,
+            "follow_ups": self._follow_ups(session_context, user_message, self.history),
+        }
 
     def _local_fallback_reply(self, user_message: str, session_context: dict = None) -> str:
         """Provide deterministic local guidance when cloud LLM is unavailable."""
@@ -470,7 +478,57 @@ class ARIAEngine:
             "Ask for a specific rule ID like R01 and I will explain it from the local knowledge base."
         )
 
-    def _follow_ups(self, ctx: dict = None) -> List[str]:
+    def summarize_discussion(self, session_context: dict = None) -> str:
+        user_msgs = [h.get("content", "") for h in self.history if h.get("role") == "user" and h.get("content")]
+        if not user_msgs:
+            return "No discussion to summarize yet. Ask ARIA a few questions first."
+
+        topics = []
+        joined = " ".join(user_msgs).lower()
+        if "r0" in joined or "rule" in joined:
+            topics.append("rule base interpretation")
+        if "password" in joined or "entropy" in joined or "hibp" in joined:
+            topics.append("password resilience")
+        if "phish" in joined or "sender" in joined or "link" in joined:
+            topics.append("phishing signal assessment")
+        if "posture" in joined or "risk" in joined:
+            topics.append("overall risk posture")
+
+        topic_line = ", ".join(topics) if topics else "general cyber hygiene"
+
+        if session_context and session_context.get("phishing_verdict"):
+            verdict = session_context["phishing_verdict"]
+            fired = ", ".join(r.get("id", "") for r in verdict.get("fired_rules", [])) or "none"
+            return (
+                "Discussion Summary:\n"
+                f"- Primary topics covered: {topic_line}.\n"
+                f"- Current phishing verdict: {verdict.get('risk_level', 'LOW')} ({verdict.get('risk_score', 0)}), fired rules: {fired}.\n"
+                "- ARIA guidance emphasized verifying sender identity, avoiding direct login links, and escalating suspicious messages.\n"
+                "- Recommended next step: run a fresh assessment when new indicators appear and track trend changes over time."
+            )
+
+        return (
+            "Discussion Summary:\n"
+            f"- Primary topics covered: {topic_line}.\n"
+            "- ARIA guidance focused on interpreting rules, certainty factors, and practical hardening actions.\n"
+            "- Recommended next step: run dashboard assessments so guidance can be tied to fired rules and confidence values."
+        )
+
+    def _follow_ups(self, ctx: dict = None, last_user_message: str = "", history: List[Dict[str, str]] = None) -> List[str]:
+        msg = (last_user_message or "").lower()
+        hlen = len(history or [])
+        if hlen <= 2:
+            return [
+                "Would you like me to start with rule interpretation or immediate hardening actions?",
+                "Do you want a quick walkthrough of what raised your current risk score?",
+                "Should we focus on phishing signals or password resilience first?",
+            ]
+        if "r0" in msg or "rule" in msg:
+            return ["Which other rule should I break down next?", "Do you want an example attack pattern for this rule?", "Should I map this rule to mitigation actions now?"]
+        if "posture" in msg or "risk" in msg:
+            return ["Would you like a prioritized 3-step action plan?", "Should we re-check which indicators are driving the score most?", "Do you want this converted into an incident note summary?"]
+        if "password" in msg or "entropy" in msg:
+            return ["Do you want a target password policy for your team?", "Should I explain which password checks failed and why?", "Would you like 2FA rollout recommendations next?"]
         if ctx and ctx.get("phishing_verdict"):
             return ["Why did these rules fire?", "What should I do right now?", "What if I already clicked a link?", "How confident is this verdict?"]
         if ctx and ctx.get("password_verdict"):
