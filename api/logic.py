@@ -339,6 +339,14 @@ class ARIAEngine:
         self.history = history or []
 
     def ask(self, user_message: str, session_context: dict = None, image: Dict[str, str] = None) -> Dict[str, Any]:
+        # Submission-safe mode: local engine first, cloud optional.
+        aria_mode = os.getenv("ARIA_MODE", "local").strip().lower()
+        if aria_mode in {"local", "offline", "local_only"}:
+            reply = self._local_fallback_reply(user_message, session_context)
+            self.history.append({"role": "user", "content": user_message})
+            self.history.append({"role": "assistant", "content": reply})
+            return {"reply": reply, "history": self.history, "follow_ups": self._follow_ups(session_context)}
+
         context_block = ""
         if session_context:
             phishing = session_context.get("phishing_verdict")
@@ -374,10 +382,93 @@ class ARIAEngine:
         messages = [{"role": "user" if h["role"] == "user" else "model", "content": h["content"]} for h in self.history]
 
         result = _gemini_chat(messages, system_prompt=full_system, image=image)
-        reply = result["content"] if not result.get("error") else "I'm having trouble connecting. Please try again in a moment."
+        reply = result["content"] if not result.get("error") else self._local_fallback_reply(user_message, session_context)
         self.history.append({"role": "assistant", "content": reply})
 
         return {"reply": reply, "history": self.history, "follow_ups": self._follow_ups(session_context)}
+
+    def _local_fallback_reply(self, user_message: str, session_context: dict = None) -> str:
+        """Provide deterministic local guidance when cloud LLM is unavailable."""
+        msg = (user_message or "").strip()
+        msg_l = msg.lower()
+        match = re.search(r"\bR\d{2}\b", msg, flags=re.IGNORECASE)
+        if match:
+            rule_id = match.group(0).upper()
+            rule = next((r for r in PHISHING_RULES if r["id"] == rule_id), None)
+            if rule:
+                return (
+                    f"{rule['id']} is '{rule['name']}' with certainty factor {rule['cf']:.2f}. "
+                    f"It belongs to the '{rule['category']}' category. "
+                    f"Why it matters: {rule['explanation']} "
+                    f"Example pattern: {rule['example']} "
+                    f"If this signal appears with other indicators, the overall phishing risk increases quickly."
+                )
+
+        if "certainty factor" in msg_l or "cf" in msg_l:
+            return (
+                "Certainty factor (CF) is the weight each rule contributes to the phishing score when it fires. "
+                "Your engine sums fired rule CFs and caps at 1.0. "
+                "For example, if R01 (0.25) and R04 (0.15) fire, they contribute 0.40 total before any other rules. "
+                "That score then maps to risk bands: LOW (<0.40), MEDIUM (0.40-0.69), HIGH (>=0.70)."
+            )
+
+        if "high threat" in msg_l or "high risk" in msg_l:
+            return (
+                "A HIGH threat verdict is triggered when total fired-rule confidence reaches 0.70 or more. "
+                "This usually means multiple high-signal indicators fired together, such as credential requests, suspicious links, and spoofed domains. "
+                "Compound rules like R10 (credential request + spoofed domain) increase score faster. "
+                "At HIGH threat, the safe action is to avoid all links/attachments and report immediately."
+            )
+
+        if "spot a phishing" in msg_l or "how do i spot" in msg_l:
+            return (
+                "Use a quick rule check: credential request, suspicious link, urgency framing, spoofed sender domain, and unexpected attachment. "
+                "If two or more high-signal indicators appear together, treat it as likely phishing. "
+                "Never sign in from email links; open the official site manually instead. "
+                "When unsure, verify the request through a separate trusted channel."
+            )
+
+        if "strong password" in msg_l or "password" in msg_l:
+            return (
+                "A strong password is long (12-16+ characters), unique per account, and mixes uppercase, lowercase, numbers, and symbols. "
+                "Avoid common passwords, keyboard patterns, and repeated characters. "
+                "Use a password manager to generate and store unique credentials. "
+                "Enable two-factor authentication for critical accounts."
+            )
+
+        if "posture advice" in msg_l or "threat posture advice" in msg_l or "advice" in msg_l:
+            if session_context and session_context.get("phishing_verdict"):
+                verdict = session_context["phishing_verdict"]
+                fired_rules = verdict.get("fired_rules", [])
+                fired_ids = [r.get("id", "") for r in fired_rules]
+                recs = verdict.get("recommendations", [])
+                rec_text = " ".join(recs[:3]) if recs else "Verify sender identity through an independent channel."
+                return (
+                    f"Current posture is {verdict.get('risk_level', 'LOW')} with score {verdict.get('risk_score', 0)}. "
+                    f"Key triggered rules: {', '.join(fired_ids) if fired_ids else 'none'}. "
+                    f"Immediate actions: {rec_text} "
+                    f"Priority next step: capture this message context (sender, URL, attachment hash) and submit it to your security process."
+                )
+            return (
+                "Run a phishing assessment first so I can ground advice in fired rules and confidence score. "
+                "In general: block risky clicks, enforce MFA, use unique passwords, and verify urgent requests out-of-band. "
+                "Treat unknown senders plus urgency as a high-priority review case."
+            )
+
+        if session_context and session_context.get("phishing_verdict"):
+            verdict = session_context["phishing_verdict"]
+            fired = ", ".join(r["id"] for r in verdict.get("fired_rules", [])) or "none"
+            return (
+                f"I cannot reach cloud AI right now, but your local expert-system verdict is still available. "
+                f"Risk level is {verdict.get('risk_level', 'LOW')} with score {verdict.get('risk_score', 0)} and fired rules: {fired}. "
+                f"Use the recommendation list shown in the report as your immediate action plan."
+            )
+
+        return (
+            "I cannot reach cloud AI at the moment, but the local expert system is running. "
+            "You can still run phishing/password assessments and inspect the rule base (R01-R10). "
+            "Ask for a specific rule ID like R01 and I will explain it from the local knowledge base."
+        )
 
     def _follow_ups(self, ctx: dict = None) -> List[str]:
         if ctx and ctx.get("phishing_verdict"):

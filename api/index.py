@@ -7,6 +7,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Any, List, Dict, Optional
+import requests
 
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
@@ -15,7 +16,7 @@ if str(BASE_DIR) not in sys.path:
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
@@ -51,6 +52,11 @@ app.add_middleware(
 @app.get("/", response_class=FileResponse)
 async def serve_index():
     return FileResponse(str(BASE_DIR.parent / "templates" / "index.html"))
+
+@app.get("/favicon.ico")
+async def favicon():
+    # Avoid noisy 404s when no favicon asset is bundled.
+    return Response(status_code=204)
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +224,48 @@ async def session_summary(request: Request):
         "all_fired_rules": request.session.get("all_fired_rules", []),
         "posture": request.session.get("posture", None)
     })
+
+@app.get("/api/health/ai")
+async def ai_health():
+    """
+    Quick ARIA connectivity diagnostics:
+    - verifies Gemini key presence
+    - performs a lightweight Gemini API probe
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return JSONResponse({
+            "ok": False,
+            "provider": "gemini",
+            "api_key_present": False,
+            "error": "GEMINI_API_KEY is not configured"
+        }, status_code=503)
+
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    try:
+        resp = requests.get(endpoint, timeout=8)
+        body_preview = (resp.text or "")[:300]
+        if resp.status_code == 200:
+            return JSONResponse({
+                "ok": True,
+                "provider": "gemini",
+                "api_key_present": True,
+                "status_code": resp.status_code
+            })
+        return JSONResponse({
+            "ok": False,
+            "provider": "gemini",
+            "api_key_present": True,
+            "status_code": resp.status_code,
+            "error": body_preview
+        }, status_code=503)
+    except Exception as e:
+        return JSONResponse({
+            "ok": False,
+            "provider": "gemini",
+            "api_key_present": True,
+            "error": str(e)
+        }, status_code=503)
 
 
 # ---------------------------------------------------------------------------
