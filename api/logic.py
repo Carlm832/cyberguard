@@ -292,7 +292,7 @@ def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image:
     if not api_key:
         return {"error": True, "message": "Gemini API key not configured."}
 
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
     contents = []
     for i, msg in enumerate(messages):
         parts = []

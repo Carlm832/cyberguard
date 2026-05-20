@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
+  <!-- html2pdf.js for direct PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -171,14 +173,24 @@
                 <h2>Analysis Report</h2>
                 <p>Risk score calculated using baseline rule certainty factors.</p>
               </div>
-              <button class="btn-secondary" id="btn-download-phishing-report" style="width: auto; padding: 10px 16px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                <span>Download Report</span>
-              </button>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" id="btn-download-phishing-html" style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span>Download HTML</span>
+                </button>
+                <button class="btn-primary" id="btn-download-phishing-pdf" style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span>Download PDF</span>
+                </button>
+              </div>
             </div>
 
             <div class="results-grid">
@@ -294,14 +306,24 @@
                 Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
               </p>
             </div>
-            <button class="btn-secondary" id="btn-download-password-report" style="width: auto; padding: 8px 14px; font-size: 13px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              <span>Download Report</span>
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-secondary" id="btn-download-password-html" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download HTML</span>
+              </button>
+              <button class="btn-primary" id="btn-download-password-pdf" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download PDF</span>
+              </button>
+            </div>
           </div>
           <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
             <div class="aria-box-header">ARIA Remediation Recommendations</div>
@@ -332,6 +354,24 @@
           <div class="aria-verdict-box level-HIGH mt-24" id="breach-aria-box">
             <div class="aria-box-header">ARIA Prioritized Action Plan</div>
             <div class="aria-box-content" id="breach-aria-text">...</div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 15px; justify-content: flex-end;">
+            <button class="btn-secondary" id="btn-download-breach-html" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download HTML</span>
+            </button>
+            <button class="btn-primary" id="btn-download-breach-pdf" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download PDF</span>
+            </button>
           </div>
         </div>
       </div>
@@ -578,9 +618,10 @@
         });
       });
 
-      document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
-      document.getElementById('btn-download-phishing-report').addEventListener('click', downloadSecurityReport);
-    }
+       document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+       document.getElementById('btn-download-phishing-html').addEventListener('click', () => downloadSecurityReport('html'));
+       document.getElementById('btn-download-phishing-pdf').addEventListener('click', () => downloadSecurityReport('pdf'));
+     }
 
     // Run threat logic on backend
     async function runThreatEvaluation() {
@@ -880,7 +921,8 @@
         }
       });
 
-      document.getElementById('btn-download-password-report').addEventListener('click', downloadSecurityReport);
+      document.getElementById('btn-download-password-html').addEventListener('click', () => downloadSecurityReport('html'));
+      document.getElementById('btn-download-password-pdf').addEventListener('click', () => downloadSecurityReport('pdf'));
     }
 
     function updateCheckRow(id, passed) {
@@ -964,6 +1006,9 @@
           btn.disabled = false;
         }
       });
+
+      document.getElementById('btn-download-breach-html').addEventListener('click', () => downloadSecurityReport('html'));
+      document.getElementById('btn-download-breach-pdf').addEventListener('click', () => downloadSecurityReport('pdf'));
     }
 
     // Knowledge Base Rule Tree
@@ -1137,111 +1182,726 @@
       }
     }
 
-    function downloadSecurityReport() {
-      let report = `================================================================================
-CYBERGUARD SECURITY POSTURE REPORT
-Generated on: ${new Date().toLocaleString()}
-================================================================================
+    function downloadSecurityReport(format = 'html') {
+      const esc = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+      
+      const formatReportMarkdown = (text) => {
+        if (!text) return '';
+        let html = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/g, '');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+      };
 
-1. EXECUTIVE THREAT POSTURE SUMMARY
---------------------------------------------------------------------------------
-`;
-
-      // Phishing evaluation data
+      const dateStr = new Date().toLocaleString();
+      
+      // 1. Phishing Section Renders
+      let phishingHtml = '';
       if (state.evaluation) {
         const scorePercent = Math.round(state.evaluation.risk_score * 100);
-        report += `Phishing Inference Risk Level : ${state.evaluation.risk_level}
-Phishing Inference Risk Score : ${scorePercent}%
-Total Active Rules Fired       : ${state.evaluation.fired_rules.length}
+        let riskColor = '#10b981'; // LOW
+        let riskBg = 'rgba(16, 185, 129, 0.1)';
+        if (state.evaluation.risk_level === 'CRITICAL') {
+          riskColor = '#ef4444';
+          riskBg = 'rgba(239, 68, 68, 0.1)';
+        } else if (state.evaluation.risk_level === 'HIGH') {
+          riskColor = '#f97316';
+          riskBg = 'rgba(249, 115, 22, 0.1)';
+        } else if (state.evaluation.risk_level === 'MEDIUM') {
+          riskColor = '#eab308';
+          riskBg = 'rgba(234, 179, 8, 0.1)';
+        }
 
-Triggered Threat Indicators:
-`;
-        let indicatorsFired = false;
+        let checklistHtml = '';
         for (const [ind, active] of Object.entries(state.checklist)) {
+          const label = ind.replace(/_/g, ' ').toUpperCase();
           if (active) {
-            report += `  - [✕] ${ind.replace('_', ' ').toUpperCase()}\n`;
-            indicatorsFired = true;
+            checklistHtml += `<div class="indicator-badge active">✕ ${esc(label)}</div>`;
+          } else {
+            checklistHtml += `<div class="indicator-badge passed">✓ ${esc(label)}</div>`;
           }
         }
-        if (!indicatorsFired) {
-          report += `  - [✓] No warning indicators flagged.\n`;
-        }
 
-        report += `\nFired Inference Rules:\n`;
+        let rulesHtml = '';
         if (state.evaluation.fired_rules.length === 0) {
-          report += `  No risk-based rules triggered.\n`;
+          rulesHtml = `<div class="empty-rules">No expert system inference rules triggered.</div>`;
         } else {
           state.evaluation.fired_rules.forEach(fr => {
             const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
-            report += `  * [${fr.id}] ${fr.name} (Certainty Factor Increase: +${fr.cf})\n`;
-            report += `    Reason: ${ruleMeta.explanation || fr.explanation || ''}\n`;
+            rulesHtml += `
+              <div class="rule-card">
+                <div class="rule-card-header">
+                  <span class="rule-id">${esc(fr.id)}</span>
+                  <span class="rule-name">${esc(fr.name)}</span>
+                  <span class="rule-cf">+${fr.cf} CF</span>
+                </div>
+                <div class="rule-explanation">${esc(ruleMeta.explanation || fr.explanation || '')}</div>
+              </div>
+            `;
           });
         }
-        report += `\nARIA Security Expert Assessment:\n${state.evaluation.aria_explanation}\n`;
+
+        phishingHtml = `
+          <div class="section-card">
+            <h2>1. Phishing & Threat Vector Analysis</h2>
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-label">Inference Risk Verdict</div>
+                <div class="metric-value" style="color: ${riskColor}; background: ${riskBg}; padding: 4px 12px; border-radius: 6px; display: inline-block;">
+                  ${esc(state.evaluation.risk_level)}
+                </div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Confidence Score</div>
+                <div class="metric-value">${scorePercent}%</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" style="width: ${scorePercent}%; background: ${riskColor}"></div>
+                </div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Inference Rules Fired</div>
+                <div class="metric-value">${state.evaluation.fired_rules.length}</div>
+              </div>
+            </div>
+            
+            <h3>Inspected Indicators</h3>
+            <div class="badge-grid">${checklistHtml}</div>
+
+            <h3>Fired Rule Inference Engine Trace</h3>
+            <div>${rulesHtml}</div>
+
+            <div class="aria-advice-block">
+              <div class="aria-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
+                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12c0-2.3.77-4.42 2.06-6.13l1.41 1.41A8 8 0 1 0 12 4V2z"/>
+                  <path d="M12 6a6 6 0 0 1 6 6c0 3.314-2.686 6-6 6s-6-2.686-6-6c0-1.38.47-2.65 1.25-3.67l1.41 1.41A4 4 0 1 0 12 8V6z"/>
+                </svg>
+                ARIA Expert Security Evaluation
+              </div>
+              <div class="aria-content">${formatReportMarkdown(state.evaluation.aria_explanation)}</div>
+            </div>
+          </div>
+        `;
       } else {
-        report += `Phishing Assessment: No inference run yet in this session.\n`;
+        phishingHtml = `
+          <div class="section-card empty-section">
+            <h2>1. Phishing & Threat Vector Analysis</h2>
+            <p>No phishing inference run in this session.</p>
+          </div>
+        `;
       }
 
-      report += `\n--------------------------------------------------------------------------------
-2. PASSWORD STRENGTH & ENTROPY AUDIT
---------------------------------------------------------------------------------
-`;
-
+      // 2. Password Section Renders
+      let passwordHtml = '';
       if (state.passwordEvaluation) {
         const pe = state.passwordEvaluation;
-        report += `Password Strength Verdict     : ${pe.password.strength_label.toUpperCase()}
-Password Security Score        : ${pe.password.score}/100
-Estimated Brute-Force Time    : ${pe.password.crack_time}
-HaveIBeenPwned Leak Status    : ${pe.hibp.breached ? '⚠️ BREACHED (Found in ' + pe.hibp.breach_count.toLocaleString() + ' leaks)' : '✓ SAFE (Not found in public leaks)'}
+        let pwdColor = '#10b981';
+        let pwdBg = 'rgba(16, 185, 129, 0.1)';
+        if (pe.password.strength_label === 'critical' || pe.password.strength_label === 'weak') {
+          pwdColor = '#ef4444';
+          pwdBg = 'rgba(239, 68, 68, 0.1)';
+        } else if (pe.password.strength_label === 'medium') {
+          pwdColor = '#f97316';
+          pwdBg = 'rgba(249, 115, 22, 0.1)';
+        }
 
-ARIA Remediation Recommendations:
-${pe.aria_explanation}
-`;
+        let checksGrid = '';
+        for (const [chkKey, passed] of Object.entries(pe.checks)) {
+          const chkLabel = chkKey.replace(/_/g, ' ').toUpperCase();
+          if (passed) {
+            checksGrid += `<div class="indicator-badge passed">✓ ${esc(chkLabel)}</div>`;
+          } else {
+            checksGrid += `<div class="indicator-badge active">✕ ${esc(chkLabel)}</div>`;
+          }
+        }
+
+        passwordHtml = `
+          <div class="section-card">
+            <h2>2. Password Strength & Entropy Audit</h2>
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-label">Strength Verdict</div>
+                <div class="metric-value" style="color: ${pwdColor}; background: ${pwdBg}; padding: 4px 12px; border-radius: 6px; display: inline-block;">
+                  ${esc(pe.password.strength_label.toUpperCase())}
+                </div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Entropy Score</div>
+                <div class="metric-value">${pe.password.score} / 100</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" style="width: ${pe.password.score}%; background: ${pwdColor}"></div>
+                </div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-label">Brute-Force Complexity</div>
+                <div class="metric-value" style="font-size: 14px; font-weight: 600;">${esc(pe.password.crack_time)}</div>
+              </div>
+            </div>
+
+            <div class="hibp-alert-banner ${pe.hibp.breached ? 'danger' : 'success'}">
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">
+                ${pe.hibp.breached ? '⚠️ BREACHED CREDENTIAL WARNING' : '✓ SECURE CREDENTIAL STATUS'}
+              </div>
+              <div>
+                ${pe.hibp.breached 
+                  ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> public data leaks.` 
+                  : 'This password has not been detected in any known public leaks.'}
+              </div>
+            </div>
+
+            <h3>Validation Rules Checklist</h3>
+            <div class="badge-grid">${checksGrid}</div>
+
+            <div class="aria-advice-block">
+              <div class="aria-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                ARIA Entropy & Audit Advice
+              </div>
+              <div class="aria-content">${formatReportMarkdown(pe.aria_explanation)}</div>
+            </div>
+          </div>
+        `;
       } else {
-        report += `Password Audit: No password verified in this session.\n`;
+        passwordHtml = `
+          <div class="section-card empty-section">
+            <h2>2. Password Strength & Entropy Audit</h2>
+            <p>No password audit checked in this session.</p>
+          </div>
+        `;
       }
 
-      report += `\n--------------------------------------------------------------------------------
-3. CORPORATE DATA BREACH DATABASE INVENTORY
---------------------------------------------------------------------------------
-`;
-
+      // 3. Breach Section Renders
+      let breachHtml = '';
       if (state.breachEvaluation) {
         const be = state.breachEvaluation;
-        report += `Target Email Inspected       : ${state.breachEmail}
-Breach Compromise Status      : ${be.breached ? '⚠️ CRITICAL - BREACHED' : '✓ SAFE - NO COMPROMISES FOUND'}
-Total Recorded Data Leaks     : ${be.breaches ? be.breaches.length : 0}
-
-`;
-        if (be.breaches && be.breaches.length > 0) {
-          report += `Compromised Services Timeline:\n`;
-          be.breaches.forEach(b => {
-            report += `  * ${b.service} (${b.year}) - Severity: ${b.severity.toUpperCase()} IMPACT
-    Compromised Data Types: ${b.data_types.join(', ')}
-    Estimated Leaked Records: ${b.records.toLocaleString()} profiles\n`;
-          });
-          report += `\nARIA Prioritized Action Plan:\n${be.aria_explanation}\n`;
+        let timelineCards = '';
+        if (!be.breaches || be.breaches.length === 0) {
+          timelineCards = `<div class="empty-rules">No recorded data leaks found for this corporate identity.</div>`;
         } else {
-          report += `No compromised corporate data records identified for this identity.\n`;
+          be.breaches.forEach(b => {
+            timelineCards += `
+              <div class="timeline-item">
+                <div class="timeline-badge">${esc(b.year)}</div>
+                <div class="timeline-panel">
+                  <div class="timeline-header">
+                    <span class="timeline-service">${esc(b.service)}</span>
+                    <span class="severity-badge ${b.severity}">${esc(b.severity.toUpperCase())}</span>
+                  </div>
+                  <div style="font-size: 12px; margin-top: 4px; color: #9ca3af;">
+                    <strong>Estimated Records Leaked:</strong> ${b.records.toLocaleString()}
+                  </div>
+                  <div style="font-size: 12px; margin-top: 4px; color: #d1d5db;">
+                    <strong>Compromised Data Types:</strong> ${esc(b.data_types.join(', '))}
+                  </div>
+                </div>
+              </div>
+            `;
+          });
         }
+
+        breachHtml = `
+          <div class="section-card">
+            <h2>3. Corporate Data Breach Database Inventory</h2>
+            <div style="margin-bottom: 20px;">
+              <strong>Inspected Email Identity:</strong> 
+              <span style="font-family: monospace; font-size: 15px; color: #10b981; margin-left: 5px;">${esc(state.breachEmail)}</span>
+            </div>
+
+            <div class="hibp-alert-banner ${be.breached ? 'danger' : 'success'}" style="margin-bottom: 25px;">
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">
+                ${be.breached ? '⚠️ HIGH COMPROMISE THREAT ALERT' : '✓ CLEAN DOMAIN IDENTITY'}
+              </div>
+              <div>
+                Identified <strong>${be.breaches ? be.breaches.length : 0}</strong> compromised third-party service databases matching this email.
+              </div>
+            </div>
+
+            <h3>Leak Compromise Timeline</h3>
+            <div class="timeline-container">${timelineCards}</div>
+
+            <div class="aria-advice-block" style="margin-top: 25px;">
+              <div class="aria-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                ARIA Incident Action Plan
+              </div>
+              <div class="aria-content">${formatReportMarkdown(be.aria_explanation)}</div>
+            </div>
+          </div>
+        `;
       } else {
-        report += `Breach Search: No email audit conducted in this session.\n`;
+        breachHtml = `
+          <div class="section-card empty-section">
+            <h2>3. Corporate Data Breach Database Inventory</h2>
+            <p>No corporate email breach audit checked in this session.</p>
+          </div>
+        `;
       }
 
-      report += `\n================================================================================
-Report End. CyberGuard Expert System reasoning is traceable and explainable.
-================================================================================`;
+      // Complete self-contained HTML Template
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CyberGuard Security Posture Audit - ${esc(dateStr)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #101622;
+      --border-color: #1f2937;
+      --text-main: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
 
-      // Download file utility using Blob
-      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `CyberGuard_Security_Report_${new Date().toISOString().slice(0, 10)}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .no-print-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111827;
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .btn-print {
+      background: var(--accent);
+      color: #080c14;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .btn-print:hover {
+      background: var(--accent-hover);
+    }
+
+    header {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 24px;
+      margin-bottom: 40px;
+    }
+
+    .header-logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .header-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .section-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-card h2 {
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .empty-section {
+      opacity: 0.5;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .metric-box {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .progress-bar-container {
+      background: #1f2937;
+      height: 6px;
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-top: 30px;
+      margin-bottom: 12px;
+    }
+
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .indicator-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    .indicator-badge.active {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .indicator-badge.passed {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    .rule-card {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .rule-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .rule-id {
+      background: var(--accent);
+      color: #080c14;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 10px;
+    }
+
+    .rule-name {
+      font-weight: 600;
+      color: var(--text-main);
+      flex-grow: 1;
+    }
+
+    .rule-cf {
+      color: #f43f5e;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .rule-explanation {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .aria-advice-block {
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .aria-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .aria-content {
+      font-size: 14px;
+      color: #d1d5db;
+    }
+
+    .aria-content ul {
+      margin-top: 8px;
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .aria-content li {
+      margin-bottom: 6px;
+    }
+
+    .hibp-alert-banner {
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .hibp-alert-banner.danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .hibp-alert-banner.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    .timeline-container {
+      position: relative;
+      padding-left: 20px;
+      border-left: 2px solid var(--border-color);
+      margin-top: 20px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .timeline-badge {
+      position: absolute;
+      left: -32px;
+      top: 2px;
+      background: #0d121f;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .timeline-panel {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timeline-service {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .severity-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .severity-badge.critical, .severity-badge.high {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+    }
+
+    .severity-badge.medium {
+      background: rgba(249, 115, 22, 0.15);
+      color: #fb923c;
+    }
+
+    .severity-badge.low {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+
+    footer {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-top: 60px;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+      .section-card {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+      .metric-box, .rule-card, .timeline-panel {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+      }
+      .metric-value, .rule-name, .timeline-service {
+        color: #111827;
+      }
+      .aria-advice-block {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+      }
+      .timeline-badge {
+        background: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="no-print-header no-print">
+      <div style="font-size: 13px; color: var(--text-secondary);">
+        💡 Use <strong>Print</strong> to save this document directly to a high-quality PDF file.
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px;">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print / PDF
+      </button>
+    </div>
+
+    <header>
+      <h1 class="header-logo">CYBERGUARD SECURITY POSTURE AUDIT</h1>
+      <div class="header-meta">
+        <div><strong>Generated on:</strong> ${esc(dateStr)}</div>
+        <div><strong>Traceability:</strong> Traceable Expert Rule System & ARIA AI</div>
+      </div>
+    </header>
+
+    ${phishingHtml}
+    ${passwordHtml}
+    ${breachHtml}
+
+    <footer>
+      CyberGuard Expert System Assessment Report. Confidential and Proprietary.
+    </footer>
+  </div>
+</body>
+</html>`;
+
+      if (format === 'pdf') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+
+        // Clean up interactive elements (like the print banner) for the PDF
+        const printHeader = tempDiv.querySelector('.no-print-header');
+        if (printHeader) printHeader.remove();
+
+        const opt = {
+          margin:       10,
+          filename:     `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#080c14' },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(tempDiv).save();
+      } else {
+        // Download file utility using Blob as HTML
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
     }
 
     function formatMarkdown(text) {
