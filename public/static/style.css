@@ -379,22 +379,25 @@ body {
 .ticker-content {
   font-size: 13px;
   color: var(--text-secondary);
-  height: 20px;
+  min-height: 56px;
   position: relative;
   overflow: hidden;
 }
 
 .ticker-item {
-  position: absolute;
+  position: static;
   width: 100%;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.5s ease;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.3s ease;
+  display: none;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .ticker-item.active {
-  opacity: 1;
-  transform: translateY(0);
+  display: block;
 }
 
 /* Checkbox Grid Email Checker */

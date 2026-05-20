@@ -592,6 +592,22 @@
       if (!container) return;
       container.innerHTML = '';
       const safeItems = (items && items.length > 0) ? items : [{ title: 'Threat feed temporarily unavailable.', source: 'CyberGuard' }];
+      const simplifyThreatText = (text) => {
+        let t = String(text || '').trim();
+        if (!t) return 'A security issue was reported.';
+        t = t.replace(/\bCWD ~root command in ftpd allows root access\b/i, 'An old FTP weakness could let attackers gain administrator access');
+        t = t.replace(/\bbuffer overflow\b/ig, 'memory handling flaw');
+        t = t.replace(/\ballows local users to gain root privileges\b/ig, 'could let someone on the device get full administrator control');
+        t = t.replace(/\ballows remote attackers\b/ig, 'could allow outside attackers');
+        t = t.replace(/\barbitrary commands as root\b/ig, 'to run powerful admin-level commands');
+        t = t.replace(/\bprivilege escalation\b/ig, 'access level takeover');
+        return t;
+      };
+      const actionForSeverity = (sev) => {
+        if (sev === 'CRITICAL' || sev === 'HIGH') return 'Action: prioritize patching and monitor exposed systems now.';
+        if (sev === 'MEDIUM') return 'Action: review affected systems and schedule remediation.';
+        return 'Action: track and patch in normal maintenance windows.';
+      };
       safeItems.slice(0, 8).forEach((it, idx) => {
         const div = document.createElement('div');
         div.className = `ticker-item${idx === 0 ? ' active' : ''}`;
@@ -600,12 +616,13 @@
         const title = String(it.title || '').trim();
         const summary = String(it.summary || '').trim();
         const looksLikeCve = /^CVE-\d{4}-\d+/i.test(title);
-        let readable = summary || title || 'Threat item';
+        let readable = simplifyThreatText(summary || title || 'Threat item');
         if (readable.length > 120) readable = readable.substring(0, 117) + '...';
+        const actionText = actionForSeverity(sev);
         if (looksLikeCve && summary) {
-          div.textContent = `[${sev}] ${readable} (${title})${src}`;
+          div.textContent = `[${sev}] ${readable}. ${actionText} (${title})${src}`;
         } else {
-          div.textContent = `[${sev}] ${readable}${src}`;
+          div.textContent = `[${sev}] ${readable}. ${actionText}${src}`;
         }
         container.appendChild(div);
       });
