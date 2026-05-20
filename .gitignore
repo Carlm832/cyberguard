@@ -8,3 +8,8 @@ __pycache__/
 # PyInstaller build artifacts
 build/
 dist/
+*.spec
+
+# Scratch / session reports
+*_report.md
+templates_diff.txt
