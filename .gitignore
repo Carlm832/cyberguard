@@ -13,3 +13,12 @@ dist/
 # Scratch / session reports
 *_report.md
 templates_diff.txt
+
+# Virtual environments
+.venv/
+.venv*/
+venv/
+env/
+
+# Local logs
+*.log

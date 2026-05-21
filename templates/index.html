@@ -8,6 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('cg-theme');
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const theme = savedTheme || (prefersLight ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="/static/style.css">
   <!-- html2pdf.js for direct PDF downloads (bundled locally for offline/exe support) -->
   <script src="/static/html2pdf.bundle.min.js"></script>
@@ -28,9 +36,12 @@
           <p>Rule-Based Expert System</p>
         </div>
       </div>
-      <div class="status-badge">
-        <span class="dot" id="system-status-dot"></span>
-        <span id="system-status-text">System Ready</span>
+      <div class="header-controls">
+        <button class="theme-toggle" id="theme-toggle-btn" type="button">Light Mode</button>
+        <div class="status-badge">
+          <span class="dot" id="system-status-dot"></span>
+          <span id="system-status-text">System Ready</span>
+        </div>
       </div>
     </header>
 
@@ -439,6 +450,13 @@
         </div>
 
         <div class="chat-viewport-input-area">
+          <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+          <button class="chat-attach-btn" id="chat-image-btn" title="Upload image" aria-label="Upload image">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </button>
           <textarea class="chat-textarea" id="chat-input-text" placeholder="Type a message or click a suggestion chip..."></textarea>
           <button class="chat-send-btn" id="chat-send-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -448,12 +466,19 @@
           </button>
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
-            <button class="btn-secondary" id="chat-image-btn" style="width:auto; padding:8px 12px; font-size:12px;">Upload Image</button>
+          <div style="display:flex; align-items:center; gap:8px; min-height:28px;">
             <span id="chat-image-name" style="font-size:12px; color:var(--text-secondary);"></span>
           </div>
-          <button class="btn-secondary" id="chat-summary-btn" style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; position:relative;">
+            <button class="btn-secondary" id="chat-summary-btn" style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
+            <button class="btn-primary" id="chat-summary-share-btn" style="width:auto; padding:8px 14px; font-size:12px;">Share Summary</button>
+            <div id="chat-summary-share-menu" style="display:none; position:absolute; top:40px; right:0; min-width:220px; background:var(--panel); border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.35); padding:6px; z-index:50;">
+              <button class="btn-secondary chat-share-action" data-action="pdf" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
+              <button class="btn-secondary chat-share-action" data-action="email" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share to Email</button>
+              <button class="btn-secondary chat-share-action" data-action="copy" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
+              <button class="btn-secondary chat-share-action" data-action="web" style="width:100%; justify-content:flex-start;">Share...</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -479,7 +504,8 @@
       breachEvaluation: null, // latest breach check response
       breachEmail: null, // target email analyzed for breach
       chatSession: [], // chat history
-      chatPendingImage: null // { mime_type, data, name }
+      chatPendingImage: null, // { mime_type, data, name }
+      latestChatSummary: null // latest generated ARIA discussion summary
     };
 
     // Hardcoded rules data for Knowledge Base
@@ -639,8 +665,31 @@
       }
     }
 
+    function initThemeToggle() {
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      const getTheme = () => document.documentElement.getAttribute('data-theme') || 'dark';
+
+      function renderThemeLabel() {
+        themeBtn.textContent = getTheme() === 'light' ? 'Dark Mode' : 'Light Mode';
+      }
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cg-theme', theme);
+        renderThemeLabel();
+      }
+
+      themeBtn.addEventListener('click', () => {
+        const nextTheme = getTheme() === 'light' ? 'dark' : 'light';
+        setTheme(nextTheme);
+      });
+
+      renderThemeLabel();
+    }
+
     // Initialization
     document.addEventListener("DOMContentLoaded", () => {
+      initThemeToggle();
       initTabs();
       initChecklist();
       initPasswordAnalyzer();
@@ -1142,6 +1191,8 @@
     function initChat() {
       const sendBtn = document.getElementById('chat-send-btn');
       const summaryBtn = document.getElementById('chat-summary-btn');
+      const summaryShareBtn = document.getElementById('chat-summary-share-btn');
+      const summaryShareMenu = document.getElementById('chat-summary-share-menu');
       const imageBtn = document.getElementById('chat-image-btn');
       const imageInput = document.getElementById('chat-image-input');
       const imageName = document.getElementById('chat-image-name');
@@ -1159,6 +1210,29 @@
 
       sendBtn.addEventListener('click', submitChatMessage);
       summaryBtn.addEventListener('click', generateChatSummary);
+      summaryShareBtn.addEventListener('click', () => {
+        summaryShareMenu.style.display = summaryShareMenu.style.display === 'none' ? 'block' : 'none';
+      });
+      document.addEventListener('click', (event) => {
+        if (!summaryShareMenu.contains(event.target) && event.target !== summaryShareBtn) {
+          summaryShareMenu.style.display = 'none';
+        }
+      });
+      summaryShareMenu.querySelectorAll('.chat-share-action').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const action = btn.getAttribute('data-action');
+          summaryShareMenu.style.display = 'none';
+          if (action === 'pdf') {
+            downloadChatSummaryPdf();
+          } else if (action === 'email') {
+            shareChatSummaryByEmail();
+          } else if (action === 'copy') {
+            await copyChatSummaryToClipboard();
+          } else if (action === 'web') {
+            await webShareChatSummary();
+          }
+        });
+      });
       imageBtn.addEventListener('click', () => imageInput.click());
       imageInput.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
@@ -1272,7 +1346,9 @@
           const data = await res.json();
           document.getElementById(typingId).remove();
           if (res.ok) {
-            appendMessage('aria', data.summary || 'Unable to generate summary at this time.');
+            const summaryText = data.summary || 'Unable to generate summary at this time.';
+            appendMessage('aria', summaryText);
+            state.latestChatSummary = summaryText;
           } else {
             appendMessage('aria', 'Summary generation failed. Please try again.');
           }
@@ -1321,6 +1397,123 @@
           });
           container.appendChild(chip);
         });
+      }
+
+      function getLatestSummaryTextOrNotify() {
+        if (!state.latestChatSummary || !String(state.latestChatSummary).trim()) {
+          appendMessage('aria', 'No generated summary available yet. Click "Generate Discussion Summary" first.');
+          box.scrollTop = box.scrollHeight;
+          return null;
+        }
+        return String(state.latestChatSummary).trim();
+      }
+
+      function buildChatSummaryHtml(summaryText) {
+        const datePart = new Date().toISOString().slice(0, 10);
+        const safeSummary = String(summaryText);
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberGuard ARIA Discussion Summary</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0b1220; color: #e5e7eb; margin: 0; }
+    .wrap { max-width: 840px; margin: 28px auto; padding: 24px; }
+    .card { background: #111827; border: 1px solid #233047; border-radius: 10px; padding: 22px; }
+    h1 { margin: 0 0 10px 0; color: #34d399; font-size: 24px; }
+    .meta { color: #9ca3af; font-size: 13px; margin-bottom: 16px; }
+    .summary { line-height: 1.6; font-size: 14px; }
+    .summary ul { padding-left: 18px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ARIA Discussion Summary</h1>
+      <div class="meta">Generated on ${datePart}</div>
+      <div class="summary">${formatMarkdown(safeSummary)}</div>
+    </div>
+  </div>
+</body>
+</html>`;
+      }
+
+      async function downloadChatSummaryPdf() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        const datePart = new Date().toISOString().slice(0, 10);
+        const summaryHtml = buildChatSummaryHtml(summaryText);
+        try {
+          if (typeof html2pdf === 'undefined') {
+            throw new Error('html2pdf is not available');
+          }
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = summaryHtml;
+          const opt = {
+            margin: 10,
+            filename: `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b1220' },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          await html2pdf().set(opt).from(tempDiv).save();
+          appendMessage('aria', 'Summary PDF download started.');
+        } catch (err) {
+          appendMessage('aria', 'PDF download was blocked in this environment. Exporting HTML summary instead.');
+          downloadChatSummaryHtml(summaryHtml, datePart);
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function downloadChatSummaryHtml(summaryHtml, datePart) {
+        const blob = new Blob([summaryHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `CyberGuard_ARIA_Discussion_Summary_${datePart}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      function shareChatSummaryByEmail() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        const subject = encodeURIComponent('CyberGuard ARIA Discussion Summary');
+        const body = encodeURIComponent(summaryText);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+
+      async function copyChatSummaryToClipboard() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        try {
+          await navigator.clipboard.writeText(summaryText);
+          appendMessage('aria', 'Summary copied to clipboard.');
+        } catch (err) {
+          appendMessage('aria', 'Clipboard copy failed. Your browser/app may block clipboard access.');
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+
+      async function webShareChatSummary() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'CyberGuard ARIA Discussion Summary',
+              text: summaryText
+            });
+          } catch (err) {
+            // User canceled share or platform declined; no noisy error.
+          }
+        } else {
+          appendMessage('aria', 'Web share is not supported here. Use Download PDF, Email, or Copy Summary.');
+          box.scrollTop = box.scrollHeight;
+        }
       }
     }
 
