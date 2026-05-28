@@ -166,6 +166,9 @@
                 </svg>
                 <span>Run Phishing Inference</span>
               </button>
+              <button class="btn-secondary hidden" id="btn-view-analysis-report" style="margin-top: 10px;">
+                View Analysis Report
+              </button>
             </div>
           </div>
 
@@ -178,10 +181,10 @@
           </div>
 
           <!-- Evaluation Results -->
-          <div class="card hidden" id="eval-results-card">
+          <div class="card hidden analysis-report-modal" id="eval-results-card" role="dialog" aria-modal="true" aria-labelledby="analysis-report-title">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
               <div>
-                <h2>Analysis Report</h2>
+                <h2 id="analysis-report-title">Analysis Report</h2>
                 <p>Risk score calculated using baseline rule certainty factors.</p>
               </div>
               <div style="display: flex; gap: 8px;">
@@ -202,6 +205,12 @@
                     </div>
                   </div>
                 </div>
+                <button class="modal-close analysis-report-close" onclick="closeAnalysisReport()" aria-label="Close analysis report">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -506,7 +515,8 @@
       breachEmail: null, // target email analyzed for breach
       chatSession: [], // chat history
       chatPendingImage: null, // { mime_type, data, name }
-      latestChatSummary: null // latest generated ARIA discussion summary
+      latestChatSummary: null, // latest generated ARIA discussion summary
+      pendingChatEmailSummary: null
     };
 
     // Hardcoded rules data for Knowledge Base
@@ -699,7 +709,7 @@
       initChat();
       loadThreatTicker();
       setInterval(rotateTicker, 4500);
-      setInterval(loadThreatTicker, 300000);
+      setInterval(loadThreatTicker, 1800000);
       
       // Initial system status display
       updateGlobalStatus("LOW", 0);
@@ -733,7 +743,19 @@
       });
 
        document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+       document.getElementById('btn-view-analysis-report').addEventListener('click', openAnalysisReport);
      }
+
+    function openAnalysisReport() {
+      if (!state.evaluation) return;
+      document.getElementById('eval-results-card').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeAnalysisReport() {
+      document.getElementById('eval-results-card').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
 
     // Run threat logic on backend
     async function runThreatEvaluation() {
@@ -744,6 +766,7 @@
       btn.disabled = true;
       visualizer.classList.remove('hidden');
       resultsCard.classList.add('hidden');
+      document.body.classList.remove('modal-open');
 
       // Populate rules animation list
       const rulesList = document.getElementById('eval-rules-list');
@@ -792,8 +815,9 @@
             }
           });
 
-          // Show Results Panel
-          resultsCard.classList.remove('hidden');
+          // Show Results Panel as a popup
+          document.getElementById('btn-view-analysis-report').classList.remove('hidden');
+          openAnalysisReport();
           
           const threatLevel = data.risk_level; // LOW, MEDIUM, HIGH
           const scorePercent = Math.round(data.risk_score * 100);
@@ -1513,14 +1537,8 @@
       function shareChatSummaryByEmail() {
         const summaryText = getLatestSummaryTextOrNotify();
         if (!summaryText) return;
-        const subject = encodeURIComponent('CyberGuard ARIA Discussion Summary');
-        const body = encodeURIComponent(summaryText);
-        const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
-        if (window.pywebview && window.pywebview.api && window.pywebview.api.open_external) {
-          window.pywebview.api.open_external(mailtoUrl);
-        } else {
-          window.location.href = mailtoUrl;
-        }
+        state.pendingChatEmailSummary = summaryText;
+        openEmailModal('chat');
       }
 
       async function copyChatSummaryToClipboard() {
@@ -2339,12 +2357,25 @@
 
     function openEmailModal(reportType) {
       currentReportTypeForEmail = reportType;
+      const labels = {
+        phishing: ['Share Phishing Report', 'Send the dashboard analysis report via email.'],
+        password: ['Share Password Report', 'Send the password analysis report via email.'],
+        breach: ['Share Breach Report', 'Send the breach lookup report via email.'],
+        chat: ['Share ARIA Discussion Summary', 'Send the generated chat summary via email.']
+      };
+      const [title, subtitle] = labels[reportType] || ['Share Security Report', 'Send a detailed copy of this analysis via email.'];
+      document.getElementById('modal-email-title').textContent = title;
+      document.getElementById('modal-email-subtitle').textContent = subtitle;
       document.getElementById('email-modal').classList.add('show');
+      document.body.classList.add('modal-open');
       document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+      const chatMenu = document.getElementById('chat-summary-share-menu');
+      if (chatMenu) chatMenu.style.display = 'none';
     }
 
     function closeEmailModal() {
       document.getElementById('email-modal').classList.remove('show');
+      document.body.classList.remove('modal-open');
       document.getElementById('modal-email-input').value = '';
       const statusEl = document.getElementById('modal-email-status');
       statusEl.style.display = 'none';
@@ -2414,6 +2445,15 @@
             description: `Data types exposed: ${(b.data_types || []).join(', ')}. Estimated ${(b.records || 0).toLocaleString()} records compromised.`
           }));
           aria_explanation = be.aria_explanation || '';
+        } else if (currentReportTypeForEmail === 'chat') {
+          if (!state.pendingChatEmailSummary) throw new Error('No chat summary found. Generate a discussion summary first.');
+          metrics = {
+            risk_level: 'ARIA Discussion',
+            confidence_score: state.chatSession.length,
+            messages: state.chatSession.length
+          };
+          fired_rules = [];
+          aria_explanation = state.pendingChatEmailSummary;
         } else {
           throw new Error('Unknown report type.');
         }
@@ -2463,8 +2503,8 @@
         </svg>
       </button>
       <div class="modal-header">
-        <h3>Share Security Report</h3>
-        <p>Send a detailed copy of this analysis via email.</p>
+        <h3 id="modal-email-title">Share Security Report</h3>
+        <p id="modal-email-subtitle">Send a detailed copy of this analysis via email.</p>
       </div>
       <div class="modal-status" id="modal-email-status"></div>
       <div class="modal-input-group">

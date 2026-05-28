@@ -293,15 +293,24 @@ def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image:
         return {"error": True, "message": "Gemini API key not configured."}
 
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    max_messages = max(2, int(os.getenv("ARIA_MAX_CLOUD_MESSAGES", "8")))
+    cloud_messages = messages[-max_messages:]
+
     contents = []
-    for i, msg in enumerate(messages):
+    for i, msg in enumerate(cloud_messages):
         parts = []
-        if image and i == len(messages) - 1 and msg["role"] == "user":
+        if image and i == len(cloud_messages) - 1 and msg["role"] == "user":
             parts.append({"inline_data": {"mime_type": image["mime_type"], "data": image["data"]}})
         parts.append({"text": msg["content"]})
         contents.append({"role": msg["role"], "parts": parts})
 
-    payload = {"contents": contents}
+    payload = {
+        "contents": contents,
+        "generationConfig": {
+            "maxOutputTokens": int(os.getenv("ARIA_MAX_OUTPUT_TOKENS", "420")),
+            "temperature": float(os.getenv("ARIA_TEMPERATURE", "0.35")),
+        }
+    }
     if system_prompt:
         payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
 

@@ -336,7 +336,7 @@ async def threat_intel():
     Otherwise returns deterministic local fallback items.
     """
     now = time.time()
-    cache_ttl = int(os.getenv("THREAT_FEED_CACHE_SECONDS", "900"))
+    cache_ttl = int(os.getenv("THREAT_FEED_CACHE_SECONDS", "3600"))
     if _THREAT_CACHE["items"] and (now - _THREAT_CACHE["ts"] < cache_ttl):
         return JSONResponse({"ok": True, "source": "cache", "items": _THREAT_CACHE["items"], "cached": True})
 
@@ -347,9 +347,10 @@ async def threat_intel():
         {"title": "Lookalike domains mimic enterprise SSO portals", "summary": "Homograph and typo domains are redirecting users to cloned sign-in pages.", "severity": "high", "source": "CyberGuard Local Feed", "published_at": "2026-05-17T16:45:00Z", "url": ""},
     ]
 
+    feed_enabled = os.getenv("THREAT_FEED_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
     feed_url = os.getenv("THREAT_FEED_URL", "").strip()
     feed_key = os.getenv("THREAT_FEED_API_KEY", "").strip()
-    if not feed_url:
+    if not feed_enabled or not feed_url:
         _THREAT_CACHE["items"] = fallback_items
         _THREAT_CACHE["ts"] = now
         return JSONResponse({"ok": True, "source": "fallback", "items": fallback_items, "cached": False})
@@ -359,7 +360,7 @@ async def threat_intel():
         headers["Authorization"] = f"Bearer {feed_key}"
 
     try:
-        resp = requests.get(feed_url, headers=headers, timeout=10)
+        resp = requests.get(feed_url, headers=headers, timeout=3)
         resp.raise_for_status()
         raw = resp.json()
         candidates = raw.get("items", raw if isinstance(raw, list) else [])
