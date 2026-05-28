@@ -2,10 +2,10 @@
   "name": "cyberguard",
   "version": "1.0.0",
   "description": "CyberGuard | Hybrid Expert System for Phishing Risk Assessment",
-  "main": "app.py",
+  "main": "run_cyberguard.py",
   "scripts": {
-    "start": "python app.py",
-    "dev": "python app.py"
+    "start": "python run_cyberguard.py",
+    "dev": "python run_cyberguard.py"
   },
   "keywords": [],
   "author": "",

@@ -57,5 +57,10 @@ if (Test-Path $iconPath) {
 $pyinstallerCallArgs = @("-m", "PyInstaller") + $pyinstallerArgs + @("run_cyberguard.py")
 Invoke-Step -Exe "python" -Args $pyinstallerCallArgs
 
+if (Test-Path ".env") {
+  Write-Host "Copying .env to dist..."
+  Copy-Item ".env" -Destination "dist\.env" -Force
+}
+
 Write-Host ""
-Write-Host "Build complete: dist\\CyberGuard.exe"
+Write-Host "Build complete: dist\CyberGuard.exe"

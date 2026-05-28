@@ -22,11 +22,29 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 import uvicorn
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
+from fastapi import BackgroundTasks
 
 try:
     from .logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
 except ImportError:
     from logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
+
+def log_message(msg: str):
+    try:
+        if getattr(sys, "frozen", False):
+            log_dir = Path(sys.executable).resolve().parent
+        else:
+            log_dir = BASE_DIR.parent
+        log_file = log_dir / "cyberguard.log"
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(f"[{timestamp}] {msg}\n")
+    except Exception as e:
+        print(f"Logging failed: {e}")
 
 def _load_env() -> None:
     """
@@ -42,10 +60,15 @@ def _load_env() -> None:
     candidate_paths.append(Path.cwd() / ".env")
     candidate_paths.append(BASE_DIR.parent / ".env")
 
+    loaded = False
     for env_path in candidate_paths:
         if env_path.exists():
             load_dotenv(env_path, override=False)
+            log_message(f"Loaded .env file from: {env_path}")
+            loaded = True
             break
+    if not loaded:
+        log_message("Warning: No .env file found in candidate locations.")
 
 _load_env()
 
@@ -102,6 +125,14 @@ class ChatRequest(BaseModel):
 
 class ChatSummaryRequest(BaseModel):
     history: List[Dict[str, str]] = []
+
+class EmailRequest(BaseModel):
+    recipient_email: str
+    report_type: str
+    metrics: Dict[str, Any]
+    fired_rules: List[Dict[str, Any]] = []
+    aria_explanation: str = ""
+    indicators: Dict[str, bool] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -479,6 +510,238 @@ async def breach_email(req: BreachEmailRequest):
         "breaches": sorted(breaches, key=lambda x: x["year"], reverse=True),
         "aria_explanation": aria_result["reply"],
     })
+
+
+# ---------------------------------------------------------------------------
+# /api/send-email — Transactional Email Sender (Mailjet / SMTP)
+# ---------------------------------------------------------------------------
+
+def _send_email_background(req: EmailRequest, generated_date: str):
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port_str = os.getenv("SMTP_PORT", "587")
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM")
+
+    log_message(f"Starting background email dispatch for report type '{req.report_type}' to '{req.recipient_email}'")
+    log_message(f"SMTP Configuration: HOST={smtp_host}, PORT={smtp_port_str}, USER={smtp_user}, FROM={smtp_from}")
+
+    if not all([smtp_host, smtp_user, smtp_password, smtp_from]):
+        log_message("Email not sent: Missing SMTP configuration in .env")
+        return
+
+    try:
+        smtp_port = int(smtp_port_str)
+    except ValueError as ve:
+        log_message(f"Email not sent: Invalid SMTP_PORT '{smtp_port_str}': {ve}")
+        return
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"CyberGuard {req.report_type} Analysis Report"
+        msg["From"] = f"CyberGuard <{smtp_from}>"
+        msg["To"] = req.recipient_email
+
+        # Prepare dynamic variables
+        risk_level = req.metrics.get("risk_level", "Unknown")
+        confidence_score = req.metrics.get("confidence_score", 0)
+        rules_fired = len(req.fired_rules)
+        
+        # Build rules HTML
+        rules_html = ""
+        for rule in req.fired_rules:
+            rules_html += f"""
+            <div style="background:#071a12; border:1px solid rgba(29,158,117,0.15); border-radius:10px; padding:16px; margin-bottom:8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td valign="middle">
+                    <span style="background:#1D9E75; color:#060d0a; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; font-family:monospace; letter-spacing:0.5px;">{rule.get('id', 'RULE')}</span>
+                    &nbsp;
+                    <span style="font-size:13px; font-weight:600; color:#e6f1ed;">{rule.get('name', 'Rule fired')}</span>
+                    </td>
+                    <td align="right" valign="middle" style="white-space:nowrap;">
+                    <span style="font-size:12px; font-weight:700; color:#EF9F27; font-family:monospace;">+{rule.get('certainty_factor', 0)} CF</span>
+                    </td>
+                </tr>
+                </table>
+                <div style="font-size:12px; color:#597368; margin-top:8px; line-height:1.6;">{rule.get('description', '')}</div>
+            </div>
+            """
+
+        if not req.fired_rules:
+            rules_html = '<div style="font-size:12px; color:#597368;">No specific rules fired for this analysis.</div>'
+
+        # Build indicators HTML
+        indicators_html = ""
+        if req.indicators:
+            indicators_html += '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>'
+            for key, val in req.indicators.items():
+                name = str(key).replace('_', ' ').upper()
+                if val:
+                    indicators_html += f'<td style="padding:3px 6px 3px 0;"><span style="background:rgba(226,75,74,0.1); border:1px solid rgba(226,75,74,0.2); color:#fca5a5; font-size:11px; font-weight:600; padding:4px 10px; border-radius:5px; display:inline-block;">✕ {name}</span></td>'
+                else:
+                    indicators_html += f'<td style="padding:3px 6px 3px 0;"><span style="background:rgba(29,158,117,0.1); border:1px solid rgba(29,158,117,0.2); color:#6ee7b7; font-size:11px; font-weight:600; padding:4px 10px; border-radius:5px; display:inline-block;">✓ {name}</span></td>'
+            indicators_html += '</tr></table>'
+
+        # Build final HTML
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>CyberGuard Security Report</title>
+</head>
+<body style="margin:0; padding:0; background-color:#060d0a; font-family: Arial, Helvetica, sans-serif; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#060d0a; min-height:100vh;">
+    <tr>
+      <td align="center" valign="top" style="padding: 40px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#0d1f1a; border:1px solid rgba(29,158,117,0.25); border-radius:16px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.7);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #0a2419 0%, #0d2e22 50%, #071a12 100%); padding: 36px 40px 28px 40px; border-bottom: 1px solid rgba(29,158,117,0.2);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td valign="middle" style="padding-right: 14px;">
+                          <div style="width:46px; height:46px; background-color:#0d2e22; border:1.5px solid #1D9E75; border-radius:10px; display:inline-block; text-align:center; line-height:46px;">
+                            <img src="https://img.icons8.com/ios/50/1D9E75/shield.png" width="24" height="24" alt="Shield" style="vertical-align:middle; margin-top:11px;" />
+                          </div>
+                        </td>
+                        <td valign="middle">
+                          <div style="font-size:22px; font-weight:800; color:#e6f1ed; letter-spacing:0.5px; line-height:1.1;">CyberGuard</div>
+                          <div style="font-size:10px; color:#1D9E75; text-transform:uppercase; letter-spacing:1.5px; margin-top:3px;">Rule-Based Expert System</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td align="right" valign="middle">
+                    <div style="background: rgba(29,158,117,0.12); border:1px solid rgba(29,158,117,0.3); border-radius:20px; padding:6px 14px; display:inline-block;">
+                      <span style="font-size:11px; font-weight:700; color:#1D9E75; text-transform:uppercase; letter-spacing:1px;">Security Report</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background: rgba(29,158,117,0.06); padding: 20px 40px; border-bottom: 1px solid rgba(29,158,117,0.1);">
+              <div style="font-size:18px; font-weight:700; color:#e6f1ed; margin-bottom:4px;">
+                {req.report_type} Analysis
+              </div>
+              <div style="font-size:12px; color:#94aba1;">
+                Generated on <span style="color:#1D9E75; font-weight:600;">{generated_date}</span>
+                &nbsp;·&nbsp; Shared via CyberGuard Expert System
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px;">
+              <p style="font-size:14px; color:#94aba1; margin:0 0 28px 0; line-height:1.7;">
+                A CyberGuard security assessment has been shared with you. Below is the full expert system analysis.
+              </p>
+              <div style="margin-bottom:28px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#597368; margin-bottom:12px;">Assessment Metrics</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="32%" style="padding-right:8px; vertical-align:top;">
+                      <div style="background:#071a12; border:1px solid rgba(29,158,117,0.15); border-radius:10px; padding:16px;">
+                        <div style="font-size:10px; color:#597368; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Verdict</div>
+                        <div style="font-size:18px; font-weight:800; color:#e6f1ed;">{risk_level}</div>
+                      </div>
+                    </td>
+                    <td width="32%" style="padding-right:8px; vertical-align:top;">
+                      <div style="background:#071a12; border:1px solid rgba(29,158,117,0.15); border-radius:10px; padding:16px;">
+                        <div style="font-size:10px; color:#597368; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Score</div>
+                        <div style="font-size:18px; font-weight:800; color:#e6f1ed;">{confidence_score}</div>
+                        <div style="background:#0d2e22; border-radius:3px; height:4px; margin-top:8px; overflow:hidden;">
+                           <div style="background:#1D9E75; height:4px; width:{min(100, max(0, float(confidence_score) if isinstance(confidence_score, (int, float)) else 50))}%; border-radius:3px;"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td width="36%" style="vertical-align:top;">
+                      <div style="background:#071a12; border:1px solid rgba(29,158,117,0.15); border-radius:10px; padding:16px;">
+                        <div style="font-size:10px; color:#597368; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Details</div>
+                        <div style="font-size:18px; font-weight:800; color:#e6f1ed;">{rules_fired} <span style="font-size:12px; color:#597368; font-weight:400;">items flagged</span></div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div style="margin-bottom:28px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#597368; margin-bottom:12px;">Trace Details</div>
+                {rules_html}
+              </div>
+              <div style="margin-bottom:28px; background: rgba(29,158,117,0.05); border:1px solid rgba(29,158,117,0.2); border-left: 4px solid #1D9E75; border-radius:4px 10px 10px 4px; padding:20px 24px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#1D9E75; margin-bottom:12px;">
+                  &#9656; ARIA Expert Security Evaluation
+                </div>
+                <p style="font-size:14px; color:#94aba1; margin:0; line-height:1.8;">
+                  {req.aria_explanation or "No additional expert evaluation provided."}
+                </p>
+              </div>
+              <div style="margin-bottom:32px;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#597368; margin-bottom:12px;">Inspected Indicators</div>
+                {indicators_html}
+              </div>
+              <div style="background:#071a12; border-radius:8px; padding:14px 18px; border:1px solid rgba(29,158,117,0.1);">
+                <p style="margin:0; font-size:12px; color:#597368; line-height:1.7;">
+                  This report was automatically generated by the <strong style="color:#94aba1;">CyberGuard Expert System</strong>.
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#071a12; padding:24px 40px; border-top:1px solid rgba(29,158,117,0.15);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle">
+                    <div style="font-size:13px; font-weight:700; color:#1D9E75;">CyberGuard</div>
+                    <div style="font-size:11px; color:#597368; margin-top:2px;">Rule-Based Expert Security System</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+        part = MIMEText(html_content, "html")
+        msg.attach(part)
+
+        log_message(f"Connecting to SMTP server at {smtp_host}:{smtp_port}...")
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
+        log_message("Sending EHLO...")
+        server.ehlo()
+        log_message("Starting TLS secure channel...")
+        server.starttls()
+        log_message("Sending EHLO post-TLS...")
+        server.ehlo()
+        log_message(f"Logging in as user {smtp_user}...")
+        server.login(smtp_user, smtp_password)
+        log_message("Sending email message...")
+        server.send_message(msg)
+        log_message("Closing connection...")
+        server.quit()
+        log_message(f"Successfully sent report email to {req.recipient_email}")
+    except Exception as e:
+        log_message(f"Failed to send email to {req.recipient_email}: {e}")
+
+@app.post("/api/send-email")
+async def send_email(req: EmailRequest, background_tasks: BackgroundTasks):
+    smtp_from = os.getenv("SMTP_FROM")
+    if not smtp_from:
+        log_message("API Send Email Request rejected: SMTP_FROM missing in environment variables.")
+        return JSONResponse({"ok": False, "error": "Email is not configured (SMTP_FROM missing)"}, status_code=500)
+    
+    generated_date = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+    background_tasks.add_task(_send_email_background, req, generated_date)
+    return JSONResponse({"ok": True, "message": "Email sending initiated in the background"})
 
 
 # ---------------------------------------------------------------------------

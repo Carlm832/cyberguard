@@ -519,16 +519,16 @@ class ARIAEngine:
         hlen = len(history or [])
         if hlen <= 2:
             return [
-                "Would you like me to start with rule interpretation or immediate hardening actions?",
-                "Do you want a quick walkthrough of what raised your current risk score?",
-                "Should we focus on phishing signals or password resilience first?",
+                "Explain the rules behind this result.",
+                "Show me what raised my current risk score.",
+                "Help me choose between phishing signals and password resilience.",
             ]
         if "r0" in msg or "rule" in msg:
-            return ["Which other rule should I break down next?", "Do you want an example attack pattern for this rule?", "Should I map this rule to mitigation actions now?"]
+            return ["Explain another rule next.", "Show me an example attack pattern for this rule.", "Map this rule to mitigation actions."]
         if "posture" in msg or "risk" in msg:
-            return ["Would you like a prioritized 3-step action plan?", "Should we re-check which indicators are driving the score most?", "Do you want this converted into an incident note summary?"]
+            return ["Give me a prioritized 3-step action plan.", "Re-check which indicators are driving my score most.", "Convert this into an incident note summary."]
         if "password" in msg or "entropy" in msg:
-            return ["Do you want a target password policy for your team?", "Should I explain which password checks failed and why?", "Would you like 2FA rollout recommendations next?"]
+            return ["Give me a target password policy for my team.", "Explain which password checks failed and why.", "Show me 2FA rollout recommendations."]
         if ctx and ctx.get("phishing_verdict"):
             return ["Why did these rules fire?", "What should I do right now?", "What if I already clicked a link?", "How confident is this verdict?"]
         if ctx and ctx.get("password_verdict"):

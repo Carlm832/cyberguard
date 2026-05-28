@@ -1029,6 +1029,40 @@ body {
   overflow: hidden;
 }
 
+.chat-summary-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 0 20px 16px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+.chat-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+#chat-summary-share-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  padding: 6px;
+  z-index: 100;
+}
+
 .chat-viewport-header {
   display: flex;
   align-items: center;
@@ -1059,6 +1093,7 @@ body {
 
 .chat-viewport-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 20px;
   display: flex;
@@ -1111,22 +1146,26 @@ body {
 
 .chat-chips-container {
   display: flex;
+  align-self: flex-start;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 20px;
+  max-width: 85%;
+  padding: 0 4px;
   background: rgba(29, 158, 117, 0.02);
-  border-top: 1px solid rgba(29, 158, 117, 0.05);
 }
 
 .chat-followup-chip {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--teal);
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 8px 12px;
+  border-radius: 16px;
   font-size: 12.5px;
+  line-height: 1.35;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: normal;
+  text-align: left;
 }
 
 .chat-followup-chip:hover {
@@ -1278,4 +1317,244 @@ body {
 
 .btn-secondary svg {
   stroke: var(--teal);
+}
+
+/* Share Dropdown UI */
+.share-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.share-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  min-width: 180px;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+  overflow: hidden;
+}
+
+.share-menu.show {
+  display: block;
+}
+
+.share-menu-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(29, 158, 117, 0.05);
+}
+
+.share-menu-item:last-child {
+  border-bottom: none;
+}
+
+.share-menu-item:hover {
+  background: rgba(29, 158, 117, 0.08);
+  color: var(--teal);
+}
+
+.share-menu-item svg {
+  stroke: currentColor;
+}
+
+/* Glassmorphic Email Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(6, 13, 10, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal-card {
+  background: rgba(13, 31, 26, 0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+  transform: translateY(20px);
+  animation: slideUp 0.3s ease forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--teal), var(--amber));
+}
+
+@keyframes slideUp {
+  to { transform: translateY(0); }
+}
+
+.modal-header {
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.modal-header p {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-input-group {
+  margin-bottom: 24px;
+}
+
+.modal-input-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(10, 15, 13, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.modal-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(29, 158, 117, 0.15);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.modal-btn-cancel:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+}
+
+.modal-btn-send {
+  background: var(--teal);
+  border: none;
+  color: var(--bg);
+}
+
+.modal-btn-send:hover:not(:disabled) {
+  box-shadow: 0 0 15px rgba(29, 158, 117, 0.4);
+}
+
+.modal-btn-send:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(10, 15, 13, 0.3);
+  border-top-color: var(--bg);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.modal-btn-send.loading .btn-text { display: none; }
+.modal-btn-send.loading .btn-spinner { display: block; }
+.modal-btn-send.loading svg { display: none; }
+
+/* Status messaging in modal */
+.modal-status {
+  display: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-status.success {
+  display: flex;
+  background: rgba(29, 158, 117, 0.1);
+  border: 1px solid var(--teal);
+  color: var(--teal);
+}
+
+.modal-status.error {
+  display: flex;
+  background: rgba(226, 75, 74, 0.1);
+  border: 1px solid var(--red);
+  color: #fca5a5;
 }
