@@ -366,7 +366,7 @@ def fetch_openrouter_threat_intel() -> List[Dict[str, Any]]:
     Falls back to static items if either stage fails.
     """
     api_key = os.getenv("OPEN_ROUTER_API_KEY", "").strip()
-    model = os.getenv("OPEN_ROUTER_THREAT_MODEL", "meta-llama/llama-3.3-8b-instruct:free").strip()
+    model = os.getenv("OPEN_ROUTER_THREAT_MODEL", "google/gemma-4-31b-it:free").strip()
 
     # --- Stage 1: Fetch real CVEs from NVD ---
     cves = _fetch_nvd_cves(max_items=5)
@@ -565,7 +565,7 @@ def _cloud_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: 
         else:
             or_messages.append({"role": role, "content": msg["content"]})
             
-    or_model = os.getenv("OPEN_ROUTER_CHAT_MODEL", "google/gemini-2.0-flash-exp:free").strip()
+    or_model = os.getenv("OPEN_ROUTER_CHAT_MODEL", "google/gemma-4-31b-it:free").strip()
     
     headers = {
         "Authorization": f"Bearer {openrouter_key}",
