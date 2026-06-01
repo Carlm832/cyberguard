@@ -612,8 +612,7 @@
     <nav class="nav-links">
       <a href="#features" class="nav-link">Features</a>
       <a href="#sandbox" class="nav-link">Interactive Sandbox</a>
-      <a href="#download" class="nav-link">Download</a>
-      <a href="/app" class="btn btn-primary" id="nav-cta-web">Try Web Demo</a>
+      <a href="#download" class="btn btn-primary" id="nav-cta-dl">Download Desktop</a>
     </nav>
   </header>
 
@@ -632,7 +631,6 @@
           </svg>
           Download Desktop App
         </a>
-        <a href="/app" class="btn btn-secondary" id="hero-cta-web">Try Live Web Demo</a>
       </div>
     </div>
     <div class="hero-mockup-wrapper">
@@ -754,10 +752,10 @@
   <section class="section-download" id="download">
     <div class="download-box">
       <h2>Secure Your Horizon Today</h2>
-      <p>Download the standalone desktop security center or launch the web preview to start assessing threat levels.</p>
+      <p>Download the standalone desktop security center and start assessing threat levels from the comfort of your own machine.</p>
       
-      <div class="download-cards">
-        <!-- Card 1: Desktop Application -->
+      <div class="download-cards" style="grid-template-columns: 1fr; max-width: 480px; margin: 20px auto 0;">
+        <!-- Desktop Application -->
         <div class="download-card">
           <div class="download-card-title">
             <svg viewBox="0 0 24 24">
@@ -765,31 +763,14 @@
               <line x1="8" y1="21" x2="16" y2="21"/>
               <line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
-            CyberGuard Desktop
+            CyberGuard for Windows
           </div>
           <p class="download-card-desc">
-            Get the full-featured, offline-ready desktop client for Windows. Runs in an isolated shell, features deep local storage options, and connects natively to USB keys.
+            Full-featured, offline-ready desktop client. Scan emails, audit passwords, consult ARIA, and monitor live CVE threats — no internet connection required.
           </p>
-          <a href="#" class="btn btn-primary" style="margin-top: auto; align-self: flex-start;" id="download-win-btn">
+          <a href="https://github.com/Carlm832/cyberguard/releases/latest" class="btn btn-primary" style="margin-top: auto; align-self: flex-start;" id="download-win-btn" target="_blank">
+            <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Download for Windows (.exe)
-          </a>
-        </div>
-
-        <!-- Card 2: Web Preview -->
-        <div class="download-card">
-          <div class="download-card-title">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            Interactive Web Sandbox
-          </div>
-          <p class="download-card-desc">
-            Evaluate the expert system environment, scanner dashboards, live NVD updates, and Gemini-powered ARIA chat assistant in your web browser instantly.
-          </p>
-          <a href="/app" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start;" id="download-web-btn">
-            Launch Web Sandbox
           </a>
         </div>
       </div>
@@ -910,11 +891,5 @@
       });
     });
 
-    // Simple alert for Download button
-    document.getElementById("download-win-btn").addEventListener("click", (e) => {
-      e.preventDefault();
-      alert("CyberGuard Desktop Client download package compilation is processing. For instant evaluation, please click 'Launch Web Sandbox'.");
-    });
-  </script>
 </body>
 </html>
