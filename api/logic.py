@@ -5,6 +5,7 @@ Rule base, inference engines, and ARIA chat engine.
 
 import os
 import hashlib
+import json
 import re
 import math
 import base64
@@ -282,6 +283,193 @@ class FuzzyRiskEngine:
         elif overall >= 0.35: status, colour = "Moderate Risk",   "amber"
         else:                 status, colour = "Good Standing",   "teal"
         return {"overall_score": overall, "overall_status": status, "colour": colour}
+
+
+# ---------------------------------------------------------------------------
+# OpenRouter + NVD — Live Threat Intel Feed
+# ---------------------------------------------------------------------------
+
+_OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
+_NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+
+def _fetch_nvd_cves(max_items: int = 5) -> List[Dict[str, Any]]:
+    """
+    Fetches recent CVEs from the NVD API and normalizes them into
+    a minimal dict with: cve_id, description, severity, score.
+    Returns an empty list on failure.
+    """
+    try:
+        resp = requests.get(
+            _NVD_CVE_URL,
+            params={"resultsPerPage": max_items},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        raw = resp.json()
+        vulns = raw.get("vulnerabilities", [])
+        result = []
+        for v in vulns:
+            cve = v.get("cve", {})
+            cve_id = str(cve.get("id", "Unknown CVE"))
+
+            # English description
+            desc = ""
+            for d in cve.get("descriptions", []):
+                if isinstance(d, dict) and d.get("lang") == "en":
+                    desc = str(d.get("value", ""))
+                    break
+            if not desc:
+                descs = cve.get("descriptions", [])
+                desc = str(descs[0].get("value", "")) if descs else ""
+
+            # Severity + score
+            severity = "medium"
+            score = None
+            metrics = cve.get("metrics", {})
+            for key in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+                metric_list = metrics.get(key)
+                if isinstance(metric_list, list) and metric_list:
+                    m = metric_list[0]
+                    base_sev = str(m.get("baseSeverity") or "").lower()
+                    if base_sev in {"critical", "high", "medium", "low"}:
+                        severity = base_sev
+                    cvss_data = m.get("cvssData") or m
+                    score = cvss_data.get("baseScore")
+                    break
+
+            result.append({
+                "cve_id": cve_id,
+                "description": desc[:500],
+                "severity": severity,
+                "score": score,
+            })
+        return result
+    except Exception:
+        return []
+
+_THREAT_INTEL_FALLBACK = [
+    {"title": "Credential phishing campaigns target shared inbox users", "summary": "Attackers use urgency language and spoofed support domains to harvest credentials from shared email accounts.", "severity": "high", "source": "CyberGuard Local Feed"},
+    {"title": "Macro-lure attachments resurface in invoice themes", "summary": "Unexpected attachments disguised as invoices are prompting users to enable macros, delivering RAT payloads.", "severity": "medium", "source": "CyberGuard Local Feed"},
+    {"title": "MFA fatigue prompts observed in helpdesk impersonation", "summary": "Users receive repeated push authentication prompts followed by fake IT support calls to approve access.", "severity": "medium", "source": "CyberGuard Local Feed"},
+    {"title": "Lookalike domains mimic enterprise SSO portals", "summary": "Homograph and typo-squatting domains are redirecting users to cloned single sign-on login pages.", "severity": "high", "source": "CyberGuard Local Feed"},
+    {"title": "Ransomware operators exploit unpatched VPN gateways", "summary": "Several ransomware groups are actively scanning for and exploiting known CVEs in popular enterprise VPN products.", "severity": "critical", "source": "CyberGuard Local Feed"},
+]
+
+
+def fetch_openrouter_threat_intel() -> List[Dict[str, Any]]:
+    """
+    Two-stage pipeline:
+      1. Pull the latest CVEs from NVD API.
+      2. Send them to OpenRouter to generate plain-language, actionable threat
+         intelligence items enriched with CVE context.
+    Falls back to static items if either stage fails.
+    """
+    api_key = os.getenv("OPEN_ROUTER_API_KEY", "").strip()
+    model = os.getenv("OPEN_ROUTER_THREAT_MODEL", "meta-llama/llama-3.3-8b-instruct:free").strip()
+
+    # --- Stage 1: Fetch real CVEs from NVD ---
+    cves = _fetch_nvd_cves(max_items=5)
+    if not cves:
+        # NVD unavailable — still try OpenRouter with a generic prompt
+        cve_context = "No live CVE data available right now. Generate 5 realistic current threats."
+    else:
+        cve_lines = []
+        for c in cves:
+            score_str = f" (CVSS {c['score']})" if c.get("score") else ""
+            cve_lines.append(
+                f"- {c['cve_id']} [{c['severity'].upper()}{score_str}]: {c['description'][:300]}"
+            )
+        cve_context = "Here are the latest real CVEs from the NVD database:\n" + "\n".join(cve_lines)
+
+    # --- Stage 2: Enrich via OpenRouter ---
+    if not api_key:
+        # No OpenRouter key — format NVD data directly as fallback items
+        if cves:
+            return [
+                {
+                    "title": c["cve_id"],
+                    "summary": c["description"][:200],
+                    "severity": c["severity"],
+                    "source": "NVD (local)",
+                }
+                for c in cves
+            ]
+        return _THREAT_INTEL_FALLBACK
+
+    prompt = (
+        f"{cve_context}\n\n"
+        "Using the CVE data above as your source, produce exactly 5 threat intelligence items. "
+        "For each CVE, write a short plain-English headline and a 1–2 sentence explanation "
+        "that a non-technical user can understand — avoiding raw CVE jargon where possible. "
+        "Respond ONLY with a valid JSON array, no markdown, no code fences, no extra text. "
+        "Each object must have these exact keys: "
+        "\"title\" (max 80 chars), "
+        "\"summary\" (max 200 chars), "
+        "\"severity\" (one of: critical, high, medium, low), "
+        "\"source\" (use \"NVD via OpenRouter\"). "
+        "Example: [{\"title\": \"...\", \"summary\": \"...\", \"severity\": \"high\", \"source\": \"NVD via OpenRouter\"}]"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cyberguard.app",
+        "X-Title": "CyberGuard Threat Feed",
+    }
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 900,
+        "temperature": 0.4,
+    }
+
+    try:
+        resp = requests.post(_OPENROUTER_BASE, json=payload, headers=headers, timeout=25)
+        resp.raise_for_status()
+        data = resp.json()
+        raw_text = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+            .strip()
+        )
+        # Strip any accidental markdown fences
+        if raw_text.startswith("```"):
+            raw_text = re.sub(r"^```[a-z]*\n?", "", raw_text)
+            raw_text = re.sub(r"\n?```$", "", raw_text)
+
+        items = json.loads(raw_text)
+        if not isinstance(items, list):
+            raise ValueError("Response was not a JSON list")
+
+        normalized = []
+        valid_severities = {"critical", "high", "medium", "low"}
+        for item in items[:5]:
+            if not isinstance(item, dict):
+                continue
+            sev = str(item.get("severity", "medium")).lower()
+            normalized.append({
+                "title": str(item.get("title", "Untitled Threat"))[:100],
+                "summary": str(item.get("summary", ""))[:250],
+                "severity": sev if sev in valid_severities else "medium",
+                "source": str(item.get("source", "NVD via OpenRouter")),
+            })
+        return normalized if normalized else _THREAT_INTEL_FALLBACK
+
+    except Exception:
+        # OpenRouter failed — return raw NVD data as plain items if we have them
+        if cves:
+            return [
+                {
+                    "title": c["cve_id"],
+                    "summary": c["description"][:200],
+                    "severity": c["severity"],
+                    "source": "NVD",
+                }
+                for c in cves
+            ]
+        return _THREAT_INTEL_FALLBACK
 
 
 # ---------------------------------------------------------------------------

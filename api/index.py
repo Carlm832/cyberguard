@@ -29,9 +29,9 @@ from datetime import datetime
 from fastapi import BackgroundTasks
 
 try:
-    from .logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
+    from .logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES, fetch_openrouter_threat_intel
 except ImportError:
-    from logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES
+    from logic import ARIAEngine, FuzzyRiskEngine, HIBPExpert, PasswordExpert, PhishingExpert, PHISHING_RULES, fetch_openrouter_threat_intel
 
 def log_message(msg: str):
     try:
@@ -78,6 +78,7 @@ _THREAT_CACHE: Dict[str, Any] = {"ts": 0.0, "items": []}
 
 # Mount static folder
 app.mount("/static", StaticFiles(directory=str(BASE_DIR.parent / "public" / "static")), name="static")
+app.mount("/public/static", StaticFiles(directory=str(BASE_DIR.parent / "public" / "static")), name="public_static")
 
 # SessionMiddleware uses secure cookies to store session data across serverless calls
 app.add_middleware(
@@ -94,9 +95,13 @@ app.add_middleware(
 )
 
 
-@app.get("/", response_class=FileResponse)
+@app.get("/app", response_class=FileResponse)
 async def serve_index():
     return FileResponse(str(BASE_DIR.parent / "templates" / "index.html"))
+
+@app.get("/", response_class=FileResponse)
+async def serve_promo():
+    return FileResponse(str(BASE_DIR.parent / "templates" / "promo.html"))
 
 @app.get("/favicon.ico")
 async def favicon():
@@ -331,121 +336,22 @@ async def ai_health():
 @app.get("/api/threat-intel")
 async def threat_intel():
     """
-    Returns normalized threat feed items.
-    If THREAT_FEED_URL is configured, fetches remote data and caches it.
-    Otherwise returns deterministic local fallback items.
+    Returns AI-enriched threat intel items sourced from the NVD CVE database.
+    Stage 1: Fetches the latest CVEs from NVD.
+    Stage 2: Passes them to OpenRouter to produce plain-language threat summaries.
+    Results are cached for THREAT_FEED_CACHE_SECONDS (default: 900s).
+    Falls back to static items if both stages fail.
     """
     now = time.time()
-    cache_ttl = int(os.getenv("THREAT_FEED_CACHE_SECONDS", "3600"))
+    cache_ttl = int(os.getenv("THREAT_FEED_CACHE_SECONDS", "900"))
     if _THREAT_CACHE["items"] and (now - _THREAT_CACHE["ts"] < cache_ttl):
         return JSONResponse({"ok": True, "source": "cache", "items": _THREAT_CACHE["items"], "cached": True})
 
-    fallback_items = [
-        {"title": "Credential phishing campaigns target shared inbox users", "summary": "Attackers are using urgency language and spoofed support domains to harvest credentials.", "severity": "high", "source": "CyberGuard Local Feed", "published_at": "2026-05-20T08:00:00Z", "url": ""},
-        {"title": "Macro-lure attachments resurface in invoice themes", "summary": "Unexpected attachments disguised as invoices are prompting macro enablement.", "severity": "medium", "source": "CyberGuard Local Feed", "published_at": "2026-05-19T14:30:00Z", "url": ""},
-        {"title": "MFA fatigue prompts observed in helpdesk impersonation", "summary": "Users receive repeated authentication prompts followed by fake support calls.", "severity": "medium", "source": "CyberGuard Local Feed", "published_at": "2026-05-18T10:15:00Z", "url": ""},
-        {"title": "Lookalike domains mimic enterprise SSO portals", "summary": "Homograph and typo domains are redirecting users to cloned sign-in pages.", "severity": "high", "source": "CyberGuard Local Feed", "published_at": "2026-05-17T16:45:00Z", "url": ""},
-    ]
-
-    feed_enabled = os.getenv("THREAT_FEED_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
-    feed_url = os.getenv("THREAT_FEED_URL", "").strip()
-    feed_key = os.getenv("THREAT_FEED_API_KEY", "").strip()
-    if not feed_enabled or not feed_url:
-        _THREAT_CACHE["items"] = fallback_items
-        _THREAT_CACHE["ts"] = now
-        return JSONResponse({"ok": True, "source": "fallback", "items": fallback_items, "cached": False})
-
-    headers = {}
-    if feed_key:
-        headers["Authorization"] = f"Bearer {feed_key}"
-
-    try:
-        resp = requests.get(feed_url, headers=headers, timeout=8)
-        resp.raise_for_status()
-        raw = resp.json()
-        candidates = raw.get("items", raw if isinstance(raw, list) else [])
-        # NVD API shape: {"vulnerabilities":[{"cve": {...}}]}
-        if not candidates and isinstance(raw, dict) and isinstance(raw.get("vulnerabilities"), list):
-            candidates = raw.get("vulnerabilities", [])
-        normalized = []
-        max_items = int(os.getenv("THREAT_FEED_MAX_ITEMS", "5"))
-        for item in candidates[:max_items]:
-            if not isinstance(item, dict):
-                continue
-            # NVD item normalization
-            if "cve" in item and isinstance(item.get("cve"), dict):
-                cve = item["cve"]
-                cve_id = str(cve.get("id") or "Unknown CVE")
-                descriptions = cve.get("descriptions", [])
-                summary = ""
-                if isinstance(descriptions, list):
-                    en_desc = next((d for d in descriptions if isinstance(d, dict) and d.get("lang") == "en"), None)
-                    any_desc = descriptions[0] if descriptions and isinstance(descriptions[0], dict) else None
-                    summary = str((en_desc or any_desc or {}).get("value") or "")
-
-                severity = "medium"
-                metrics = cve.get("metrics", {})
-                if isinstance(metrics, dict):
-                    v31 = metrics.get("cvssMetricV31") or metrics.get("cvssMetricV30")
-                    v2 = metrics.get("cvssMetricV2")
-                    metric_item = None
-                    if isinstance(v31, list) and v31:
-                        metric_item = v31[0]
-                    elif isinstance(v2, list) and v2:
-                        metric_item = v2[0]
-                    if isinstance(metric_item, dict):
-                        base_sev = str(metric_item.get("baseSeverity") or "").lower()
-                        if base_sev in {"critical", "high", "medium", "low"}:
-                            severity = base_sev
-                        else:
-                            score = None
-                            cvss_data = metric_item.get("cvssData")
-                            if isinstance(cvss_data, dict):
-                                score = cvss_data.get("baseScore")
-                            if isinstance(score, (int, float)):
-                                if score >= 9.0:
-                                    severity = "critical"
-                                elif score >= 7.0:
-                                    severity = "high"
-                                elif score >= 4.0:
-                                    severity = "medium"
-                                else:
-                                    severity = "low"
-
-                refs = cve.get("references", [])
-                first_url = ""
-                if isinstance(refs, list):
-                    first_ref = next((r for r in refs if isinstance(r, dict) and r.get("url")), None)
-                    if first_ref:
-                        first_url = str(first_ref.get("url"))
-
-                normalized.append({
-                    "title": cve_id,
-                    "summary": summary,
-                    "severity": severity,
-                    "source": "NVD",
-                    "published_at": str(cve.get("published") or ""),
-                    "url": first_url,
-                })
-                continue
-
-            normalized.append({
-                "title": str(item.get("title") or item.get("name") or "Untitled threat item"),
-                "summary": str(item.get("summary") or item.get("description") or ""),
-                "severity": str(item.get("severity") or "medium").lower(),
-                "source": str(item.get("source") or "External Threat Feed"),
-                "published_at": str(item.get("published_at") or item.get("published") or ""),
-                "url": str(item.get("url") or ""),
-            })
-        if not normalized:
-            normalized = fallback_items
-        _THREAT_CACHE["items"] = normalized
-        _THREAT_CACHE["ts"] = now
-        return JSONResponse({"ok": True, "source": "remote", "items": normalized, "cached": False})
-    except Exception as e:
-        _THREAT_CACHE["items"] = fallback_items
-        _THREAT_CACHE["ts"] = now
-        return JSONResponse({"ok": False, "source": "fallback", "items": fallback_items, "error": str(e), "cached": False})
+    items = fetch_openrouter_threat_intel()
+    _THREAT_CACHE["items"] = items
+    _THREAT_CACHE["ts"] = now
+    source = "nvd+openrouter" if any(i.get("source", "").startswith("NVD") for i in items) else "fallback"
+    return JSONResponse({"ok": True, "source": source, "items": items, "cached": False})
 
 
 # ---------------------------------------------------------------------------

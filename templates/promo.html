@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberGuard | Defend Your Digital Frontier</title>
+  <meta name="description" content="CyberGuard is a premium, offline-first cybersecurity expert system protecting users from phishing attempts, compromised passwords, and live vulnerabilities.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --teal: #1d9e75;
+      --teal-hover: #15805d;
+      --teal-light: rgba(29, 158, 117, 0.08);
+      --border: #e2e8f0;
+      --border-focus: #1d9e75;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 4px 6px -1px rgba(15, 23, 42, 0.03);
+      --shadow-lg: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Typography Helpers */
+    h1, h2, h3, h4 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.25;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Header & Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 5%;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .logo span {
+      color: var(--teal);
+    }
+
+    .logo svg {
+      color: var(--teal);
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      width: 28px;
+      height: 28px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-link {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .nav-link:hover {
+      color: var(--teal);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(29, 158, 117, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 158, 117, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-primary);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 160px 5% 100px;
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .hero-tag {
+      align-self: flex-start;
+      background: var(--teal-light);
+      color: var(--teal);
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(29, 158, 117, 0.2);
+    }
+
+    .hero-title {
+      font-size: 54px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-title span {
+      color: var(--teal);
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .hero-mockup-wrapper {
+      position: relative;
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--bg-secondary);
+    }
+
+    .hero-mockup-wrapper img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .hero-mockup-wrapper:hover img {
+      transform: scale(1.015);
+    }
+
+    /* Features Grid Section */
+    .section-features {
+      padding: 100px 5%;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 650px;
+      margin: 0 auto 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 40px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+    }
+
+    .feature-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 36px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(29, 158, 117, 0.4);
+      box-shadow: var(--shadow-md);
+    }
+
+    .feature-icon-box {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--teal);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .feature-icon-box svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    .feature-card h3 {
+      font-size: 22px;
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Interactive Sandbox Section */
+    .section-sandbox {
+      padding: 100px 5%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .sandbox-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .sandbox-info {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sandbox-info h2 {
+      font-size: 40px;
+    }
+
+    .sandbox-widget {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .widget-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-title svg {
+      color: var(--teal);
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+    }
+
+    .widget-input-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .widget-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: var(--transition);
+      background: var(--bg-primary);
+    }
+
+    .widget-input:focus {
+      border-color: var(--border-focus);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
+    }
+
+    .widget-strength-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #e2e8f0;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .widget-strength-fill {
+      height: 100%;
+      width: 0%;
+      background: #ef4444;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .widget-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .widget-meta-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .widget-meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .widget-meta-val {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .widget-feedback {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .widget-feedback-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .widget-feedback-list {
+      list-style: none;
+      font-size: 13.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .widget-feedback-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--text-secondary);
+    }
+
+    .widget-feedback-list li.passed {
+      color: #15805d;
+    }
+
+    .widget-feedback-list li svg {
+      flex-shrink: 0;
+      margin-top: 3px;
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Download / CTA Section */
+    .section-download {
+      padding: 100px 5%;
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .download-box {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .download-box h2 {
+      font-size: 44px;
+      letter-spacing: -0.02em;
+    }
+
+    .download-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .download-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .download-card:hover {
+      border-color: var(--teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .download-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .download-card-title svg {
+      color: var(--teal);
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    .download-card-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 40px 5%;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-link:hover {
+      color: var(--teal);
+    }
+
+    /* Responsive CSS */
+    @media (max-width: 968px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 120px;
+        gap: 40px;
+      }
+      .hero-tag {
+        align-self: center;
+      }
+      .hero-ctas {
+        justify-content: center;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .sandbox-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .download-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar" id="navbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Cyber<span>Guard</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#sandbox" class="nav-link">Interactive Sandbox</a>
+      <a href="#download" class="nav-link">Download</a>
+      <a href="/app" class="btn btn-primary" id="nav-cta-web">Try Web Demo</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="hero-tag">Expert-System Security</span>
+      <h1 class="hero-title">Defend Your<br><span>Digital Frontier</span></h1>
+      <p class="hero-desc">
+        CyberGuard is an advanced, offline-first expert system designed to secure your identity. Scan suspicious emails, evaluate credential vulnerability locally, and consult ARIA—your on-demand AI security advisor.
+      </p>
+      <div class="hero-ctas">
+        <a href="#download" class="btn btn-primary" id="hero-cta-dl">
+          <svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Download Desktop App
+        </a>
+        <a href="/app" class="btn btn-secondary" id="hero-cta-web">Try Live Web Demo</a>
+      </div>
+    </div>
+    <div class="hero-mockup-wrapper">
+      <img src="../public/static/cyberguard_mockup.png" alt="CyberGuard Dashboard Interface Mockup">
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section class="section-features" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>Expert Defense Capabilities</h2>
+        <p>A full suite of localized security assessment modules engineered for privacy, accuracy, and immediate visual feedback.</p>
+      </div>
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <h3>Deterministic Phishing Scan</h3>
+          <p>
+            Analyse email headers and body content locally. Runs your inputs against a robust cybersecurity rule base utilizing certainty factors to compute composite risk scores.
+          </p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3>Local Password Strength Audit</h3>
+          <p>
+            Measures password entropy and pattern replication on-device. Seamlessly incorporates anonymous Have I Been Pwned k-anonymity checks to verify breach status securely.
+          </p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3>ARIA Interactive Advisor</h3>
+          <p>
+            Consult with your cyber assistant. Powered by Gemini 2.5 Flash, ARIA provides real-time remediation advice, and parses attached screenshots or threat images in the chat.
+          </p>
+        </div>
+        <!-- Feature 4 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h3>NVD Live Threat Intelligence</h3>
+          <p>
+            A high-speed cyber intelligence aggregator. Retrieves real-time CVE vulnerabilities from the National Vulnerability Database, enriched automatically via Llama 3.3.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Sandbox Section -->
+  <section class="section-sandbox" id="sandbox">
+    <div class="sandbox-layout">
+      <div class="sandbox-info">
+        <h2>Interact with our Security Engine</h2>
+        <p>
+          Experience our local analysis pipeline in real-time. Test your passwords safely. The evaluation runs entirely inside your browser, ensuring no data ever leaves your device.
+        </p>
+        <p>
+          As you type, our rules calculate thermodynamic entropy bits, check for dictionary patterns, flag keyboard patterns, and assess structural complexity immediately.
+        </p>
+      </div>
+
+      <!-- Live Sandbox Widget -->
+      <div class="sandbox-widget">
+        <div class="widget-title">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Local Password Audit Simulator
+        </div>
+        <div class="widget-input-wrapper">
+          <input type="password" id="sandbox-pwd-input" class="widget-input" placeholder="Type a password to test locally...">
+        </div>
+        <div class="widget-strength-bar">
+          <div id="sandbox-strength-fill" class="widget-strength-fill"></div>
+        </div>
+        <div class="widget-meta">
+          <div class="widget-meta-item">
+            <div class="widget-meta-label">Entropy Score</div>
+            <div class="widget-meta-val" id="sandbox-entropy-val">0.0 Bits</div>
+          </div>
+          <div class="widget-meta-item">
+            <div class="widget-meta-label">Crack Time</div>
+            <div class="widget-meta-val" id="sandbox-crack-val">Instant</div>
+          </div>
+        </div>
+        <div class="widget-feedback">
+          <div class="widget-feedback-title">Real-Time Rule Analysis</div>
+          <ul class="widget-feedback-list" id="sandbox-feedback-list">
+            <li>Type characters to initialize security checks...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download & CTA Section -->
+  <section class="section-download" id="download">
+    <div class="download-box">
+      <h2>Secure Your Horizon Today</h2>
+      <p>Download the standalone desktop security center or launch the web preview to start assessing threat levels.</p>
+      
+      <div class="download-cards">
+        <!-- Card 1: Desktop Application -->
+        <div class="download-card">
+          <div class="download-card-title">
+            <svg viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            CyberGuard Desktop
+          </div>
+          <p class="download-card-desc">
+            Get the full-featured, offline-ready desktop client for Windows. Runs in an isolated shell, features deep local storage options, and connects natively to USB keys.
+          </p>
+          <a href="#" class="btn btn-primary" style="margin-top: auto; align-self: flex-start;" id="download-win-btn">
+            Download for Windows (.exe)
+          </a>
+        </div>
+
+        <!-- Card 2: Web Preview -->
+        <div class="download-card">
+          <div class="download-card-title">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            Interactive Web Sandbox
+          </div>
+          <p class="download-card-desc">
+            Evaluate the expert system environment, scanner dashboards, live NVD updates, and Gemini-powered ARIA chat assistant in your web browser instantly.
+          </p>
+          <a href="/app" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start;" id="download-web-btn">
+            Launch Web Sandbox
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div>&copy; 2026 CyberGuard Expert Systems. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="#features" class="footer-link">Features</a>
+      <a href="#sandbox" class="footer-link">Sandbox</a>
+      <a href="#download" class="footer-link">Download</a>
+    </div>
+  </footer>
+
+  <!-- Script for local password analyzer simulation -->
+  <script>
+    const COMMON_PASSWORDS = new Set([
+      "password", "123456", "123456789", "12345678", "12345", "qwerty",
+      "abc123", "monkey", "111111", "password1", "iloveyou", "admin",
+      "welcome", "sunshine", "princess", "dragon", "letmein", "login",
+      "solo", "master", "hello", "shadow", "654321", "superman", "football"
+    ]);
+
+    const KEYBOARD_PATTERNS = [
+      "qwerty", "qwertyuiop", "asdf", "asdfghjkl", "zxcv", "zxcvbnm",
+      "12345", "123456", "1234567", "12345678", "09876", "987654"
+    ];
+
+    const pwdInput = document.getElementById("sandbox-pwd-input");
+    const strengthFill = document.getElementById("sandbox-strength-fill");
+    const entropyVal = document.getElementById("sandbox-entropy-val");
+    const crackVal = document.getElementById("sandbox-crack-val");
+    const feedbackList = document.getElementById("sandbox-feedback-list");
+
+    pwdInput.addEventListener("input", () => {
+      const val = pwdInput.value;
+      if (!val) {
+        strengthFill.style.width = "0%";
+        entropyVal.innerText = "0.0 Bits";
+        crackVal.innerText = "Instant";
+        feedbackList.innerHTML = "<li>Type characters to initialize security checks...</li>";
+        return;
+      }
+
+      // 1. Calculate Entropy
+      let pool = 0;
+      if (/[a-z]/.test(val)) pool += 26;
+      if (/[A-Z]/.test(val)) pool += 26;
+      if (/[0-9]/.test(val)) pool += 10;
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) pool += 32;
+      
+      const entropy = pool > 0 ? Math.round(val.length * Math.log2(pool) * 10) / 10 : 0;
+      entropyVal.innerText = `${entropy} Bits`;
+
+      // 2. Estimate Crack Time
+      let crackTimeText = "Instant";
+      if (entropy > 0) {
+        const seconds = Math.pow(2, entropy) / 1e10;
+        if (seconds < 1) crackTimeText = "< 1 second";
+        else if (seconds < 60) crackTimeText = `~${Math.round(seconds)} seconds`;
+        else if (seconds < 3600) crackTimeText = `~${Math.round(seconds / 60)} minutes`;
+        else if (seconds < 86400) crackTimeText = `~${Math.round(seconds / 3600)} hours`;
+        else if (seconds < 2.628e6) crackTimeText = `~${Math.round(seconds / 86400)} days`;
+        else if (seconds < 3.154e7) crackTimeText = `~${Math.round(seconds / 2.628e6)} months`;
+        else if (seconds < 3.154e9) crackTimeText = `~${Math.round(seconds / 3.154e7)} years`;
+        else crackTimeText = "Centuries+";
+      }
+      crackVal.innerText = crackTimeText;
+
+      // 3. Evaluate Rule Checks
+      const checks = [
+        { name: "At least 8 characters long", passed: val.length >= 8, points: 10 },
+        { name: "Good length (12+ characters)", passed: val.length >= 12, points: 10 },
+        { name: "Strong length (16+ characters)", passed: val.length >= 16, points: 10 },
+        { name: "Contains uppercase letters", passed: /[A-Z]/.test(val), points: 10 },
+        { name: "Contains lowercase letters", passed: /[a-z]/.test(val), points: 10 },
+        { name: "Contains digits", passed: /[0-9]/.test(val), points: 10 },
+        { name: "Contains special character", passed: /[!@#$%^&*(),.?":{}|<>]/.test(val), points: 15 },
+        { name: "Not a common dictionary word", passed: !COMMON_PASSWORDS.has(val.toLowerCase()), points: 10 },
+        { name: "No simple keyboard patterns", passed: !KEYBOARD_PATTERNS.some(p => val.toLowerCase().includes(p)), points: 10 },
+        { name: "No repetitive characters (e.g. aaa)", passed: !/(.)\1{2,}/.test(val), points: 15 }
+      ];
+
+      let score = 0;
+      checks.forEach(c => {
+        if (c.passed) score += c.points;
+      });
+      score = Math.min(100, score);
+
+      // 4. Update Strength Bar UI
+      strengthFill.style.width = `${score}%`;
+      if (score >= 80) {
+        strengthFill.style.backgroundColor = "#1d9e75"; // Teal
+      } else if (score >= 60) {
+        strengthFill.style.backgroundColor = "#3b82f6"; // Blue
+      } else if (score >= 40) {
+        strengthFill.style.backgroundColor = "#eab308"; // Yellow
+      } else {
+        strengthFill.style.backgroundColor = "#ef4444"; // Red
+      }
+
+      // 5. Render Feedback List
+      feedbackList.innerHTML = "";
+      checks.forEach(c => {
+        const li = document.createElement("li");
+        li.className = c.passed ? "passed" : "";
+        li.innerHTML = `
+          <svg viewBox="0 0 24 24" style="fill:none; stroke:${c.passed ? '#15805d' : '#94a3b8'}; stroke-width:2.5">
+            ${c.passed 
+              ? '<polyline points="20 6 9 17 4 12"/>' 
+              : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}
+          </svg>
+          ${c.name}
+        `;
+        feedbackList.appendChild(li);
+      });
+    });
+
+    // Simple alert for Download button
+    document.getElementById("download-win-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      alert("CyberGuard Desktop Client download package compilation is processing. For instant evaluation, please click 'Launch Web Sandbox'.");
+    });
+  </script>
+</body>
+</html>

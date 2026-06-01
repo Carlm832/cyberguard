@@ -249,53 +249,8 @@
             <span>Verify Password with Expert System</span>
           </button>
         </div>
-
-        id="pwd-res-score">0</span>/100) |
-        Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
-        </p>
-      </div>
-      <div style="display: flex; gap: 8px;">
-        <div class="share-dropdown">
-          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')"
-            style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-            <span>Share Report</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          <div class="share-menu" id="password-share-menu">
-            <div class="share-menu-item" onclick="openEmailModal('password')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-              </svg> Share to Email
-            </div>
-            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download PDF
-            </div>
-            <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download HTML
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-    <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
-      <div class="aria-box-header">ARIA Remediation Recommendations</div>
-      <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
-    </div>
-  </div>
-  </div>
-  </div>
 
   <!-- TAB: Breach Database -->
   <div class="tab-panel" id="tab-breaches">
@@ -1421,10 +1376,10 @@
 
       async function submitChatMessage() {
         const query = input.value.trim();
-        if (!query) return;
+        if (!query && !state.chatPendingImage) return;
 
         clearSuggestionChips();
-        appendMessage('user', query);
+        appendMessage('user', query, state.chatPendingImage);
         input.value = '';
         box.scrollTop = box.scrollHeight;
 
@@ -1436,7 +1391,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              message: query,
+              message: query || "Attached image analysis request.",
               history: state.chatSession,
               image: state.chatPendingImage ? {
                 mime_type: state.chatPendingImage.mime_type,
@@ -1452,7 +1407,7 @@
             const ariaMessage = appendMessage('aria', data.reply);
 
             // update history state locally
-            state.chatSession.push({ role: 'user', content: query });
+            state.chatSession.push({ role: 'user', content: query || "Attached image analysis request." });
             state.chatSession.push({ role: 'assistant', content: data.reply });
 
             if (data.follow_ups && data.follow_ups.length > 0) {
@@ -1503,10 +1458,21 @@
         }
       }
 
-      function appendMessage(sender, text) {
+      function appendMessage(sender, text, image = null) {
         const msg = document.createElement('div');
         msg.className = `chat-msg ${sender}`;
-        msg.innerHTML = formatMarkdown(text);
+        if (text) {
+          msg.innerHTML = formatMarkdown(text);
+        } else {
+          msg.innerHTML = '';
+        }
+        if (image) {
+          const imgEl = document.createElement('img');
+          imgEl.src = `data:${image.mime_type};base64,${image.data}`;
+          imgEl.className = 'chat-msg-img';
+          imgEl.alt = image.name || 'Uploaded image';
+          msg.appendChild(imgEl);
+        }
         box.appendChild(msg);
         return msg;
       }

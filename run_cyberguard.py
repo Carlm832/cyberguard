@@ -75,13 +75,14 @@ def main() -> None:
     host = os.getenv("CYBERGUARD_HOST", "127.0.0.1")
     port = int(os.getenv("CYBERGUARD_PORT", "8000"))
     url = f"http://{host}:{port}"
+    app_url = f"http://{host}:{port}/app"
 
     server_thread = threading.Thread(target=_run_server, args=(host, port), daemon=True)
     server_thread.start()
     _wait_for_server(url)
 
     api = CyberGuardAPI()
-    webview.create_window("CyberGuard", url, min_size=(1100, 760), js_api=api)
+    webview.create_window("CyberGuard", app_url, min_size=(1100, 760), js_api=api)
     webview.start()
 
 
