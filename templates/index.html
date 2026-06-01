@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
   <script>
     (function () {
       const savedTheme = localStorage.getItem('cg-theme');
@@ -20,15 +23,17 @@
   <!-- html2pdf.js for direct PDF downloads (bundled locally for offline/exe support) -->
   <script src="/static/html2pdf.bundle.min.js"></script>
 </head>
+
 <body>
   <div class="container">
-    
+
     <!-- Top Bar / Header -->
     <header class="top-bar">
       <div class="logo">
         <div class="logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         </div>
         <div class="logo-text">
@@ -69,16 +74,17 @@
     <!-- TAB: Dashboard -->
     <div class="tab-panel active" id="tab-dashboard">
       <div class="dashboard-grid">
-        
+
         <!-- Left Column: ARIA Avatar & Stats -->
         <div class="left-col">
           <div class="avatar-container">
             <div class="pulse-ring-outer">
               <div class="pulse-ring level-LOW" id="aria-pulse"></div>
               <div class="aria-shield-face level-LOW" id="aria-face">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/>
-                  <path d="M12 6v6l4 2"/>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z" />
+                  <path d="M12 6v6l4 2" />
                 </svg>
               </div>
             </div>
@@ -101,9 +107,9 @@
           <div class="ticker-wrap">
             <div class="ticker-title">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               Live Threat Intel Feed
             </div>
@@ -161,8 +167,9 @@
 
             <div class="mt-24">
               <button class="btn-primary" id="btn-evaluate">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
                 <span>Run Phishing Inference</span>
               </button>
@@ -180,81 +187,6 @@
             </div>
           </div>
 
-          <!-- Evaluation Results -->
-          <div class="card hidden analysis-report-modal" id="eval-results-card" role="dialog" aria-modal="true" aria-labelledby="analysis-report-title">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div>
-                <h2 id="analysis-report-title">Analysis Report</h2>
-                <p>Risk score calculated using baseline rule certainty factors.</p>
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <div class="share-dropdown">
-                  <button class="btn-primary share-report-btn" onclick="toggleShareMenu('phishing-share-menu')" style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
-                    <span>Share Report</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  </button>
-                  <div class="share-menu" id="phishing-share-menu">
-                    <div class="share-menu-item" onclick="openEmailModal('phishing')">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Share to Email
-                    </div>
-                    <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF
-                    </div>
-                    <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download HTML
-                    </div>
-                  </div>
-                </div>
-                <button class="modal-close analysis-report-close" onclick="closeAnalysisReport()" aria-label="Close analysis report">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="results-grid">
-              <!-- Gauge -->
-              <div class="circle-score-container">
-                <div class="circular-progress">
-                  <svg>
-                    <circle class="bg-circle" cx="65" cy="65" r="60"/>
-                    <circle class="progress-circle level-LOW" id="results-svg-circle" cx="65" cy="65" r="60"/>
-                  </svg>
-                  <div class="score-text-overlay">
-                    <span class="score-num" id="results-score-num">0%</span>
-                    <span class="score-label">Risk Rating</span>
-                  </div>
-                </div>
-                <div class="verdict-text-label level-LOW" id="results-verdict-text">LOW RISK</div>
-              </div>
-
-              <!-- Fired rules & details -->
-              <div>
-                <div class="fired-rules-container">
-                  <div class="fired-rules-title">Fired Rules Inference Chain</div>
-                  <div id="results-fired-rules-list">
-                    <!-- Fired rules cards -->
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ARIA Explanation Block -->
-            <div class="aria-verdict-box level-LOW" id="aria-explanation-box">
-              <div class="aria-box-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                ARIA Security Assessment
-              </div>
-              <div class="aria-box-content" id="aria-explanation-text">
-                No evaluation run yet.
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -268,7 +200,8 @@
         </div>
 
         <div class="input-with-icon">
-          <input type="password" class="password-input" id="pwd-input" placeholder="Type a security password to verify...">
+          <input type="password" class="password-input" id="pwd-input"
+            placeholder="Type a security password to verify...">
           <button class="toggle-btn" id="pwd-toggle">SHOW</button>
         </div>
         <div class="entropy-indicator">
@@ -311,188 +244,369 @@
         <div class="mt-24">
           <button class="btn-primary" id="btn-sync-password-threat">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             <span>Verify Password with Expert System</span>
           </button>
         </div>
 
-        <!-- Password evaluation result -->
-        <div class="card hidden mt-24" id="password-results-card" style="border: 1px solid var(--border); padding: 20px; background: rgba(29, 158, 117, 0.02);">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
-            <div>
-              <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 4px;">Expert System Password Verdict</h3>
-              <p style="font-size: 14px;">
-                Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span id="pwd-res-score">0</span>/100) | 
-                Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
-              </p>
+        id="pwd-res-score">0</span>/100) |
+        Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="share-dropdown">
+          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')"
+            style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+            <span>Share Report</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="share-menu" id="password-share-menu">
+            <div class="share-menu-item" onclick="openEmailModal('password')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share to Email
             </div>
-            <div style="display: flex; gap: 8px;">
-              <div class="share-dropdown">
-                <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                  <span>Share Report</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </button>
-                <div class="share-menu" id="password-share-menu">
-                  <div class="share-menu-item" onclick="openEmailModal('password')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Share to Email
-                  </div>
-                  <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF
-                  </div>
-                  <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download HTML
-                  </div>
-                </div>
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download PDF
+            </div>
+            <div class="share-menu-item" onclick="downloadSecurityReport('html')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download HTML
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
+      <div class="aria-box-header">ARIA Remediation Recommendations</div>
+      <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- TAB: Breach Database -->
+  <div class="tab-panel" id="tab-breaches">
+    <div class="card">
+      <div class="card-header">
+        <h2>Seeded email Breach Lookup</h2>
+        <p>Query compromise records from the seeded breach catalog database.</p>
+      </div>
+
+      <div class="input-with-icon mb-16" style="display: flex; gap: 10px;">
+        <input type="text" class="email-input" id="breach-email-input"
+          placeholder="Enter target email (e.g. test@example.com, demo@gmail.com)" style="flex: 1;">
+        <button class="btn-primary" id="btn-breach-search" style="width: 140px; padding: 0 16px;">Search</button>
+      </div>
+
+      <div id="breach-results-section" class="hidden">
+        <div class="timeline" id="breach-timeline">
+          <!-- Timeline elements loaded here -->
+        </div>
+
+        <div class="aria-verdict-box level-HIGH mt-24" id="breach-aria-box">
+          <div class="aria-box-header">ARIA Prioritized Action Plan</div>
+          <div class="aria-box-content" id="breach-aria-text">...</div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 15px; justify-content: flex-end;">
+          <div class="share-dropdown">
+            <button class="btn-primary share-report-btn" onclick="toggleShareMenu('breach-share-menu')"
+              style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <span>Share Report</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="share-menu" id="breach-share-menu">
+              <div class="share-menu-item" onclick="openEmailModal('breach')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg> Share to Email
+              </div>
+              <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg> Download PDF
+              </div>
+              <div class="share-menu-item" onclick="downloadSecurityReport('html')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg> Download HTML
               </div>
             </div>
           </div>
-          <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
-            <div class="aria-box-header">ARIA Remediation Recommendations</div>
-            <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Knowledge Base -->
+  <div class="tab-panel" id="tab-kb">
+    <div class="card">
+      <div class="card-header">
+        <h2>Security Inference Rule Base</h2>
+        <p>Interactive tree detailing active system rules, certainty factors, and reasoning chains.</p>
+      </div>
+
+      <div class="kb-stats-grid">
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">10</div>
+          <div class="kb-stat-label">Total Rules</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">0.25</div>
+          <div class="kb-stat-label">Max Rule CF</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">5</div>
+          <div class="kb-stat-label">Categories</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">Certainty</div>
+          <div class="kb-stat-label">Logic Type</div>
+        </div>
+      </div>
+
+      <div class="rule-tree-container" id="kb-rules-tree">
+        <!-- Rule cards generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Ask ARIA -->
+  <div class="tab-panel" id="tab-chat">
+    <div class="chat-viewport">
+      <div class="chat-viewport-header">
+        <div class="chat-viewport-title">
+          <div class="chat-avatar-circle">A</div>
+          <div>
+            <div class="bold" style="font-size: 14.5px;">ARIA Security Expert Assistant</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">Expert system interface</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-viewport-messages" id="chat-messages-box">
+        <div class="chat-msg aria">
+          <p>Hello! I am ARIA, your Cybersecurity Expert Assistant. I interact directly with the rule engine backend.
+          </p>
+          <p>You can run a threat assessment on the Dashboard, ask me about specific security rules, or request tips
+            to harden your environment.</p>
+        </div>
+        <div class="chat-chips-container" id="chat-suggestion-chips">
+          <div class="chat-followup-chip" data-query="Explain Rule R01 in detail">Explain Rule R01 in detail</div>
+          <div class="chat-followup-chip" data-query="How does certainty factor calculation work?">How does certainty
+            factor calculation work?</div>
+          <div class="chat-followup-chip" data-query="Give me threat posture advice">Give me threat posture advice
+          </div>
+          <div class="chat-followup-chip" data-query="What triggers High threat level?">What triggers High threat
+            level?</div>
+        </div>
+      </div>
+
+      <div class="chat-viewport-input-area">
+        <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+        <button class="chat-attach-btn" id="chat-image-btn" title="Upload image" aria-label="Upload image">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </button>
+        <textarea class="chat-textarea" id="chat-input-text"
+          placeholder="Type a message or click a suggestion chip..."></textarea>
+        <button class="chat-send-btn" id="chat-send-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+      <div class="chat-summary-toolbar">
+        <div style="display:flex; align-items:center; gap:8px; min-height:28px;">
+          <span id="chat-image-name" style="font-size:12px; color:var(--text-secondary);"></span>
+        </div>
+        <div class="chat-summary-actions">
+          <button class="btn-secondary" id="chat-summary-btn"
+            style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
+          <button class="btn-primary" id="chat-summary-share-btn"
+            style="width:auto; padding:8px 14px; font-size:12px;">Share Summary</button>
+          <div id="chat-summary-share-menu">
+            <button class="btn-secondary chat-share-action" data-action="pdf"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
+            <button class="btn-secondary chat-share-action" data-action="email"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share to Email</button>
+            <button class="btn-secondary chat-share-action" data-action="copy"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
+            <button class="btn-secondary chat-share-action" data-action="web"
+              style="width:100%; justify-content:flex-start;">Share...</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- TAB: Breach Database -->
-    <div class="tab-panel" id="tab-breaches">
-      <div class="card">
-        <div class="card-header">
-          <h2>Seeded email Breach Lookup</h2>
-          <p>Query compromise records from the seeded breach catalog database.</p>
-        </div>
+  </div>
 
-        <div class="input-with-icon mb-16" style="display: flex; gap: 10px;">
-          <input type="text" class="email-input" id="breach-email-input" placeholder="Enter target email (e.g. test@example.com, demo@gmail.com)" style="flex: 1;">
-          <button class="btn-primary" id="btn-breach-search" style="width: 140px; padding: 0 16px;">Search</button>
-        </div>
+  <!-- Results Modals moved to body root for proper fixed positioning -->
 
-        <div id="breach-results-section" class="hidden">
-          <div class="timeline" id="breach-timeline">
-            <!-- Timeline elements loaded here -->
-          </div>
-          
-          <div class="aria-verdict-box level-HIGH mt-24" id="breach-aria-box">
-            <div class="aria-box-header">ARIA Prioritized Action Plan</div>
-            <div class="aria-box-content" id="breach-aria-text">...</div>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 15px; justify-content: flex-end;">
-            <div class="share-dropdown">
-              <button class="btn-primary share-report-btn" onclick="toggleShareMenu('breach-share-menu')" style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                <span>Share Report</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
-              <div class="share-menu" id="breach-share-menu">
-                <div class="share-menu-item" onclick="openEmailModal('breach')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Share to Email
-                </div>
-                <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF
-                </div>
-                <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download HTML
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <!-- Phishing Analysis Results -->
+  <div class="card hidden analysis-report-modal" id="eval-results-card" role="dialog" aria-modal="true"
+    aria-labelledby="analysis-report-title">
+    <div class="card-header"
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 id="analysis-report-title">Analysis Report</h2>
+        <p>Risk score calculated using baseline rule certainty factors.</p>
       </div>
-    </div>
-
-    <!-- TAB: Knowledge Base -->
-    <div class="tab-panel" id="tab-kb">
-      <div class="card">
-        <div class="card-header">
-          <h2>Security Inference Rule Base</h2>
-          <p>Interactive tree detailing active system rules, certainty factors, and reasoning chains.</p>
-        </div>
-
-        <div class="kb-stats-grid">
-          <div class="kb-stat-card">
-            <div class="kb-stat-val">10</div>
-            <div class="kb-stat-label">Total Rules</div>
-          </div>
-          <div class="kb-stat-card">
-            <div class="kb-stat-val">0.25</div>
-            <div class="kb-stat-label">Max Rule CF</div>
-          </div>
-          <div class="kb-stat-card">
-            <div class="kb-stat-val">5</div>
-            <div class="kb-stat-label">Categories</div>
-          </div>
-          <div class="kb-stat-card">
-            <div class="kb-stat-val">Certainty</div>
-            <div class="kb-stat-label">Logic Type</div>
-          </div>
-        </div>
-
-        <div class="rule-tree-container" id="kb-rules-tree">
-          <!-- Rule cards generated dynamically -->
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: Ask ARIA -->
-    <div class="tab-panel" id="tab-chat">
-      <div class="chat-viewport">
-        <div class="chat-viewport-header">
-          <div class="chat-viewport-title">
-            <div class="chat-avatar-circle">A</div>
-            <div>
-              <div class="bold" style="font-size: 14.5px;">ARIA Security Expert Assistant</div>
-              <div style="font-size: 11px; color: var(--text-secondary);">Expert system interface</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="chat-viewport-messages" id="chat-messages-box">
-          <div class="chat-msg aria">
-            <p>Hello! I am ARIA, your Cybersecurity Expert Assistant. I interact directly with the rule engine backend.</p>
-            <p>You can run a threat assessment on the Dashboard, ask me about specific security rules, or request tips to harden your environment.</p>
-          </div>
-          <div class="chat-chips-container" id="chat-suggestion-chips">
-            <div class="chat-followup-chip" data-query="Explain Rule R01 in detail">Explain Rule R01 in detail</div>
-            <div class="chat-followup-chip" data-query="How does certainty factor calculation work?">How does certainty factor calculation work?</div>
-            <div class="chat-followup-chip" data-query="Give me threat posture advice">Give me threat posture advice</div>
-            <div class="chat-followup-chip" data-query="What triggers High threat level?">What triggers High threat level?</div>
-          </div>
-        </div>
-
-        <div class="chat-viewport-input-area">
-          <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
-          <button class="chat-attach-btn" id="chat-image-btn" title="Upload image" aria-label="Upload image">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
+      <div style="display: flex; gap: 8px;">
+        <div class="share-dropdown">
+          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('phishing-share-menu')"
+            style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
+            <span>Share Report</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          <textarea class="chat-textarea" id="chat-input-text" placeholder="Type a message or click a suggestion chip..."></textarea>
-          <button class="chat-send-btn" id="chat-send-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
-        </div>
-        <div class="chat-summary-toolbar">
-          <div style="display:flex; align-items:center; gap:8px; min-height:28px;">
-            <span id="chat-image-name" style="font-size:12px; color:var(--text-secondary);"></span>
-          </div>
-          <div class="chat-summary-actions">
-            <button class="btn-secondary" id="chat-summary-btn" style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
-            <button class="btn-primary" id="chat-summary-share-btn" style="width:auto; padding:8px 14px; font-size:12px;">Share Summary</button>
-            <div id="chat-summary-share-menu">
-              <button class="btn-secondary chat-share-action" data-action="pdf" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
-              <button class="btn-secondary chat-share-action" data-action="email" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share to Email</button>
-              <button class="btn-secondary chat-share-action" data-action="copy" style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
-              <button class="btn-secondary chat-share-action" data-action="web" style="width:100%; justify-content:flex-start;">Share...</button>
+          <div class="share-menu" id="phishing-share-menu">
+            <div class="share-menu-item" onclick="openEmailModal('phishing')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share to Email
+            </div>
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download PDF
+            </div>
+            <div class="share-menu-item" onclick="downloadSecurityReport('html')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download HTML
             </div>
           </div>
+        </div>
+        <button class="modal-close analysis-report-close" onclick="closeAnalysisReport()"
+          aria-label="Close analysis report">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="circle-score-container">
+        <div class="circular-progress">
+          <svg>
+            <circle class="bg-circle" cx="65" cy="65" r="60" />
+            <circle class="progress-circle level-LOW" id="results-svg-circle" cx="65" cy="65" r="60" />
+          </svg>
+          <div class="score-text-overlay">
+            <span class="score-num" id="results-score-num">0%</span>
+            <span class="score-label">Risk Rating</span>
+          </div>
+        </div>
+        <div class="verdict-text-label level-LOW" id="results-verdict-text">LOW RISK</div>
+      </div>
+      <div>
+        <div class="fired-rules-container">
+          <div class="fired-rules-title">Fired Rules Inference Chain</div>
+          <div id="results-fired-rules-list"></div>
         </div>
       </div>
     </div>
 
+    <div class="aria-verdict-box level-LOW" id="aria-explanation-box">
+      <div class="aria-box-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        ARIA Security Assessment
+      </div>
+      <div class="aria-box-content" id="aria-explanation-text">...</div>
+    </div>
+  </div>
+
+  <!-- Password Results Modal -->
+  <div class="card hidden analysis-report-modal" id="password-results-card"
+    style="border: 1px solid var(--border); padding: 20px; background: rgba(29, 158, 117, 0.02); z-index: 960;">
+    <div
+      style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+      <div>
+        <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 4px;">Expert System Password Verdict
+        </h3>
+        <p style="font-size: 14px;">
+          Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span
+            id="pwd-res-score">0</span>/100) |
+          Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="share-dropdown">
+          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')"
+            style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+            <span>Share Report</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="share-menu" id="password-share-menu">
+            <div class="share-menu-item" onclick="openEmailModal('password')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share to Email
+            </div>
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download PDF
+            </div>
+          </div>
+        </div>
+        <button class="modal-close"
+          onclick="document.getElementById('password-results-card').classList.add('hidden'); document.body.classList.remove('modal-open');"
+          style="width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
+      <div class="aria-box-header">ARIA Remediation Recommendations</div>
+      <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -645,7 +759,7 @@
         if (sev === 'MEDIUM') return 'Action: review affected systems and schedule remediation.';
         return 'Action: track and patch in normal maintenance windows.';
       };
-      safeItems.slice(0, 8).forEach((it, idx) => {
+      safeItems.slice(0, 5).forEach((it, idx) => {
         const div = document.createElement('div');
         div.className = `ticker-item${idx === 0 ? ' active' : ''}`;
         const sev = (it.severity || 'medium').toUpperCase();
@@ -678,7 +792,7 @@
 
     function initThemeToggle() {
       const themeBtn = document.getElementById('theme-toggle-btn');
-      const getTheme = () => document.documentElement.getAttribute('data-theme') || 'dark';
+      const getTheme = () => document.documentElement.getAttribute('data-theme') || 'light';
 
       function renderThemeLabel() {
         themeBtn.textContent = getTheme() === 'light' ? 'Dark Mode' : 'Light Mode';
@@ -690,12 +804,14 @@
         renderThemeLabel();
       }
 
+      // Restore saved preference; default to light if no preference stored yet.
+      const saved = localStorage.getItem('cg-theme') || 'light';
+      setTheme(saved);
+
       themeBtn.addEventListener('click', () => {
         const nextTheme = getTheme() === 'light' ? 'dark' : 'light';
         setTheme(nextTheme);
       });
-
-      renderThemeLabel();
     }
 
     // Initialization
@@ -708,9 +824,9 @@
       initKnowledgeBase();
       initChat();
       loadThreatTicker();
-      setInterval(rotateTicker, 4500);
+      setInterval(rotateTicker, 12000);
       setInterval(loadThreatTicker, 1800000);
-      
+
       // Initial system status display
       updateGlobalStatus("LOW", 0);
     });
@@ -722,7 +838,7 @@
         btn.addEventListener('click', () => {
           buttons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          
+
           const tabName = btn.getAttribute('data-tab');
           document.querySelectorAll('.tab-panel').forEach(panel => {
             panel.classList.remove('active');
@@ -742,9 +858,9 @@
         });
       });
 
-       document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
-       document.getElementById('btn-view-analysis-report').addEventListener('click', openAnalysisReport);
-     }
+      document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+      document.getElementById('btn-view-analysis-report').addEventListener('click', openAnalysisReport);
+    }
 
     function openAnalysisReport() {
       if (!state.evaluation) return;
@@ -762,7 +878,7 @@
       const btn = document.getElementById('btn-evaluate');
       const visualizer = document.getElementById('eval-visualizer');
       const resultsCard = document.getElementById('eval-results-card');
-      
+
       btn.disabled = true;
       visualizer.classList.remove('hidden');
       resultsCard.classList.add('hidden');
@@ -771,7 +887,7 @@
       // Populate rules animation list
       const rulesList = document.getElementById('eval-rules-list');
       rulesList.innerHTML = '';
-      
+
       KB_RULES.forEach(r => {
         rulesList.innerHTML += `
           <div class="eval-rule-row">
@@ -802,10 +918,10 @@
           body: JSON.stringify({ indicators: state.checklist })
         });
         const data = await res.json();
-        
+
         if (res.ok) {
           state.evaluation = data;
-          
+
           // Mark fired rules in animation list
           data.fired_rules.forEach(fr => {
             const label = document.getElementById(`anim-status-${fr.id}`);
@@ -816,16 +932,17 @@
           });
 
           // Show Results Panel as a popup
+          visualizer.classList.add('hidden'); // Hide the background trace
           document.getElementById('btn-view-analysis-report').classList.remove('hidden');
           openAnalysisReport();
-          
+
           const threatLevel = data.risk_level; // LOW, MEDIUM, HIGH
           const scorePercent = Math.round(data.risk_score * 100);
-          
+
           document.getElementById('results-score-num').innerText = `${scorePercent}%`;
           document.getElementById('results-verdict-text').innerText = `${threatLevel} RISK`;
           document.getElementById('results-verdict-text').className = `verdict-text-label level-${threatLevel}`;
-          
+
           const circle = document.getElementById('results-svg-circle');
           circle.className = `progress-circle level-${threatLevel}`;
           const offset = 377 - (377 * scorePercent) / 100;
@@ -834,7 +951,7 @@
           // Render fired rules list cards
           const firedList = document.getElementById('results-fired-rules-list');
           firedList.innerHTML = '';
-          
+
           if (data.fired_rules.length === 0) {
             firedList.innerHTML = `<div style="color: var(--text-secondary); font-size: 13.5px;">No risk-based rules triggered. Safe operating limits verified.</div>`;
           } else {
@@ -861,7 +978,7 @@
           // Update Dashboard sidebar stats
           document.getElementById('stat-rules-evaluated').innerText = data.fired_rules.length;
           document.getElementById('stat-threat-rating').innerText = threatLevel;
-          
+
           updateGlobalStatus(threatLevel, scorePercent);
           highlightKBFiredRules(data.fired_rules);
         } else {
@@ -891,7 +1008,7 @@
 
       ariaFace.className = `aria-shield-face level-${level}`;
       ariaPulse.className = `pulse-ring level-${level}`;
-      
+
       if (level === 'LOW') {
         ariaStatusSub.innerText = "System secure. No issues.";
       } else if (level === 'MEDIUM') {
@@ -931,24 +1048,24 @@
       input.addEventListener('input', () => {
         const val = input.value;
         document.getElementById('pwd-length-label').innerText = val.length;
-        
+
         // criteria evaluations
         const cLen = val.length >= 8;
         const cCase = /[a-z]/.test(val) && /[A-Z]/.test(val);
         const cDigit = /[0-9]/.test(val);
         const cSpecial = /[^A-Za-z0-9]/.test(val);
-        
+
         // sequence check (qwerty, asdf, etc.)
         let cSeq = true;
         const sequences = ["qwerty", "asdf", "zxcv", "12345", "09876"];
         sequences.forEach(s => {
           if (val.toLowerCase().includes(s)) cSeq = false;
         });
-        
+
         // repeat check
         let cRepeat = true;
         for (let i = 0; i < val.length - 2; i++) {
-          if (val[i] === val[i+1] && val[i] === val[i+2]) {
+          if (val[i] === val[i + 1] && val[i] === val[i + 2]) {
             cRepeat = false;
             break;
           }
@@ -982,7 +1099,7 @@
           const passedCount = [cLen, cCase, cDigit, cSpecial, cSeq, cRepeat].filter(Boolean).length;
           strengthPct = (passedCount / 6) * 100;
         }
-        
+
         strengthBar.style.width = `${strengthPct}%`;
         if (strengthPct < 40) {
           strengthBar.style.backgroundColor = 'var(--red)';
@@ -1009,11 +1126,11 @@
             body: JSON.stringify({ password: val })
           });
           const data = await res.json();
-          
+
           if (res.ok) {
             state.passwordEvaluation = data;
             resultsCard.classList.remove('hidden');
-            
+
             document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
             document.getElementById('pwd-res-score').innerText = data.password.score;
             document.getElementById('pwd-res-crack').innerText = data.password.crack_time;
@@ -1041,7 +1158,7 @@
             }
 
             document.getElementById('pwd-aria-explanation-text').innerHTML = remediationHTML;
-            
+
             // Sync status to main dashboard (if weak password score is < 60)
             const isWeak = data.password.score < 60;
             state.checklist.requests_credentials = isWeak; // as an indicator or sync
@@ -1095,13 +1212,13 @@
             body: JSON.stringify({ email: email })
           });
           const data = await res.json();
-          
+
           if (res.ok) {
             state.breachEvaluation = data;
             state.breachEmail = email;
             resultsSection.classList.remove('hidden');
             timeline.innerHTML = '';
-            
+
             if (!data.breached) {
               timeline.innerHTML = `<div style="padding: 16px; color: var(--text-secondary); text-align: center;">
                 ✓ Safe: 0 matching records found for ${email} in our current threat databases.
@@ -1186,7 +1303,7 @@
       });
     }
 
-    window.toggleRuleDrawer = function(ruleId) {
+    window.toggleRuleDrawer = function (ruleId) {
       const drawer = document.getElementById(`kb-drawer-${ruleId}`);
       if (drawer.classList.contains('hidden')) {
         drawer.classList.remove('hidden');
@@ -1219,7 +1336,7 @@
       const imageName = document.getElementById('chat-image-name');
       const input = document.getElementById('chat-input-text');
       const box = document.getElementById('chat-messages-box');
-      
+
       const chips = document.querySelectorAll('.chat-followup-chip');
       chips.forEach(chip => {
         chip.addEventListener('click', () => {
@@ -1328,12 +1445,12 @@
             })
           });
           const data = await res.json();
-          
+
           document.getElementById(typingId).remove();
 
           if (res.ok) {
             const ariaMessage = appendMessage('aria', data.reply);
-            
+
             // update history state locally
             state.chatSession.push({ role: 'user', content: query });
             state.chatSession.push({ role: 'assistant', content: data.reply });
@@ -1495,9 +1612,9 @@
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
           };
           if (window.pywebview && window.pywebview.api) {
-            html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function(pdfBlob) {
+            html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
               const reader = new FileReader();
-              reader.onload = function(e) {
+              reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
                 window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`, 'pdf');
                 appendMessage('aria', 'Summary PDF saved successfully.');
@@ -1574,7 +1691,7 @@
 
     function downloadSecurityReport(format = 'html') {
       const esc = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
-      
+
       const formatReportMarkdown = (text) => {
         if (!text) return '';
         let html = text
@@ -1590,7 +1707,7 @@
       };
 
       const dateStr = new Date().toLocaleString();
-      
+
       // 1. Phishing Section Renders
       let phishingHtml = '';
       if (state.evaluation) {
@@ -1739,9 +1856,9 @@
                 ${pe.hibp.breached ? '⚠️ BREACHED CREDENTIAL WARNING' : '✓ SECURE CREDENTIAL STATUS'}
               </div>
               <div>
-                ${pe.hibp.breached 
-                  ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> public data leaks.` 
-                  : 'This password has not been detected in any known public leaks.'}
+                ${pe.hibp.breached
+            ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> public data leaks.`
+            : 'This password has not been detected in any known public leaks.'}
               </div>
             </div>
 
@@ -2272,17 +2389,17 @@
         if (printHeader) printHeader.remove();
 
         const opt = {
-          margin:       10,
-          filename:     `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#080c14' },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          margin: 10,
+          filename: `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function(pdfBlob) {
+        html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
           if (window.pywebview && window.pywebview.api) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
               // Strip the data URI prefix to get raw base64
               const base64 = e.target.result.split(',')[1];
               window.pywebview.api.save_file(base64, `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`, 'pdf');
@@ -2323,7 +2440,7 @@
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      
+
       html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       html = html.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
       html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
@@ -2386,18 +2503,18 @@
       const email = document.getElementById('modal-email-input').value.trim();
       const statusEl = document.getElementById('modal-email-status');
       const btn = document.getElementById('btn-send-email');
-      
+
       if (!email) {
         statusEl.textContent = 'Please enter an email address.';
         statusEl.className = 'modal-status error';
         statusEl.style.display = 'flex';
         return;
       }
-      
+
       statusEl.style.display = 'none';
       btn.disabled = true;
       btn.classList.add('loading');
-      
+
       try {
         let metrics = {};
         let fired_rules = [];
@@ -2470,7 +2587,7 @@
             indicators
           })
         });
-        
+
         const data = await res.json();
         if (res.ok) {
           statusEl.textContent = 'Report sent successfully!';
@@ -2516,10 +2633,14 @@
         <button class="modal-btn modal-btn-send" id="btn-send-email" onclick="sendEmailReport()">
           <span class="btn-text">Send Report</span>
           <div class="btn-spinner"></div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
         </button>
       </div>
     </div>
   </div>
 </body>
+
 </html>

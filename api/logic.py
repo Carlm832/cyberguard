@@ -8,6 +8,7 @@ import hashlib
 import re
 import math
 import base64
+import time
 from typing import List, Dict, Any
 import requests
 
@@ -287,12 +288,23 @@ class FuzzyRiskEngine:
 # Gemini helper
 # ---------------------------------------------------------------------------
 
+# Stable pinned model — avoids surprises from the rolling "-latest" alias.
+_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+# How long (seconds) to wait per attempt before giving up.
+_GEMINI_TIMEOUT = int(os.getenv("GEMINI_TIMEOUT", "40"))
+# Total retry attempts (1 = no retries, 2 = one retry, etc.).
+_GEMINI_RETRIES = int(os.getenv("GEMINI_RETRIES", "2"))
+
+
 def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: Dict[str, str] = None) -> Dict[str, Any]:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return {"error": True, "message": "Gemini API key not configured."}
 
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    endpoint = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{_GEMINI_MODEL}:generateContent?key={api_key}"
+    )
     max_messages = max(2, int(os.getenv("ARIA_MAX_CLOUD_MESSAGES", "8")))
     cloud_messages = messages[-max_messages:]
 
@@ -314,18 +326,33 @@ def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image:
     if system_prompt:
         payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
 
-    try:
-        resp = requests.post(endpoint, json=payload, timeout=20)
-        if resp.status_code != 200:
-            return {"error": True, "message": f"Gemini {resp.status_code}: {resp.text[:200]}"}
-        data = resp.json()
-        candidates = data.get("candidates", [])
-        if not candidates:
-            return {"error": True, "message": "No candidates returned."}
-        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-        return {"error": False, "content": text}
-    except Exception as e:
-        return {"error": True, "message": str(e)}
+    last_error: str = "Unknown error"
+    for attempt in range(1, _GEMINI_RETRIES + 1):
+        try:
+            resp = requests.post(endpoint, json=payload, timeout=_GEMINI_TIMEOUT)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    text = (
+                        candidates[0]
+                        .get("content", {})
+                        .get("parts", [{}])[0]
+                        .get("text", "")
+                        .strip()
+                    )
+                    return {"error": False, "content": text}
+                last_error = "No candidates returned."
+            else:
+                last_error = f"Gemini {resp.status_code}: {resp.text[:200]}"
+        except Exception as exc:
+            last_error = str(exc)
+
+        # Back off before retrying (skip sleep on the last attempt).
+        if attempt < _GEMINI_RETRIES:
+            time.sleep(1)
+
+    return {"error": True, "message": last_error}
 
 
 # ---------------------------------------------------------------------------

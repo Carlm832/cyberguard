@@ -301,7 +301,7 @@ async def ai_health():
 
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     try:
-        resp = requests.get(endpoint, timeout=8)
+        resp = requests.get(endpoint, timeout=15)
         body_preview = (resp.text or "")[:300]
         if resp.status_code == 200:
             return JSONResponse({
@@ -360,7 +360,7 @@ async def threat_intel():
         headers["Authorization"] = f"Bearer {feed_key}"
 
     try:
-        resp = requests.get(feed_url, headers=headers, timeout=3)
+        resp = requests.get(feed_url, headers=headers, timeout=8)
         resp.raise_for_status()
         raw = resp.json()
         candidates = raw.get("items", raw if isinstance(raw, list) else [])
@@ -368,7 +368,8 @@ async def threat_intel():
         if not candidates and isinstance(raw, dict) and isinstance(raw.get("vulnerabilities"), list):
             candidates = raw.get("vulnerabilities", [])
         normalized = []
-        for item in candidates[:12]:
+        max_items = int(os.getenv("THREAT_FEED_MAX_ITEMS", "5"))
+        for item in candidates[:max_items]:
             if not isinstance(item, dict):
                 continue
             # NVD item normalization
