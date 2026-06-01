@@ -484,63 +484,116 @@ _GEMINI_TIMEOUT = int(os.getenv("GEMINI_TIMEOUT", "40"))
 _GEMINI_RETRIES = int(os.getenv("GEMINI_RETRIES", "2"))
 
 
-def _gemini_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: Dict[str, str] = None) -> Dict[str, Any]:
+def _cloud_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: Dict[str, str] = None) -> Dict[str, Any]:
+    # 1. Try Gemini primary
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {"error": True, "message": "Gemini API key not configured."}
+    gemini_error = "Gemini API key not configured."
+    
+    if api_key:
+        endpoint = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{_GEMINI_MODEL}:generateContent?key={api_key}"
+        )
+        max_messages = max(2, int(os.getenv("ARIA_MAX_CLOUD_MESSAGES", "8")))
+        cloud_messages = messages[-max_messages:]
 
-    endpoint = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{_GEMINI_MODEL}:generateContent?key={api_key}"
-    )
+        contents = []
+        for i, msg in enumerate(cloud_messages):
+            parts = []
+            if image and i == len(cloud_messages) - 1 and msg["role"] == "user":
+                parts.append({"inline_data": {"mime_type": image["mime_type"], "data": image["data"]}})
+            parts.append({"text": msg["content"]})
+            contents.append({"role": msg["role"], "parts": parts})
+
+        payload = {
+            "contents": contents,
+            "generationConfig": {
+                "maxOutputTokens": int(os.getenv("ARIA_MAX_OUTPUT_TOKENS", "420")),
+                "temperature": float(os.getenv("ARIA_TEMPERATURE", "0.35")),
+            }
+        }
+        if system_prompt:
+            payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
+
+        for attempt in range(1, _GEMINI_RETRIES + 1):
+            try:
+                resp = requests.post(endpoint, json=payload, timeout=_GEMINI_TIMEOUT)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        text = (
+                            candidates[0]
+                            .get("content", {})
+                            .get("parts", [{}])[0]
+                            .get("text", "")
+                            .strip()
+                        )
+                        return {"error": False, "content": text}
+                    gemini_error = "No candidates returned."
+                else:
+                    gemini_error = f"Gemini {resp.status_code}: {resp.text[:200]}"
+            except Exception as exc:
+                gemini_error = str(exc)
+
+            if attempt < _GEMINI_RETRIES:
+                time.sleep(1)
+
+    # 2. Fallback to OpenRouter
+    openrouter_key = os.getenv("OPEN_ROUTER_API_KEY", "").strip()
+    if not openrouter_key:
+        return {"error": True, "message": f"Gemini failed ({gemini_error}) and no OpenRouter fallback key found."}
+
+    or_messages = []
+    if system_prompt:
+        or_messages.append({"role": "system", "content": system_prompt})
+        
     max_messages = max(2, int(os.getenv("ARIA_MAX_CLOUD_MESSAGES", "8")))
     cloud_messages = messages[-max_messages:]
-
-    contents = []
+    
     for i, msg in enumerate(cloud_messages):
-        parts = []
-        if image and i == len(cloud_messages) - 1 and msg["role"] == "user":
-            parts.append({"inline_data": {"mime_type": image["mime_type"], "data": image["data"]}})
-        parts.append({"text": msg["content"]})
-        contents.append({"role": msg["role"], "parts": parts})
-
-    payload = {
-        "contents": contents,
-        "generationConfig": {
-            "maxOutputTokens": int(os.getenv("ARIA_MAX_OUTPUT_TOKENS", "420")),
-            "temperature": float(os.getenv("ARIA_TEMPERATURE", "0.35")),
-        }
+        role = "assistant" if msg["role"] == "model" else msg["role"]
+        if image and i == len(cloud_messages) - 1 and role == "user":
+            data_uri = f"data:{image['mime_type']};base64,{image['data']}"
+            or_messages.append({
+                "role": role,
+                "content": [
+                    {"type": "text", "text": msg["content"]},
+                    {"type": "image_url", "image_url": {"url": data_uri}}
+                ]
+            })
+        else:
+            or_messages.append({"role": role, "content": msg["content"]})
+            
+    or_model = os.getenv("OPEN_ROUTER_CHAT_MODEL", "google/gemini-2.0-flash-exp:free").strip()
+    
+    headers = {
+        "Authorization": f"Bearer {openrouter_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cyberguard.app",
+        "X-Title": "CyberGuard ARIA Chat",
     }
-    if system_prompt:
-        payload["system_instruction"] = {"parts": [{"text": system_prompt}]}
-
-    last_error: str = "Unknown error"
-    for attempt in range(1, _GEMINI_RETRIES + 1):
-        try:
-            resp = requests.post(endpoint, json=payload, timeout=_GEMINI_TIMEOUT)
-            if resp.status_code == 200:
-                data = resp.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    text = (
-                        candidates[0]
-                        .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")
-                        .strip()
-                    )
-                    return {"error": False, "content": text}
-                last_error = "No candidates returned."
-            else:
-                last_error = f"Gemini {resp.status_code}: {resp.text[:200]}"
-        except Exception as exc:
-            last_error = str(exc)
-
-        # Back off before retrying (skip sleep on the last attempt).
-        if attempt < _GEMINI_RETRIES:
-            time.sleep(1)
-
-    return {"error": True, "message": last_error}
+    
+    payload = {
+        "model": or_model,
+        "messages": or_messages,
+        "max_tokens": int(os.getenv("ARIA_MAX_OUTPUT_TOKENS", "420")),
+        "temperature": float(os.getenv("ARIA_TEMPERATURE", "0.35")),
+    }
+    
+    try:
+        resp = requests.post(_OPENROUTER_BASE, json=payload, headers=headers, timeout=_GEMINI_TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()
+        text = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+            .strip()
+        )
+        return {"error": False, "content": text}
+    except Exception as exc:
+        return {"error": True, "message": f"Gemini failed ({gemini_error}) and OpenRouter fallback failed: {str(exc)}"}
 
 
 # ---------------------------------------------------------------------------
@@ -609,7 +662,7 @@ class ARIAEngine:
         self.history.append({"role": "user", "content": user_message})
         messages = [{"role": "user" if h["role"] == "user" else "model", "content": h["content"]} for h in self.history]
 
-        result = _gemini_chat(messages, system_prompt=full_system, image=image)
+        result = _cloud_chat(messages, system_prompt=full_system, image=image)
         reply = result["content"] if not result.get("error") else self._local_fallback_reply(user_message, session_context)
         self.history.append({"role": "assistant", "content": reply})
 
