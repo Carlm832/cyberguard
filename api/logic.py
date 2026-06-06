@@ -565,7 +565,7 @@ def _cloud_chat(messages: List[Dict[str, str]], system_prompt: str = "", image: 
         else:
             or_messages.append({"role": role, "content": msg["content"]})
             
-    or_model = os.getenv("OPEN_ROUTER_CHAT_MODEL", "google/gemma-4-31b-it:free").strip()
+    or_model = os.getenv("OPEN_ROUTER_CHAT_MODEL", "google/gemini-2.0-flash:free").strip()
     
     headers = {
         "Authorization": f"Bearer {openrouter_key}",

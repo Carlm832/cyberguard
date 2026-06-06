@@ -72,18 +72,39 @@ def _run_server(host: str, port: int) -> None:
 
 
 def main() -> None:
+    print("[DEBUG] main() starting")
     host = os.getenv("CYBERGUARD_HOST", "127.0.0.1")
     port = int(os.getenv("CYBERGUARD_PORT", "8000"))
     url = f"http://{host}:{port}"
     app_url = f"http://{host}:{port}/app"
+    
+    print(f"[DEBUG] Server URL: {url}, App URL: {app_url}")
 
+    print("[DEBUG] Starting server thread")
     server_thread = threading.Thread(target=_run_server, args=(host, port), daemon=True)
     server_thread.start()
+    
+    print("[DEBUG] Waiting for server")
     _wait_for_server(url)
+    print("[DEBUG] Server is ready")
 
     api = CyberGuardAPI()
-    webview.create_window("CyberGuard", app_url, min_size=(1100, 760), js_api=api)
-    webview.start()
+    print("[DEBUG] Creating webview window")
+    try:
+        webview.create_window("CyberGuard", app_url, min_size=(1100, 760), js_api=api)
+        print("[DEBUG] Webview window created, starting webview")
+        # Prefer Edge (Chromium) backend on Windows for modern JS support
+        try:
+            webview.start(gui='edgechromium')
+            print("[DEBUG] Webview started with edgechromium")
+        except Exception:
+            # Fallback to default backend
+            webview.start()
+            print("[DEBUG] Webview started with default GUI backend")
+    except Exception as e:
+        print(f"[ERROR] Failed to create webview: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":

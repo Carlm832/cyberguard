@@ -620,14 +620,56 @@ body.modal-open {
 /* Results Panel Layout */
 .analysis-report-modal:not(.hidden) {
   position: fixed;
-  inset: 24px;
-  z-index: 950;
+  inset: 0;
+  z-index: 20000;
   display: block;
-  max-width: 980px;
-  margin: auto;
   overflow-y: auto;
-  background: var(--card-bg);
-  box-shadow: 0 0 0 9999px var(--modal-overlay), 0 24px 70px rgba(0, 0, 0, 0.5);
+  width: calc(100vw - 48px);
+  max-width: 960px;
+  min-height: calc(100vh - 48px);
+  margin: 24px auto;
+  padding: 24px;
+  background: var(--modal-panel) !important;
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  pointer-events: auto;
+}
+
+.analysis-report-modal:not(.hidden) > * {
+  position: relative;
+  z-index: 20001;
+  pointer-events: auto;
+}
+
+.analysis-report-modal:not(.hidden)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--modal-overlay);
+  z-index: 19999;
+  pointer-events: none;
+}
+
+/* Modal-specific share menu placement to avoid being obscured by the close button */
+.analysis-report-modal .share-dropdown,
+.analysis-report-modal .btn-primary,
+.analysis-report-modal .modal-close {
+  position: relative;
+  z-index: 20002;
+}
+.analysis-report-modal .share-menu {
+  position: absolute;
+  right: 56px;
+  z-index: 20003 !important;
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.analysis-report-modal .share-menu .share-menu-item {
+  z-index: 20004;
 }
 
 .analysis-report-close {
@@ -1495,6 +1537,48 @@ body.modal-open {
 
 .modal-close:hover {
   color: var(--text-primary);
+}
+
+/* Make modal close button more visible inside analysis/report modals */
+.analysis-report-modal .modal-close,
+#password-results-card .modal-close,
+#eval-results-card .modal-close {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-left: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20001;
+}
+
+.analysis-report-modal .card-header {
+  align-items: center;
+}
+
+.analysis-report-modal .card-header > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-report-modal .modal-close svg,
+#password-results-card .modal-close svg,
+#eval-results-card .modal-close svg {
+  stroke: var(--text-secondary);
+}
+
+.analysis-report-modal .modal-close:hover svg,
+#password-results-card .modal-close:hover svg,
+#eval-results-card .modal-close:hover svg {
+  stroke: var(--text-main);
 }
 
 .modal-input-group {

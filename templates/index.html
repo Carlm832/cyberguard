@@ -286,25 +286,12 @@
               </svg>
             </button>
             <div class="share-menu" id="breach-share-menu">
-              <div class="share-menu-item" onclick="openEmailModal('breach')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg> Share to Email
-              </div>
-              <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+                <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg> Download PDF
-              </div>
-              <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg> Download HTML
+                </svg> Download Full Report (PDF)
               </div>
             </div>
           </div>
@@ -407,8 +394,6 @@
           <div id="chat-summary-share-menu">
             <button class="btn-secondary chat-share-action" data-action="pdf"
               style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
-            <button class="btn-secondary chat-share-action" data-action="email"
-              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share to Email</button>
             <button class="btn-secondary chat-share-action" data-action="copy"
               style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
             <button class="btn-secondary chat-share-action" data-action="web"
@@ -433,7 +418,7 @@
         <p>Risk score calculated using baseline rule certainty factors.</p>
       </div>
       <div style="display: flex; gap: 8px;">
-        <div class="share-dropdown">
+        <div class="share-dropdown" style="position: relative; z-index: 1001;">
           <button class="btn-primary share-report-btn" onclick="toggleShareMenu('phishing-share-menu')"
             style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
             <span>Share Report</span>
@@ -442,26 +427,13 @@
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          <div class="share-menu" id="phishing-share-menu">
-            <div class="share-menu-item" onclick="openEmailModal('phishing')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-              </svg> Share to Email
-            </div>
+          <div class="share-menu" id="phishing-share-menu" style="z-index: 1002;">
             <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download PDF
-            </div>
-            <div class="share-menu-item" onclick="downloadSecurityReport('html')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download HTML
+              </svg> Download Full Report (PDF)
             </div>
           </div>
         </div>
@@ -510,20 +482,20 @@
 
   <!-- Password Results Modal -->
   <div class="card hidden analysis-report-modal" id="password-results-card"
-    style="border: 1px solid var(--border); padding: 20px; background: rgba(29, 158, 117, 0.02); z-index: 960;">
-    <div
-      style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+    style="border: 1px solid var(--border);">
+    <div class="card-header"
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
       <div>
         <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 4px;">Expert System Password Verdict
         </h3>
-        <p style="font-size: 14px;">
+        <p style="font-size: 14px; margin:0;">
           Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span
             id="pwd-res-score">0</span>/100) |
           Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
         </p>
       </div>
-      <div style="display: flex; gap: 8px;">
-        <div class="share-dropdown">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div class="share-dropdown" style="position: relative;">
           <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')"
             style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
             <span>Share Report</span>
@@ -533,24 +505,17 @@
             </svg>
           </button>
           <div class="share-menu" id="password-share-menu">
-            <div class="share-menu-item" onclick="openEmailModal('password')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-              </svg> Share to Email
-            </div>
             <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download PDF
+              </svg> Download Full Report (PDF)
             </div>
           </div>
         </div>
-        <button class="modal-close"
-          onclick="document.getElementById('password-results-card').classList.add('hidden'); document.body.classList.remove('modal-open');"
-          style="width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);">
+        <button class="modal-close analysis-report-close" onclick="closePasswordReport()"
+          aria-label="Close password report">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -771,36 +736,50 @@
 
     // Initialization
     document.addEventListener("DOMContentLoaded", () => {
+      console.log('[CyberGuard] DOMContentLoaded fired');
       initThemeToggle();
+      console.log('[CyberGuard] initThemeToggle done');
       initTabs();
+      console.log('[CyberGuard] initTabs done');
       initChecklist();
       initPasswordAnalyzer();
       initBreachDatabase();
       initKnowledgeBase();
       initChat();
       loadThreatTicker();
-      setInterval(rotateTicker, 12000);
+      setInterval(rotateTicker, 20000);
       setInterval(loadThreatTicker, 1800000);
 
       // Initial system status display
       updateGlobalStatus("LOW", 0);
+      console.log('[CyberGuard] Initialization complete');
     });
 
     // Navigation Tabs Toggle
     function initTabs() {
+      console.log('[initTabs] Starting tab initialization');
       const buttons = document.querySelectorAll('.tab-btn');
-      buttons.forEach(btn => {
+      console.log('[initTabs] Found', buttons.length, 'tab buttons');
+      buttons.forEach((btn, idx) => {
+        console.log(`[initTabs] Attaching click listener to button ${idx}: ${btn.getAttribute('data-tab')}`);
         btn.addEventListener('click', () => {
+          console.log('[Tab Click] Clicked tab:', btn.getAttribute('data-tab'));
           buttons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
 
           const tabName = btn.getAttribute('data-tab');
+          console.log('[Tab Click] Switching to tab:', tabName);
           document.querySelectorAll('.tab-panel').forEach(panel => {
             panel.classList.remove('active');
           });
-          document.getElementById(`tab-${tabName}`).classList.add('active');
+          const targetPanel = document.getElementById(`tab-${tabName}`);
+          console.log('[Tab Click] Target panel:', targetPanel ? 'found' : 'NOT FOUND');
+          if (targetPanel) {
+            targetPanel.classList.add('active');
+          }
         });
       });
+      console.log('[initTabs] Tab initialization complete');
     }
 
     // Sync Checklist state from UI elements
@@ -825,6 +804,11 @@
 
     function closeAnalysisReport() {
       document.getElementById('eval-results-card').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+
+    function closePasswordReport() {
+      document.getElementById('password-results-card').classList.add('hidden');
       document.body.classList.remove('modal-open');
     }
 
@@ -1085,6 +1069,7 @@
           if (res.ok) {
             state.passwordEvaluation = data;
             resultsCard.classList.remove('hidden');
+            document.body.classList.add('modal-open');
 
             document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
             document.getElementById('pwd-res-score').innerText = data.password.score;
@@ -1535,24 +1520,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CyberGuard ARIA Discussion Summary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; background: #0b1220; color: #e5e7eb; margin: 0; }
-    .wrap { max-width: 840px; margin: 28px auto; padding: 24px; }
-    .card { background: #111827; border: 1px solid #233047; border-radius: 10px; padding: 22px; }
-    h1 { margin: 0 0 10px 0; color: #34d399; font-size: 24px; }
-    .meta { color: #9ca3af; font-size: 13px; margin-bottom: 16px; }
-    .summary { line-height: 1.6; font-size: 14px; }
-    .summary ul { padding-left: 18px; }
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #101622;
+      --border-color: #1f2937;
+      --text-main: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent: #10b981;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 35px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+    }
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 15px 0 5px 0;
+    }
+    .meta {
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+    }
+    .meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .summary-content {
+      font-size: 14.5px;
+      color: #e5e7eb;
+      line-height: 1.7;
+    }
+    .summary-content ul, .summary-content ol {
+      padding-left: 20px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    .summary-content li {
+      margin-bottom: 6px;
+    }
+    .summary-content p {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .summary-content br {
+      content: "";
+      margin: 2.2em;
+      display: block;
+      font-size: 24%;
+    }
+    footer {
+      margin-top: 30px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 15px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>ARIA Discussion Summary</h1>
-      <div class="meta">Generated on ${datePart}</div>
-      <div class="summary">${formatMarkdown(safeSummary)}</div>
+      <div class="header-section">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" style="vertical-align: middle;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span class="brand-logo">CYBERGUARD</span>
+        </div>
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 700;">ARIA Chat Summary</div>
+      </div>
+      <h1 class="doc-title">Discussion & Action Plan Summary</h1>
+      <div class="meta">
+        <span><strong>Generated:</strong> \${datePart}</span>
+        <span><strong>Model:</strong> ARIA AI Security Assistant</span>
+      </div>
+      <div class="summary-content">\${formatMarkdown(safeSummary)}</div>
+      <footer>
+        CyberGuard ARIA AI Security Companion. Confidential and Proprietary.
+      </footer>
     </div>
   </div>
 </body>
@@ -1572,9 +1663,9 @@
           tempDiv.innerHTML = summaryHtml;
           const opt = {
             margin: 10,
-            filename: `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`,
+            filename: `CyberGuard_ARIA_Discussion_Summary_\${datePart}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b1220' },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
           };
           if (window.pywebview && window.pywebview.api) {
@@ -1582,7 +1673,7 @@
               const reader = new FileReader();
               reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
-                window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`, 'pdf');
+                window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_\${datePart}.pdf`, 'pdf');
                 appendMessage('aria', 'Summary PDF saved successfully.');
               };
               reader.readAsDataURL(pdfBlob);
@@ -1592,29 +1683,10 @@
             appendMessage('aria', 'Summary PDF download started.');
           }
         } catch (err) {
-          appendMessage('aria', 'PDF download was blocked or failed in this environment. Exporting HTML summary instead.');
-          downloadChatSummaryHtml(summaryHtml, datePart);
+          console.error('PDF generation error:', err);
+          appendMessage('aria', 'PDF download failed or was blocked in this environment. Please try again.');
         }
         box.scrollTop = box.scrollHeight;
-      }
-
-      function downloadChatSummaryHtml(summaryHtml, datePart) {
-        const filename = `CyberGuard_ARIA_Discussion_Summary_${datePart}.html`;
-        if (window.pywebview && window.pywebview.api) {
-          window.pywebview.api.save_file(summaryHtml, filename, 'html');
-          appendMessage('aria', 'Summary HTML saved successfully.');
-        } else {
-          const blob = new Blob([summaryHtml], { type: 'text/html;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          appendMessage('aria', 'Summary HTML download started.');
-        }
       }
 
       function shareChatSummaryByEmail() {
@@ -1655,7 +1727,7 @@
       }
     }
 
-    function downloadSecurityReport(format = 'html') {
+    function downloadSecurityReport(format = 'pdf') {
       const esc = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
 
       const formatReportMarkdown = (text) => {
@@ -1693,166 +1765,71 @@
 
         let checklistHtml = '';
         for (const [ind, active] of Object.entries(state.checklist)) {
-          const label = ind.replace(/_/g, ' ').toUpperCase();
+          const label = ind.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
           if (active) {
-            checklistHtml += `<div class="indicator-badge active">✕ ${esc(label)}</div>`;
+            checklistHtml += `<span class="ind-badge flagged">✕ ${esc(label)}</span>`;
           } else {
-            checklistHtml += `<div class="indicator-badge passed">✓ ${esc(label)}</div>`;
+            checklistHtml += `<span class="ind-badge clear">✓ ${esc(label)}</span>`;
           }
         }
 
         let rulesHtml = '';
         if (state.evaluation.fired_rules.length === 0) {
-          rulesHtml = `<div class="empty-rules">No expert system inference rules triggered.</div>`;
+          rulesHtml = `<p class="empty-note">No expert system inference rules triggered.</p>`;
         } else {
           state.evaluation.fired_rules.forEach(fr => {
             const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
-            rulesHtml += `
-              <div class="rule-card">
-                <div class="rule-card-header">
-                  <span class="rule-id">${esc(fr.id)}</span>
-                  <span class="rule-name">${esc(fr.name)}</span>
-                  <span class="rule-cf">+${fr.cf} CF</span>
-                </div>
-                <div class="rule-explanation">${esc(ruleMeta.explanation || fr.explanation || '')}</div>
-              </div>
-            `;
+            rulesHtml += `<div class="rule-card"><div class="rule-card-header"><span class="rule-id">${esc(fr.id)}</span><span class="rule-name">${esc(fr.name)}</span><span class="rule-cf">+${fr.cf} CF</span></div><div class="rule-explanation">${esc(ruleMeta.explanation || fr.explanation || '')}</div></div>`;
           });
         }
 
         phishingHtml = `
           <div class="section-card">
-            <h2>1. Phishing & Threat Vector Analysis</h2>
+            <div class="section-header"><div class="section-num">1</div><div><h2>Phishing &amp; Threat Vector Analysis</h2><p>Expert rule engine inference result</p></div></div>
             <div class="metrics-grid">
-              <div class="metric-box">
-                <div class="metric-label">Inference Risk Verdict</div>
-                <div class="metric-value" style="color: ${riskColor}; background: ${riskBg}; padding: 4px 12px; border-radius: 6px; display: inline-block;">
-                  ${esc(state.evaluation.risk_level)}
-                </div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-label">Confidence Score</div>
-                <div class="metric-value">${scorePercent}%</div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: ${scorePercent}%; background: ${riskColor}"></div>
-                </div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-label">Inference Rules Fired</div>
-                <div class="metric-value">${state.evaluation.fired_rules.length}</div>
-              </div>
+              <div class="metric-box"><div class="metric-label">Risk Verdict</div><div style="margin-top:6px;"><span class="risk-badge ${state.evaluation.risk_level.toLowerCase()}">${esc(state.evaluation.risk_level)}</span></div></div>
+              <div class="metric-box"><div class="metric-label">Confidence Score</div><div class="metric-value">${scorePercent}%</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${scorePercent}%; background:${riskColor};"></div></div></div>
+              <div class="metric-box"><div class="metric-label">Rules Fired</div><div class="metric-value">${state.evaluation.fired_rules.length}</div></div>
             </div>
-            
-            <h3>Inspected Indicators</h3>
-            <div class="badge-grid">${checklistHtml}</div>
-
-            <h3>Fired Rule Inference Engine Trace</h3>
-            <div>${rulesHtml}</div>
-
-            <div class="aria-advice-block">
-              <div class="aria-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
-                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12c0-2.3.77-4.42 2.06-6.13l1.41 1.41A8 8 0 1 0 12 4V2z"/>
-                  <path d="M12 6a6 6 0 0 1 6 6c0 3.314-2.686 6-6 6s-6-2.686-6-6c0-1.38.47-2.65 1.25-3.67l1.41 1.41A4 4 0 1 0 12 8V6z"/>
-                </svg>
-                ARIA Expert Security Evaluation
-              </div>
-              <div class="aria-content">${formatReportMarkdown(state.evaluation.aria_explanation)}</div>
-            </div>
+            <div class="sub-title">Inspected Indicators</div><div class="badge-grid">${checklistHtml}</div>
+            <div class="sub-title" style="margin-top:20px;">Fired Rule Inference Trace</div><div>${rulesHtml}</div>
+            <div class="aria-block"><div class="aria-block-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>ARIA Expert Security Evaluation</div><div class="aria-block-body">${formatReportMarkdown(state.evaluation.aria_explanation)}</div></div>
           </div>
         `;
       } else {
-        phishingHtml = `
-          <div class="section-card empty-section">
-            <h2>1. Phishing & Threat Vector Analysis</h2>
-            <p>No phishing inference run in this session.</p>
-          </div>
-        `;
+        phishingHtml = `<div class="section-card empty-section"><div class="section-header"><div class="section-num">1</div><div><h2>Phishing &amp; Threat Vector Analysis</h2></div></div><p class="empty-note">No phishing inference run in this session.</p></div>`;
       }
 
-      // 2. Password Section Renders
       let passwordHtml = '';
       if (state.passwordEvaluation) {
         const pe = state.passwordEvaluation;
         let pwdColor = '#10b981';
-        let pwdBg = 'rgba(16, 185, 129, 0.1)';
-        if (pe.password.strength_label === 'critical' || pe.password.strength_label === 'weak') {
-          pwdColor = '#ef4444';
-          pwdBg = 'rgba(239, 68, 68, 0.1)';
-        } else if (pe.password.strength_label === 'medium') {
-          pwdColor = '#f97316';
-          pwdBg = 'rgba(249, 115, 22, 0.1)';
-        }
+        if (pe.password.strength_label === 'critical' || pe.password.strength_label === 'weak') pwdColor = '#ef4444';
+        else if (pe.password.strength_label === 'medium') pwdColor = '#f97316';
 
         let checksGrid = '';
         for (const [chkKey, passed] of Object.entries(pe.checks)) {
-          const chkLabel = chkKey.replace(/_/g, ' ').toUpperCase();
-          if (passed) {
-            checksGrid += `<div class="indicator-badge passed">✓ ${esc(chkLabel)}</div>`;
-          } else {
-            checksGrid += `<div class="indicator-badge active">✕ ${esc(chkLabel)}</div>`;
-          }
+          const chkLabel = chkKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          checksGrid += passed ? `<span class="ind-badge clear">✓ ${esc(chkLabel)}</span>` : `<span class="ind-badge flagged">✕ ${esc(chkLabel)}</span>`;
         }
 
         passwordHtml = `
           <div class="section-card">
-            <h2>2. Password Strength & Entropy Audit</h2>
+            <div class="section-header"><div class="section-num">2</div><div><h2>Password Strength &amp; Entropy Audit</h2><p>HIBP breach check + expert rule analysis</p></div></div>
             <div class="metrics-grid">
-              <div class="metric-box">
-                <div class="metric-label">Strength Verdict</div>
-                <div class="metric-value" style="color: ${pwdColor}; background: ${pwdBg}; padding: 4px 12px; border-radius: 6px; display: inline-block;">
-                  ${esc(pe.password.strength_label.toUpperCase())}
-                </div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-label">Entropy Score</div>
-                <div class="metric-value">${pe.password.score} / 100</div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: ${pe.password.score}%; background: ${pwdColor}"></div>
-                </div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-label">Brute-Force Complexity</div>
-                <div class="metric-value" style="font-size: 14px; font-weight: 600;">${esc(pe.password.crack_time)}</div>
-              </div>
+              <div class="metric-box"><div class="metric-label">Strength Verdict</div><div style="margin-top:6px;"><span class="risk-badge ${pe.password.strength_label.toLowerCase()}">${esc(pe.password.strength_label.toUpperCase())}</span></div></div>
+              <div class="metric-box"><div class="metric-label">Entropy Score</div><div class="metric-value">${pe.password.score}<span style="font-size:13px;font-weight:500;color:#64748b;"> / 100</span></div><div class="metric-bar"><div class="metric-bar-fill" style="width:${pe.password.score}%;background:${pwdColor};"></div></div></div>
+              <div class="metric-box"><div class="metric-label">Brute-Force Complexity</div><div class="metric-value" style="font-size:15px;">${esc(pe.password.crack_time)}</div></div>
             </div>
-
-            <div class="hibp-alert-banner ${pe.hibp.breached ? 'danger' : 'success'}">
-              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">
-                ${pe.hibp.breached ? '⚠️ BREACHED CREDENTIAL WARNING' : '✓ SECURE CREDENTIAL STATUS'}
-              </div>
-              <div>
-                ${pe.hibp.breached
-            ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> public data leaks.`
-            : 'This password has not been detected in any known public leaks.'}
-              </div>
-            </div>
-
-            <h3>Validation Rules Checklist</h3>
-            <div class="badge-grid">${checksGrid}</div>
-
-            <div class="aria-advice-block">
-              <div class="aria-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                ARIA Entropy & Audit Advice
-              </div>
-              <div class="aria-content">${formatReportMarkdown(pe.aria_explanation)}</div>
-            </div>
+            <div class="hibp-banner ${pe.hibp.breached ? 'danger' : 'success'}"><div class="hibp-banner-icon">${pe.hibp.breached ? '⚠️' : '✅'}</div><div><div class="hibp-banner-title">${pe.hibp.breached ? 'Breached Credential Warning' : 'Secure Credential Status'}</div><div class="hibp-banner-body">${pe.hibp.breached ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> known public data breach databases.` : 'This password has not been detected in any known public data leaks.'}</div></div></div>
+            <div class="sub-title">Validation Rules Checklist</div><div class="badge-grid">${checksGrid}</div>
+            <div class="aria-block"><div class="aria-block-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>ARIA Entropy &amp; Audit Advice</div><div class="aria-block-body">${formatReportMarkdown(pe.aria_explanation)}</div></div>
           </div>
         `;
       } else {
-        passwordHtml = `
-          <div class="section-card empty-section">
-            <h2>2. Password Strength & Entropy Audit</h2>
-            <p>No password audit checked in this session.</p>
-          </div>
-        `;
+        passwordHtml = `<div class="section-card empty-section"><div class="section-header"><div class="section-num">2</div><div><h2>Password Strength &amp; Entropy Audit</h2></div></div><p class="empty-note">No password audit checked in this session.</p></div>`;
       }
 
-      // 3. Breach Section Renders
       let breachHtml = '';
       if (state.breachEvaluation) {
         const be = state.breachEvaluation;
@@ -1862,19 +1839,16 @@
         } else {
           be.breaches.forEach(b => {
             timelineCards += `
-              <div class="timeline-item">
-                <div class="timeline-badge">${esc(b.year)}</div>
-                <div class="timeline-panel">
-                  <div class="timeline-header">
-                    <span class="timeline-service">${esc(b.service)}</span>
-                    <span class="severity-badge ${b.severity}">${esc(b.severity.toUpperCase())}</span>
+              <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">${esc(b.year)}</div>
+                <div class="tl-panel">
+                  <div class="tl-header">
+                    <span class="tl-service">${esc(b.service)}</span>
+                    <span class="sev-pill ${b.severity.toUpperCase()}">${esc(b.severity.toUpperCase())}</span>
                   </div>
-                  <div style="font-size: 12px; margin-top: 4px; color: #9ca3af;">
-                    <strong>Estimated Records Leaked:</strong> ${b.records.toLocaleString()}
-                  </div>
-                  <div style="font-size: 12px; margin-top: 4px; color: #d1d5db;">
-                    <strong>Compromised Data Types:</strong> ${esc(b.data_types.join(', '))}
-                  </div>
+                  <div class="tl-meta"><strong>Records Leaked:</strong> ${b.records.toLocaleString()}</div>
+                  <div class="chip-row">${b.data_types.map(d => `<span class="data-chip">${esc(d)}</span>`).join('')}</div>
                 </div>
               </div>
             `;
@@ -1883,40 +1857,39 @@
 
         breachHtml = `
           <div class="section-card">
-            <h2>3. Corporate Data Breach Database Inventory</h2>
-            <div style="margin-bottom: 20px;">
-              <strong>Inspected Email Identity:</strong> 
-              <span style="font-family: monospace; font-size: 15px; color: #10b981; margin-left: 5px;">${esc(state.breachEmail)}</span>
-            </div>
-
-            <div class="hibp-alert-banner ${be.breached ? 'danger' : 'success'}" style="margin-bottom: 25px;">
-              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">
-                ${be.breached ? '⚠️ HIGH COMPROMISE THREAT ALERT' : '✓ CLEAN DOMAIN IDENTITY'}
-              </div>
+            <div class="section-header">
+              <div class="section-num">3</div>
               <div>
-                Identified <strong>${be.breaches ? be.breaches.length : 0}</strong> compromised third-party service databases matching this email.
+                <h2>Corporate Data Breach Database Inventory</h2>
+                <p>Identity: <strong style="color:#1D9E75; font-family:monospace;">${esc(state.breachEmail)}</strong></p>
               </div>
             </div>
 
-            <h3>Leak Compromise Timeline</h3>
-            <div class="timeline-container">${timelineCards}</div>
+            <div class="hibp-banner ${be.breached ? 'danger' : 'success'}">
+              <div class="hibp-banner-icon">${be.breached ? '⚠️' : '✅'}</div>
+              <div>
+                <div class="hibp-banner-title">${be.breached ? 'High Compromise Threat Alert' : 'Clean Domain Identity'}</div>
+                <div class="hibp-banner-body">Identified <strong>${be.breaches ? be.breaches.length : 0}</strong> compromised third-party service databases matching this email identity.</div>
+              </div>
+            </div>
 
-            <div class="aria-advice-block" style="margin-top: 25px;">
-              <div class="aria-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align: middle;">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+            <div class="sub-title">Breach Compromise Timeline</div>
+            <div class="timeline">${timelineCards}</div>
+
+            <div class="aria-block" style="margin-top:22px;">
+              <div class="aria-block-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 ARIA Incident Action Plan
               </div>
-              <div class="aria-content">${formatReportMarkdown(be.aria_explanation)}</div>
+              <div class="aria-block-body">${formatReportMarkdown(be.aria_explanation)}</div>
             </div>
           </div>
         `;
       } else {
         breachHtml = `
           <div class="section-card empty-section">
-            <h2>3. Corporate Data Breach Database Inventory</h2>
-            <p>No corporate email breach audit checked in this session.</p>
+            <div class="section-header"><div class="section-num">3</div><div><h2>Corporate Data Breach Database Inventory</h2></div></div>
+            <p class="empty-note">No corporate email breach audit checked in this session.</p>
           </div>
         `;
       }
@@ -1929,17 +1902,18 @@
   <title>CyberGuard Security Posture Audit - ${esc(dateStr)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    /* Use a light print-friendly theme for generated reports so text is visible in PDFs */
     :root {
-      --bg-color: #080c14;
-      --card-bg: #101622;
-      --border-color: #1f2937;
-      --text-main: #f3f4f6;
-      --text-secondary: #9ca3af;
-      --accent: #10b981;
-      --accent-hover: #059669;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+      --bg-color: #ffffff;
+      --card-bg: #ffffff;
+      --border-color: #e5e7eb;
+      --text-main: #111827;
+      --text-secondary: #6b7280;
+      --accent: #0f766e;
+      --accent-hover: #0e7666;
+      --shadow: 0 6px 18px rgba(16,24,40,0.06);
     }
     
     body {
@@ -2149,7 +2123,7 @@
       color: var(--text-secondary);
     }
 
-    .aria-advice-block {
+    .aria-block {
       background: rgba(16, 185, 129, 0.04);
       border: 1px solid rgba(16, 185, 129, 0.15);
       border-radius: 8px;
@@ -2157,7 +2131,7 @@
       margin-top: 30px;
     }
 
-    .aria-title {
+    .aria-block-title {
       font-weight: 700;
       font-size: 14px;
       color: var(--accent);
@@ -2168,18 +2142,18 @@
       align-items: center;
     }
 
-    .aria-content {
+    .aria-block-body {
       font-size: 14px;
       color: #d1d5db;
     }
 
-    .aria-content ul {
+    .aria-block-body ul {
       margin-top: 8px;
       margin-bottom: 0;
       padding-left: 20px;
     }
 
-    .aria-content li {
+    .aria-block-body li {
       margin-bottom: 6px;
     }
 
@@ -2301,7 +2275,7 @@
       .metric-value, .rule-name, .timeline-service {
         color: #111827;
       }
-      .aria-advice-block {
+      .aria-block {
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
       }
@@ -2350,52 +2324,38 @@
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
 
-        // Clean up interactive elements (like the print banner) for the PDF
+        // Remove the print banner (not needed in PDF)
         const printHeader = tempDiv.querySelector('.no-print-header');
         if (printHeader) printHeader.remove();
 
+        const pdfFilename = `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
         const opt = {
           margin: 10,
-          filename: `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
+          filename: pdfFilename,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
+        try {
+          if (typeof html2pdf === 'undefined') throw new Error('html2pdf not loaded');
           if (window.pywebview && window.pywebview.api) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              // Strip the data URI prefix to get raw base64
-              const base64 = e.target.result.split(',')[1];
-              window.pywebview.api.save_file(base64, `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`, 'pdf');
-            };
-            reader.readAsDataURL(pdfBlob);
+            // Desktop (pywebview) — need raw base64 to pass to Python save dialog
+            html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const base64 = e.target.result.split(',')[1];
+                window.pywebview.api.save_file(base64, pdfFilename, 'pdf');
+              };
+              reader.readAsDataURL(pdfBlob);
+            });
           } else {
-            const url = URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            // Browser — use .save() which is the most reliable cross-browser method
+            html2pdf().set(opt).from(tempDiv).save();
           }
-        });
-      } else {
-        const filename = `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.html`;
-        if (window.pywebview && window.pywebview.api) {
-          window.pywebview.api.save_file(htmlContent, filename, 'html');
-        } else {
-          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error('PDF generation failed:', err);
+          alert('PDF generation failed. Please try again or contact support.');
         }
       }
     }
@@ -2430,10 +2390,51 @@
     });
 
     function toggleShareMenu(id) {
+      // Close all other share menus first
       document.querySelectorAll('.share-menu').forEach(m => {
-        if (m.id !== id) m.classList.remove('show');
+        if (m.id !== id) {
+          m.classList.remove('show');
+          m.style.position = '';
+          m.style.top = '';
+          m.style.right = '';
+          m.style.left = '';
+          m.style.bottom = '';
+        }
       });
-      document.getElementById(id).classList.toggle('show');
+
+      const menu = document.getElementById(id);
+      const isOpen = menu.classList.contains('show');
+
+      if (isOpen) {
+        menu.classList.remove('show');
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.right = '';
+        menu.style.left = '';
+      } else {
+        // Use position:fixed relative to the trigger button so overflow on
+        // modal containers never clips the dropdown
+        const btn = menu.previousElementSibling;
+        const rect = btn ? btn.getBoundingClientRect() : { bottom: 0, right: window.innerWidth };
+        const menuHeight = 150; // approximate max height of dropdown
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+
+        menu.style.position = 'fixed';
+        // Ensure share menu appears above the modal backdrop and close button
+        menu.style.zIndex = '20003';
+        menu.style.minWidth = Math.max(rect.width, 190) + 'px';
+        if (openUpward) {
+          menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+          menu.style.top = 'auto';
+        } else {
+          menu.style.top = (rect.bottom + 4) + 'px';
+          menu.style.bottom = 'auto';
+        }
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left = 'auto';
+        menu.classList.add('show');
+      }
     }
 
     let currentReportTypeForEmail = null;
