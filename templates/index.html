@@ -286,12 +286,12 @@
               </svg>
             </button>
             <div class="share-menu" id="breach-share-menu">
-                <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+                <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'breach')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg> Download Full Report (PDF)
+                </svg> Download Breach Report (PDF)
               </div>
             </div>
           </div>
@@ -428,12 +428,12 @@
             </svg>
           </button>
           <div class="share-menu" id="phishing-share-menu" style="z-index: 1002;">
-            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'phishing')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download Full Report (PDF)
+              </svg> Download Phishing Report (PDF)
             </div>
           </div>
         </div>
@@ -505,12 +505,12 @@
             </svg>
           </button>
           <div class="share-menu" id="password-share-menu">
-            <div class="share-menu-item" onclick="downloadSecurityReport('pdf')">
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'password')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg> Download Full Report (PDF)
+              </svg> Download Password Report (PDF)
             </div>
           </div>
         </div>
@@ -800,16 +800,19 @@
       if (!state.evaluation) return;
       document.getElementById('eval-results-card').classList.remove('hidden');
       document.body.classList.add('modal-open');
+      document.body.classList.add('report-modal-open');
     }
 
     function closeAnalysisReport() {
       document.getElementById('eval-results-card').classList.add('hidden');
       document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
     }
 
     function closePasswordReport() {
       document.getElementById('password-results-card').classList.add('hidden');
       document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
     }
 
     // Run threat logic on backend
@@ -822,6 +825,7 @@
       visualizer.classList.remove('hidden');
       resultsCard.classList.add('hidden');
       document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
 
       // Populate rules animation list
       const rulesList = document.getElementById('eval-rules-list');
@@ -1070,6 +1074,7 @@
             state.passwordEvaluation = data;
             resultsCard.classList.remove('hidden');
             document.body.classList.add('modal-open');
+            document.body.classList.add('report-modal-open');
 
             document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
             document.getElementById('pwd-res-score').innerText = data.password.score;
@@ -1727,7 +1732,7 @@
       }
     }
 
-    function downloadSecurityReport(format = 'pdf') {
+    function downloadSecurityReport(format = 'pdf', reportScope = 'full') {
       const esc = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
 
       const formatReportMarkdown = (text) => {
@@ -1894,12 +1899,33 @@
         `;
       }
 
+      const reportTitle = {
+        full: 'CYBERGUARD SECURITY POSTURE AUDIT',
+        phishing: 'CYBERGUARD PHISHING ANALYSIS REPORT',
+        password: 'CYBERGUARD PASSWORD ANALYSIS REPORT',
+        breach: 'CYBERGUARD BREACH LOOKUP REPORT'
+      }[reportScope] || 'CYBERGUARD SECURITY POSTURE AUDIT';
+
+      const reportSections = {
+        full: phishingHtml + passwordHtml + breachHtml,
+        phishing: phishingHtml,
+        password: passwordHtml,
+        breach: breachHtml
+      }[reportScope] || (phishingHtml + passwordHtml + breachHtml);
+
+      const filenameBase = {
+        full: 'CyberGuard_Security_Posture_Report',
+        phishing: 'CyberGuard_Phishing_Analysis_Report',
+        password: 'CyberGuard_Password_Analysis_Report',
+        breach: 'CyberGuard_Breach_Lookup_Report'
+      }[reportScope] || 'CyberGuard_Security_Posture_Report';
+
       // Complete self-contained HTML Template
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CyberGuard Security Posture Audit - ${esc(dateStr)}</title>
+  <title>${reportTitle} - ${esc(dateStr)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2302,16 +2328,14 @@
     </div>
 
     <header>
-      <h1 class="header-logo">CYBERGUARD SECURITY POSTURE AUDIT</h1>
+      <h1 class="header-logo">${reportTitle}</h1>
       <div class="header-meta">
         <div><strong>Generated on:</strong> ${esc(dateStr)}</div>
         <div><strong>Traceability:</strong> Traceable Expert Rule System & ARIA AI</div>
       </div>
     </header>
 
-    ${phishingHtml}
-    ${passwordHtml}
-    ${breachHtml}
+    ${reportSections}
 
     <footer>
       CyberGuard Expert System Assessment Report. Confidential and Proprietary.
@@ -2328,7 +2352,7 @@
         const printHeader = tempDiv.querySelector('.no-print-header');
         if (printHeader) printHeader.remove();
 
-        const pdfFilename = `CyberGuard_Security_Posture_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
+        const pdfFilename = `${filenameBase}_${new Date().toISOString().slice(0, 10)}.pdf`;
         const opt = {
           margin: 10,
           filename: pdfFilename,
@@ -2459,7 +2483,13 @@
 
     function closeEmailModal() {
       document.getElementById('email-modal').classList.remove('show');
-      document.body.classList.remove('modal-open');
+      const reportStillOpen =
+        !document.getElementById('eval-results-card').classList.contains('hidden') ||
+        !document.getElementById('password-results-card').classList.contains('hidden');
+      if (!reportStillOpen) {
+        document.body.classList.remove('modal-open');
+        document.body.classList.remove('report-modal-open');
+      }
       document.getElementById('modal-email-input').value = '';
       const statusEl = document.getElementById('modal-email-status');
       statusEl.style.display = 'none';

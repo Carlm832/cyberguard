@@ -2,6 +2,11 @@ $ErrorActionPreference = "Stop"
 
 $iconPath = Join-Path $PSScriptRoot "assets\app_icon.ico"
 $versionFile = Join-Path $PSScriptRoot "version_info.txt"
+$venvScripts = Join-Path $PSScriptRoot ".venv312\Scripts"
+
+if (Test-Path (Join-Path $venvScripts "python.exe")) {
+  $env:PATH = "$venvScripts;$env:PATH"
+}
 
 function Invoke-Step {
   param(
