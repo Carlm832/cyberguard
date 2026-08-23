@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>CyberGuard | Defend Your Digital Frontier</title>
-  <meta name="description" content="CyberGuard is a premium, offline-first cybersecurity expert system protecting users from phishing attempts, compromised passwords, and live vulnerabilities on Android, Windows, and Web.">
+  <meta name="description" content="CyberGuard is an advanced cybersecurity expert system combining deterministic rule inference with ARIA AI advisory on Windows Desktop and Cloud Web.">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
@@ -133,6 +133,16 @@
 
     .nav-link:hover {
       color: var(--teal);
+    }
+
+    .nav-mobile-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      color: var(--text-primary);
+      cursor: pointer;
     }
 
     .btn {
@@ -761,6 +771,7 @@
       border-radius: 14px;
       overflow-x: auto;
       box-shadow: var(--shadow-sm);
+      -webkit-overflow-scrolling: touch;
     }
 
     .compare-table {
@@ -768,6 +779,7 @@
       border-collapse: collapse;
       text-align: left;
       font-size: 14.5px;
+      min-width: 600px;
     }
 
     .compare-table th, .compare-table td {
@@ -822,6 +834,7 @@
       align-items: center;
       cursor: pointer;
       user-select: none;
+      gap: 12px;
     }
 
     .faq-question svg {
@@ -829,6 +842,7 @@
       height: 18px;
       color: var(--teal);
       transition: transform 0.3s ease;
+      flex-shrink: 0;
     }
 
     .faq-item.open .faq-question svg {
@@ -856,7 +870,7 @@
     }
 
     .download-box {
-      max-width: 1160px;
+      max-width: 900px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -871,7 +885,7 @@
 
     .download-cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
       width: 100%;
       margin-top: 10px;
@@ -881,7 +895,7 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 28px;
+      padding: 32px 28px;
       text-align: left;
       display: flex;
       flex-direction: column;
@@ -925,7 +939,7 @@
     }
 
     .download-card-title {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -942,9 +956,9 @@
     }
 
     .download-card-desc {
-      font-size: 14px;
+      font-size: 14.5px;
       color: var(--text-secondary);
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
     .specs-list {
@@ -952,92 +966,17 @@
       flex-wrap: wrap;
       gap: 6px;
       margin-top: auto;
-      padding-top: 8px;
+      padding-top: 10px;
     }
 
     .spec-chip {
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--text-secondary);
       background: var(--bg-primary);
       border: 1px solid var(--border);
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 6px;
-    }
-
-    .apk-install-guide {
-      margin-top: 20px;
-      max-width: 860px;
-      width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px 28px;
-      text-align: left;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .apk-guide-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .apk-guide-title {
-      font-size: 15.5px;
-      font-weight: 700;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .apk-guide-title svg {
-      color: var(--teal);
-      width: 20px;
-      height: 20px;
-    }
-
-    .apk-guide-steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .apk-step {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .apk-step-num {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--teal);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .apk-step-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .apk-step-desc {
-      font-size: 12.5px;
-      color: var(--text-secondary);
-      line-height: 1.5;
     }
 
     /* Footer */
@@ -1055,31 +994,56 @@
     .footer-links {
       display: flex;
       gap: 24px;
+      flex-wrap: wrap;
     }
 
     .footer-link:hover {
       color: var(--teal);
     }
 
-    /* Responsive CSS */
+    /* Mobile Responsive CSS */
     @media (max-width: 968px) {
+      .navbar {
+        height: auto;
+        padding: 14px 5%;
+        flex-wrap: wrap;
+      }
+      .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 16px 0 8px;
+      }
+      .nav-links.show {
+        display: flex;
+      }
+      .nav-mobile-toggle {
+        display: block;
+      }
       .hero {
         grid-template-columns: 1fr;
         text-align: center;
-        padding-top: 120px;
-        gap: 36px;
+        padding-top: 110px;
+        gap: 32px;
       }
       .hero-tag {
         align-self: center;
+      }
+      .hero-title {
+        font-size: 38px;
       }
       .hero-ctas {
         justify-content: center;
       }
       .hero-metrics {
         grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
       }
       .trust-container {
         grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
       }
       .pipeline-grid {
         grid-template-columns: 1fr;
@@ -1089,7 +1053,7 @@
       }
       .sandbox-layout {
         grid-template-columns: 1fr;
-        gap: 36px;
+        gap: 32px;
       }
       .phish-interactive-grid {
         grid-template-columns: 1fr;
@@ -1097,13 +1061,37 @@
       .download-cards {
         grid-template-columns: 1fr;
       }
-      .apk-guide-steps {
-        grid-template-columns: 1fr;
-      }
       .footer {
         flex-direction: column;
         gap: 16px;
         text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 32px;
+      }
+      .hero-desc {
+        font-size: 15px;
+      }
+      .hero-ctas {
+        flex-direction: column;
+      }
+      .hero-ctas .btn {
+        width: 100%;
+      }
+      .trust-container {
+        grid-template-columns: 1fr;
+      }
+      .section-header h2 {
+        font-size: 28px;
+      }
+      .download-box h2 {
+        font-size: 30px;
+      }
+      .widget-meta {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -1118,32 +1106,38 @@
       </svg>
       <span class="logo-text">Cyber<span>Guard</span></span>
     </div>
+    <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Toggle navigation menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
     <nav class="nav-links">
-      <a href="#how-it-works" class="nav-link">How It Works</a>
-      <a href="#features" class="nav-link">Features</a>
-      <a href="#sandbox" class="nav-link">Interactive Sandbox</a>
-      <a href="#compare" class="nav-link">Comparison</a>
-      <a href="#faq" class="nav-link">FAQ</a>
-      <a href="#download" class="nav-link">Downloads &amp; APK</a>
+      <a href="#how-it-works" class="nav-link" onclick="document.querySelector('.nav-links').classList.remove('show')">How It Works</a>
+      <a href="#features" class="nav-link" onclick="document.querySelector('.nav-links').classList.remove('show')">Features</a>
+      <a href="#sandbox" class="nav-link" onclick="document.querySelector('.nav-links').classList.remove('show')">Interactive Sandbox</a>
+      <a href="#compare" class="nav-link" onclick="document.querySelector('.nav-links').classList.remove('show')">Comparison</a>
+      <a href="#faq" class="nav-link" onclick="document.querySelector('.nav-links').classList.remove('show')">FAQ</a>
       <a href="/app" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">Launch Web App</a>
-      <a href="#download" class="btn btn-primary" id="nav-cta-dl" style="padding: 8px 18px; font-size: 14px;">Get App</a>
+      <a href="#download" class="btn btn-primary" id="nav-cta-dl" style="padding: 8px 18px; font-size: 14px;">Download Desktop</a>
     </nav>
   </header>
 
   <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
-      <span class="hero-tag">Multi-Platform Expert System</span>
+      <span class="hero-tag">Expert Security System</span>
       <h1 class="hero-title">Defend Your<br><span>Digital Frontier</span></h1>
       <p class="hero-desc">
-        CyberGuard is an offline-first cybersecurity expert system combining deterministic rule inference with ARIA AI advisory. Available on <strong>Android (APK)</strong>, <strong>Windows Desktop</strong>, and <strong>Cloud Web</strong>.
+        CyberGuard is an offline-first cybersecurity expert system combining deterministic rule inference with ARIA AI advisory. Deploy as a standalone <strong>Windows Desktop Application</strong> or access instantly via our mobile-optimized <strong>Cloud Web Platform</strong>.
       </p>
       <div class="hero-ctas">
         <a href="#download" class="btn btn-primary" id="hero-cta-dl">
           <svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
-          Get Android APK &amp; Desktop
+          Download Desktop App (.exe)
         </a>
         <a href="/app" class="btn btn-secondary" id="hero-cta-web">
           <svg style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24">
@@ -1151,7 +1145,7 @@
             <line x1="2" y1="12" x2="22" y2="12"></line>
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
           </svg>
-          Launch Web App
+          Launch Web App (Browser)
         </a>
       </div>
 
@@ -1163,14 +1157,14 @@
         </div>
         <div class="metric-card">
           <div class="metric-num">100%</div>
-          <div class="metric-label">Offline-First Engine</div>
+          <div class="metric-label">Offline-Ready Engine</div>
         </div>
         <div class="metric-card">
           <div class="metric-num">0</div>
           <div class="metric-label">Stored Credentials</div>
         </div>
         <div class="metric-card">
-          <div class="metric-num">&lt; 25 MB</div>
+          <div class="metric-num">&lt; 30 MB</div>
           <div class="metric-label">Lightweight Footprint</div>
         </div>
       </div>
@@ -1212,11 +1206,11 @@
       </div>
       <div class="trust-item">
         <div class="trust-icon">
-          <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" ry="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
         <div class="trust-text">
-          <h4>Cross-Platform</h4>
-          <p>Android APK, Windows, and Cloud Web</p>
+          <h4>Responsive Web App</h4>
+          <p>Instant mobile browser access</p>
         </div>
       </div>
     </div>
@@ -1262,7 +1256,7 @@
       <div class="section-header">
         <span class="section-tag">Core Modules</span>
         <h2>Expert Defense Capabilities</h2>
-        <p>A full suite of localized security assessment modules engineered for privacy, accuracy, and immediate visual feedback across desktop and mobile devices.</p>
+        <p>A full suite of localized security assessment modules engineered for privacy, accuracy, and immediate visual feedback across desktop and mobile web browsers.</p>
       </div>
       <div class="features-grid">
         <!-- Feature 1 -->
@@ -1515,39 +1509,12 @@
   <!-- Download & CTA Section -->
   <section class="section-download" id="download">
     <div class="download-box">
-      <h2>Get CyberGuard for Any Platform</h2>
-      <p>Choose your preferred edition. Experience offline-first threat inference on Android mobile devices, Windows desktop, or instant cloud web access.</p>
+      <h2>Deploy CyberGuard Your Way</h2>
+      <p>Choose between the native standalone desktop executable or instant zero-installation access via the mobile-friendly cloud platform.</p>
       
       <div class="download-cards">
-        <!-- Android APK Card -->
-        <div class="download-card highlight">
-          <div class="card-top-row">
-            <div class="download-card-title">
-              <svg viewBox="0 0 24 24">
-                <rect x="5" y="2" width="14" height="20" rx="3" ry="3"/>
-                <line x1="12" y1="18" x2="12.01" y2="18"/>
-              </svg>
-              Android App (APK)
-            </div>
-            <span class="platform-badge">Mobile Edition</span>
-          </div>
-          <p class="download-card-desc">
-            Complete mobile cybersecurity suite for your smartphone or tablet. Scan phishing emails on the go, audit passwords offline, and consult ARIA anytime.
-          </p>
-          <div class="specs-list">
-            <span class="spec-chip">v3.1.0</span>
-            <span class="spec-chip">Android 8.0+</span>
-            <span class="spec-chip">Direct .APK</span>
-            <span class="spec-chip">Offline Ready</span>
-          </div>
-          <a href="https://github.com/Carlm832/cyberguard/releases/latest" class="btn btn-primary" style="margin-top: 10px;" id="download-apk-btn" target="_blank">
-            <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Download Android APK (.apk)
-          </a>
-        </div>
-
         <!-- Desktop Application -->
-        <div class="download-card">
+        <div class="download-card highlight">
           <div class="card-top-row">
             <div class="download-card-title">
               <svg viewBox="0 0 24 24">
@@ -1555,20 +1522,20 @@
                 <line x1="8" y1="21" x2="16" y2="21"/>
                 <line x1="12" y1="17" x2="12" y2="21"/>
               </svg>
-              Windows Desktop
+              Windows Desktop Application
             </div>
-            <span class="platform-badge">Desktop .exe</span>
+            <span class="platform-badge">Standalone .EXE</span>
           </div>
           <p class="download-card-desc">
-            Full-featured standalone desktop security center. Native WebView UI, enterprise file audit logs, high-resolution PDF export, and zero telemetry.
+            Full-featured offline security center for Windows 10 &amp; 11. Native WebView UI, enterprise local file audit logs, high-resolution PDF export, and zero telemetry.
           </p>
           <div class="specs-list">
-            <span class="spec-chip">v3.1.0</span>
             <span class="spec-chip">Windows 10 / 11</span>
             <span class="spec-chip">64-bit .exe</span>
-            <span class="spec-chip">Native PDF</span>
+            <span class="spec-chip">Offline Ready</span>
+            <span class="spec-chip">Local Logging</span>
           </div>
-          <a href="https://github.com/Carlm832/cyberguard/releases/latest" class="btn btn-secondary" style="margin-top: 10px;" id="download-win-btn" target="_blank">
+          <a href="https://github.com/Carlm832/cyberguard/releases/latest" class="btn btn-primary" style="margin-top: 10px;" id="download-win-btn" target="_blank">
             <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Download for Windows (.exe)
           </a>
@@ -1585,52 +1552,21 @@
               </svg>
               Cloud Web Platform
             </div>
-            <span class="platform-badge">Instant Access</span>
+            <span class="platform-badge">Zero Install</span>
           </div>
           <p class="download-card-desc">
-            Instant zero-installation access in any modern browser. Test emails, check password entropy, query Have I Been Pwned, and consult ARIA in the cloud.
+            Instant browser access designed and responsive for all desktop, tablet, and mobile device screens. Perform live phishing scans and consult ARIA directly on the go.
           </p>
           <div class="specs-list">
-            <span class="spec-chip">v3.1.0</span>
-            <span class="spec-chip">Zero Install</span>
-            <span class="spec-chip">All Browsers</span>
-            <span class="spec-chip">Instant</span>
+            <span class="spec-chip">Mobile &amp; Desktop</span>
+            <span class="spec-chip">All Modern Browsers</span>
+            <span class="spec-chip">Instant Access</span>
+            <span class="spec-chip">HTTPS Secure</span>
           </div>
           <a href="/app" class="btn btn-secondary" style="margin-top: 10px;" id="launch-web-btn">
             <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Launch Web App
           </a>
-        </div>
-      </div>
-
-      <!-- Android APK Quick Install Guide -->
-      <div class="apk-install-guide">
-        <div class="apk-guide-header" onclick="const s = document.getElementById('apk-steps-container'); s.style.display = s.style.display === 'none' ? 'grid' : 'none';">
-          <div class="apk-guide-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="5" y="2" width="14" height="20" rx="3" ry="3"/>
-              <line x1="12" y1="18" x2="12.01" y2="18"/>
-            </svg>
-            How to Install the Android APK on your Device
-          </div>
-          <span style="font-size: 13px; color: var(--teal); font-weight: 700;">View Steps ▾</span>
-        </div>
-        <div class="apk-guide-steps" id="apk-steps-container">
-          <div class="apk-step">
-            <div class="apk-step-num">1</div>
-            <div class="apk-step-title">Download APK</div>
-            <div class="apk-step-desc">Tap <strong>Download Android APK</strong> on your phone to save the installation file.</div>
-          </div>
-          <div class="apk-step">
-            <div class="apk-step-num">2</div>
-            <div class="apk-step-title">Allow Unknown Sources</div>
-            <div class="apk-step-desc">When prompted by Android, enable <em>"Allow installation from this source"</em> in Settings.</div>
-          </div>
-          <div class="apk-step">
-            <div class="apk-step-num">3</div>
-            <div class="apk-step-title">Install &amp; Launch</div>
-            <div class="apk-step-desc">Tap <strong>Install</strong>. Once complete, open CyberGuard for offline mobile threat detection.</div>
-          </div>
         </div>
       </div>
     </div>
@@ -1647,6 +1583,16 @@
 
       <div class="faq-list">
         <div class="faq-item open">
+          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            <span>Can I use CyberGuard on a mobile device?</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-answer">
+            Yes! While there is no native mobile app installer, the <strong>CyberGuard Cloud Web Platform</strong> is fully responsive and optimized for mobile devices (iPhone, iPad, Android smartphones, and tablets). Simply navigate to the web application in your mobile browser to scan phishing emails and consult ARIA on the go.
+          </div>
+        </div>
+
+        <div class="faq-item">
           <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
             <span>How does the offline rule engine protect my privacy?</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1685,16 +1631,6 @@
             Certainty Factors (CF) represent the statistical weight each rule contributes to a risk score (e.g. Credential Harvesting has a high CF of +0.25). The inference engine aggregates these weights and triggers compound rules (e.g. urgency + unknown sender) to produce an explainable threat rating: LOW (<0.40), MEDIUM (0.40-0.69), or HIGH (&ge;0.70).
           </div>
         </div>
-
-        <div class="faq-item">
-          <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
-            <span>How do I install CyberGuard on Android devices?</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </div>
-          <div class="faq-answer">
-            Simply download the direct <code>CyberGuard.apk</code> from the Downloads section above, open your Downloads folder on your Android device, allow installation from unknown sources when prompted, and tap Install. No Google Play account or cloud sign-in is required.
-          </div>
-        </div>
       </div>
     </div>
   </section>
@@ -1708,8 +1644,8 @@
       <a href="#sandbox" class="footer-link">Sandbox</a>
       <a href="#compare" class="footer-link">Comparison</a>
       <a href="#faq" class="footer-link">FAQ</a>
-      <a href="#download" class="footer-link">Download APK</a>
-      <a href="/app" class="footer-link" style="color:var(--teal); font-weight:700;">Web App &rarr;</a>
+      <a href="#download" class="footer-link">Download Desktop</a>
+      <a href="/app" class="footer-link" style="color:var(--teal); font-weight:700;">Launch Web App &rarr;</a>
     </div>
   </footer>
 
