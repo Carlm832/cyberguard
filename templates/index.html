@@ -286,12 +286,18 @@
               </svg>
             </button>
             <div class="share-menu" id="breach-share-menu">
-                <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'breach')">
+              <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'breach')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg> Download Breach Report (PDF)
+              </div>
+              <div class="share-menu-item" onclick="openEmailModal('breach')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg> Share via Email
               </div>
             </div>
           </div>
@@ -394,6 +400,8 @@
           <div id="chat-summary-share-menu">
             <button class="btn-secondary chat-share-action" data-action="pdf"
               style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
+            <button class="btn-secondary chat-share-action" data-action="email"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share via Email</button>
             <button class="btn-secondary chat-share-action" data-action="copy"
               style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
             <button class="btn-secondary chat-share-action" data-action="web"
@@ -434,6 +442,12 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg> Download Phishing Report (PDF)
+            </div>
+            <div class="share-menu-item" onclick="openEmailModal('phishing')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share via Email
             </div>
           </div>
         </div>
@@ -511,6 +525,12 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg> Download Password Report (PDF)
+            </div>
+            <div class="share-menu-item" onclick="openEmailModal('password')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share via Email
             </div>
           </div>
         </div>
@@ -1103,11 +1123,6 @@
             }
 
             document.getElementById('pwd-aria-explanation-text').innerHTML = remediationHTML;
-
-            // Sync status to main dashboard (if weak password score is < 60)
-            const isWeak = data.password.score < 60;
-            state.checklist.requests_credentials = isWeak; // as an indicator or sync
-            document.getElementById('check-requests_credentials').checked = isWeak;
           } else {
             alert("Error: " + data.error);
           }
@@ -1642,10 +1657,10 @@
       </div>
       <h1 class="doc-title">Discussion & Action Plan Summary</h1>
       <div class="meta">
-        <span><strong>Generated:</strong> \${datePart}</span>
+        <span><strong>Generated:</strong> ${datePart}</span>
         <span><strong>Model:</strong> ARIA AI Security Assistant</span>
       </div>
-      <div class="summary-content">\${formatMarkdown(safeSummary)}</div>
+      <div class="summary-content">${formatMarkdown(safeSummary)}</div>
       <footer>
         CyberGuard ARIA AI Security Companion. Confidential and Proprietary.
       </footer>
@@ -1668,7 +1683,7 @@
           tempDiv.innerHTML = summaryHtml;
           const opt = {
             margin: 10,
-            filename: `CyberGuard_ARIA_Discussion_Summary_\${datePart}.pdf`,
+            filename: `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -1678,7 +1693,7 @@
               const reader = new FileReader();
               reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
-                window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_\${datePart}.pdf`, 'pdf');
+                window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`, 'pdf');
                 appendMessage('aria', 'Summary PDF saved successfully.');
               };
               reader.readAsDataURL(pdfBlob);
@@ -1813,10 +1828,13 @@
         else if (pe.password.strength_label === 'medium') pwdColor = '#f97316';
 
         let checksGrid = '';
-        for (const [chkKey, passed] of Object.entries(pe.checks)) {
-          const chkLabel = chkKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          checksGrid += passed ? `<span class="ind-badge clear">✓ ${esc(chkLabel)}</span>` : `<span class="ind-badge flagged">✕ ${esc(chkLabel)}</span>`;
-        }
+        const checksList = (pe.password && pe.password.checks) || [];
+        checksList.forEach(chk => {
+          const chkLabel = chk.name || chk.id;
+          checksGrid += chk.passed
+            ? `<span class="ind-badge clear">✓ ${esc(chkLabel)}</span>`
+            : `<span class="ind-badge flagged">✕ ${esc(chkLabel)}</span>`;
+        });
 
         passwordHtml = `
           <div class="section-card">
@@ -2413,6 +2431,17 @@
       }
     });
 
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+        const chatMenu = document.getElementById('chat-summary-share-menu');
+        if (chatMenu) chatMenu.style.display = 'none';
+        closeAnalysisReport();
+        closePasswordReport();
+        closeEmailModal();
+      }
+    });
+
     function toggleShareMenu(id) {
       // Close all other share menus first
       document.querySelectorAll('.share-menu').forEach(m => {
@@ -2528,10 +2557,7 @@
           };
           fired_rules = ev.fired_rules || [];
           aria_explanation = ev.aria_explanation || '';
-          // Collect indicators from the checked checkboxes
-          document.querySelectorAll('.indicator-check').forEach(cb => {
-            indicators[cb.dataset.key || cb.id] = cb.checked;
-          });
+          indicators = { ...state.checklist };
         } else if (currentReportTypeForEmail === 'password') {
           if (!state.passwordEvaluation) throw new Error('No password report found. Please run Password Analysis first.');
           const pe = state.passwordEvaluation;

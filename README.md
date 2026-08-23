@@ -9,6 +9,7 @@ CyberGuard is a hybrid cybersecurity expert system for phishing risk assessment,
 - Password strength, entropy, and breach exposure analysis.
 - Email breach lookup workflow with prioritized action guidance.
 - Shareable security reports with PDF, HTML, and email delivery options.
+- Multi-platform distribution: **Android Mobile (APK)**, **Windows Desktop (.exe)**, and **Web Platform**.
 - Desktop build support through PyInstaller and pywebview.
 
 ## Tech Stack

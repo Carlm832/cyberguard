@@ -147,27 +147,28 @@ def test_api_endpoints():
     """Test if API endpoints are working"""
     print("[9] Testing API endpoints...")
     endpoints = [
-        '/api/analyze-phishing',
-        '/api/check-password',
-        '/api/search-breaches',
+        '/api/phishing',
+        '/api/password',
+        '/api/breach-email',
         '/api/chat',
-        '/api/threat-intel'
+        '/api/threat-intel',
+        '/api/rules',
+        '/api/session-summary'
     ]
     
     working = 0
     for endpoint in endpoints:
         try:
-            # These should return 405 (Method Not Allowed) on GET since they expect POST
             resp = requests.get(f"{BASE_URL}{endpoint}", timeout=2)
-            if resp.status_code in [405, 422]:  # POST required or missing fields
-                print(f"    ✓ {endpoint} exists")
+            if resp.status_code in [200, 405, 422]:  # OK or POST required or missing fields
+                print(f"    ✓ {endpoint} exists (status {resp.status_code})")
                 working += 1
             else:
                 print(f"    ? {endpoint} returned {resp.status_code}")
         except Exception as e:
             print(f"    ✗ {endpoint} error: {e}")
     
-    return working > 0
+    return working == len(endpoints)
 
 def main():
     print("=" * 60)

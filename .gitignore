@@ -8,6 +8,8 @@ __pycache__/
 # PyInstaller build artifacts
 build/
 dist/
+install_package/
+*.exe
 *.spec
 
 # Scratch / session reports
