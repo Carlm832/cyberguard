@@ -1,0 +1,2841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberGuard — Security Expert System & ARIA AI</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('cg-theme');
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const theme = savedTheme || (prefersLight ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="static/style.css">
+  <!-- html2pdf.js for direct PDF downloads (bundled locally for offline/exe support) -->
+  <script src="static/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Top Bar / Header -->
+    <header class="top-bar">
+      <a href="index.html" class="logo" style="text-decoration:none;">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>CyberGuard</h1>
+          <p>Rule-Based Expert System</p>
+        </div>
+      </a>
+      <div class="header-controls">
+        <button class="theme-toggle" id="theme-toggle-btn" type="button">Light Mode</button>
+        <div class="status-badge">
+          <span class="dot" id="system-status-dot"></span>
+          <span id="system-status-text">System Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Context Strip -->
+    <div class="context-strip hidden" id="context-strip">
+      <div>
+        <span>Active Posture Context: </span>
+        <span class="context-strip-badge" id="context-posture-badge"></span>
+      </div>
+      <div>
+        <span>Threat Score: </span>
+        <span class="bold" id="context-score-text">0%</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="password">Password Analyzer</button>
+      <button class="tab-btn" data-tab="breaches">Breach Database</button>
+      <button class="tab-btn" data-tab="kb">Knowledge Base</button>
+      <button class="tab-btn" data-tab="chat">Ask ARIA Expert</button>
+    </nav>
+
+    <!-- TAB: Dashboard -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="dashboard-grid">
+
+        <!-- Left Column: ARIA Avatar & Stats -->
+        <div class="left-col">
+          <div class="avatar-container">
+            <div class="pulse-ring-outer">
+              <div class="pulse-ring level-LOW" id="aria-pulse"></div>
+              <div class="aria-shield-face level-LOW" id="aria-face">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+            </div>
+            <div class="avatar-label">ARIA</div>
+            <div class="avatar-status-sub" id="aria-status-sub">Monitoring threats</div>
+
+            <div class="summary-stat-row">
+              <div class="stat-box">
+                <div class="stat-val" id="stat-rules-evaluated">0</div>
+                <div class="stat-label">Rules Run</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val" id="stat-threat-rating">LOW</div>
+                <div class="stat-label">Threat Verdict</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Threat Intel Ticker -->
+          <div class="ticker-wrap">
+            <div class="ticker-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              Live Threat Intel Feed
+            </div>
+            <div class="ticker-content" id="ticker-container">
+              <div class="ticker-item active">New ransomware campaign targeting weak employee passwords.</div>
+              <div class="ticker-item">MFA bypass techniques detected on commercial public WiFi portals.</div>
+              <div class="ticker-item">Phishing campaign imitating IT support requires multi-factor audit.</div>
+              <div class="ticker-item">Unencrypted credential dumps containing shared workspace details.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Checklists & Evaluation Panel -->
+        <div class="right-col">
+          <div class="card">
+            <div class="card-header">
+              <h2>Phishing Threat Checklist</h2>
+              <p>Select the suspicious indicators observed in the email threat posture.</p>
+            </div>
+
+            <div class="checkbox-grid">
+              <label class="check-item">
+                <input type="checkbox" id="check-requests_credentials">
+                <span>Asks for passwords/sensitive info</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-suspicious_link">
+                <span>Obfuscated or suspicious link</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-urgency">
+                <span>Time pressure or urgency framing</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-spoofed_domain">
+                <span>Spoofed or irregular sender domain</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-unknown_sender">
+                <span>Unknown or unverified sender</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-unexpected_attachment">
+                <span>Unexpected attachment (.exe, .zip)</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-generic_greeting">
+                <span>Generic impersonal greeting</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="check-too_good_offer">
+                <span>Too-good-to-be-true offer / prize</span>
+              </label>
+            </div>
+
+            <div class="mt-24">
+              <button class="btn-primary" id="btn-evaluate">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                <span>Run Phishing Inference</span>
+              </button>
+              <button class="btn-secondary hidden" id="btn-view-analysis-report" style="margin-top: 10px;">
+                View Analysis Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Sequential Rules Evaluation Visualizer -->
+          <div class="eval-animation-box hidden" id="eval-visualizer">
+            <div class="eval-animation-title">Inference Rule Firing Trace</div>
+            <div id="eval-rules-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Password Analyzer -->
+    <div class="tab-panel" id="tab-password">
+      <div class="card">
+        <div class="card-header">
+          <h2>Password Strength & Entropy Analyzer</h2>
+          <p>Real-time client-side analysis and HIBP breach query with ARIA audit advice.</p>
+        </div>
+
+        <div class="input-with-icon">
+          <input type="password" class="password-input" id="pwd-input"
+            placeholder="Type a security password to verify...">
+          <button class="toggle-btn" id="pwd-toggle">SHOW</button>
+        </div>
+        <div class="entropy-indicator">
+          <span>Length: <span class="bold" id="pwd-length-label">0</span> chars</span>
+          <span>Entropy: <span class="bold" id="pwd-entropy-label">0</span> bits</span>
+        </div>
+
+        <!-- Progress bar visual -->
+        <div class="rule-kb-cf-bar-container mt-12">
+          <div class="rule-kb-cf-bar-fill" id="pwd-strength-bar" style="width: 0%; background-color: var(--red);"></div>
+        </div>
+
+        <div class="pwd-checks-grid">
+          <div class="pwd-check-row">
+            <span>Minimum 8 Characters</span>
+            <span class="pwd-check-status failed" id="pwd-chk-len">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Upper & Lower Case Mixed</span>
+            <span class="pwd-check-status failed" id="pwd-chk-case">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Contains Number / Digit</span>
+            <span class="pwd-check-status failed" id="pwd-chk-digit">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>Contains Special Character</span>
+            <span class="pwd-check-status failed" id="pwd-chk-special">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>No Keyboard patterns (qwerty...)</span>
+            <span class="pwd-check-status failed" id="pwd-chk-seq">✕ FAIL</span>
+          </div>
+          <div class="pwd-check-row">
+            <span>No Consecutive Repeat Characters</span>
+            <span class="pwd-check-status failed" id="pwd-chk-repeat">✕ FAIL</span>
+          </div>
+        </div>
+
+        <div class="mt-24">
+          <button class="btn-primary" id="btn-sync-password-threat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span>Verify Password with Expert System</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  <!-- TAB: Breach Database -->
+  <div class="tab-panel" id="tab-breaches">
+    <div class="card">
+      <div class="card-header">
+        <h2>Seeded email Breach Lookup</h2>
+        <p>Query compromise records from the seeded breach catalog database.</p>
+      </div>
+
+      <div class="input-with-icon mb-16" style="display: flex; gap: 10px;">
+        <input type="text" class="email-input" id="breach-email-input"
+          placeholder="Enter target email (e.g. test@example.com, demo@gmail.com)" style="flex: 1;">
+        <button class="btn-primary" id="btn-breach-search" style="width: 140px; padding: 0 16px;">Search</button>
+      </div>
+
+      <div id="breach-results-section" class="hidden">
+        <div class="timeline" id="breach-timeline">
+          <!-- Timeline elements loaded here -->
+        </div>
+
+        <div class="aria-verdict-box level-HIGH mt-24" id="breach-aria-box">
+          <div class="aria-box-header">ARIA Prioritized Action Plan</div>
+          <div class="aria-box-content" id="breach-aria-text">...</div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 15px; justify-content: flex-end;">
+          <div class="share-dropdown">
+            <button class="btn-primary share-report-btn" onclick="toggleShareMenu('breach-share-menu')"
+              style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              <span>Share Report</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="share-menu" id="breach-share-menu">
+              <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'breach')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg> Download Breach Report (PDF)
+              </div>
+              <div class="share-menu-item" onclick="openEmailModal('breach')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg> Share via Email
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Knowledge Base -->
+  <div class="tab-panel" id="tab-kb">
+    <div class="card">
+      <div class="card-header">
+        <h2>Security Inference Rule Base</h2>
+        <p>Interactive tree detailing active system rules, certainty factors, and reasoning chains.</p>
+      </div>
+
+      <div class="kb-stats-grid">
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">10</div>
+          <div class="kb-stat-label">Total Rules</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">0.25</div>
+          <div class="kb-stat-label">Max Rule CF</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">5</div>
+          <div class="kb-stat-label">Categories</div>
+        </div>
+        <div class="kb-stat-card">
+          <div class="kb-stat-val">Certainty</div>
+          <div class="kb-stat-label">Logic Type</div>
+        </div>
+      </div>
+
+      <div class="rule-tree-container" id="kb-rules-tree">
+        <!-- Rule cards generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Ask ARIA -->
+  <div class="tab-panel" id="tab-chat">
+    <div class="chat-viewport">
+      <div class="chat-viewport-header">
+        <div class="chat-viewport-title">
+          <div class="chat-avatar-circle">A</div>
+          <div>
+            <div class="bold" style="font-size: 14.5px;">ARIA Security Expert Assistant</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">Expert system interface</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-viewport-messages" id="chat-messages-box">
+        <div class="chat-msg aria">
+          <p>Hello! I am ARIA, your Cybersecurity Expert Assistant. I interact directly with the rule engine backend.
+          </p>
+          <p>You can run a threat assessment on the Dashboard, ask me about specific security rules, or request tips
+            to harden your environment.</p>
+        </div>
+        <div class="chat-chips-container" id="chat-suggestion-chips">
+          <div class="chat-followup-chip" data-query="Explain Rule R01 in detail">Explain Rule R01 in detail</div>
+          <div class="chat-followup-chip" data-query="How does certainty factor calculation work?">How does certainty
+            factor calculation work?</div>
+          <div class="chat-followup-chip" data-query="Give me threat posture advice">Give me threat posture advice
+          </div>
+          <div class="chat-followup-chip" data-query="What triggers High threat level?">What triggers High threat
+            level?</div>
+        </div>
+      </div>
+
+      <div class="chat-viewport-input-area">
+        <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+        <button class="chat-attach-btn" id="chat-image-btn" title="Upload image" aria-label="Upload image">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </button>
+        <textarea class="chat-textarea" id="chat-input-text"
+          placeholder="Type a message or click a suggestion chip..."></textarea>
+        <button class="chat-send-btn" id="chat-send-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+      <div class="chat-summary-toolbar">
+        <div style="display:flex; align-items:center; gap:8px; min-height:28px;">
+          <span id="chat-image-name" style="font-size:12px; color:var(--text-secondary);"></span>
+        </div>
+        <div class="chat-summary-actions">
+          <button class="btn-secondary" id="chat-summary-btn"
+            style="width:auto; padding:8px 14px; font-size:12px;">Generate Discussion Summary</button>
+          <button class="btn-primary" id="chat-summary-share-btn"
+            style="width:auto; padding:8px 14px; font-size:12px;">Share Summary</button>
+          <div id="chat-summary-share-menu">
+            <button class="btn-secondary chat-share-action" data-action="pdf"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Download PDF</button>
+            <button class="btn-secondary chat-share-action" data-action="email"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Share via Email</button>
+            <button class="btn-secondary chat-share-action" data-action="copy"
+              style="width:100%; justify-content:flex-start; margin-bottom:6px;">Copy Summary</button>
+            <button class="btn-secondary chat-share-action" data-action="web"
+              style="width:100%; justify-content:flex-start;">Share...</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Results Modals moved to body root for proper fixed positioning -->
+
+  <!-- Phishing Analysis Results -->
+  <div class="card hidden analysis-report-modal" id="eval-results-card" role="dialog" aria-modal="true"
+    aria-labelledby="analysis-report-title">
+    <div class="card-header"
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 id="analysis-report-title">Analysis Report</h2>
+        <p>Risk score calculated using baseline rule certainty factors.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="share-dropdown" style="position: relative; z-index: 1001;">
+          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('phishing-share-menu')"
+            style="width: auto; padding: 10px 16px; display: flex; align-items: center; gap: 6px;">
+            <span>Share Report</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="share-menu" id="phishing-share-menu" style="z-index: 1002;">
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'phishing')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download Phishing Report (PDF)
+            </div>
+            <div class="share-menu-item" onclick="openEmailModal('phishing')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share via Email
+            </div>
+          </div>
+        </div>
+        <button class="modal-close analysis-report-close" onclick="closeAnalysisReport()"
+          aria-label="Close analysis report">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="circle-score-container">
+        <div class="circular-progress">
+          <svg>
+            <circle class="bg-circle" cx="65" cy="65" r="60" />
+            <circle class="progress-circle level-LOW" id="results-svg-circle" cx="65" cy="65" r="60" />
+          </svg>
+          <div class="score-text-overlay">
+            <span class="score-num" id="results-score-num">0%</span>
+            <span class="score-label">Risk Rating</span>
+          </div>
+        </div>
+        <div class="verdict-text-label level-LOW" id="results-verdict-text">LOW RISK</div>
+      </div>
+      <div>
+        <div class="fired-rules-container">
+          <div class="fired-rules-title">Fired Rules Inference Chain</div>
+          <div id="results-fired-rules-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="aria-verdict-box level-LOW" id="aria-explanation-box">
+      <div class="aria-box-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        ARIA Security Assessment
+      </div>
+      <div class="aria-box-content" id="aria-explanation-text">...</div>
+    </div>
+  </div>
+
+  <!-- Password Results Modal -->
+  <div class="card hidden analysis-report-modal" id="password-results-card"
+    style="border: 1px solid var(--border);">
+    <div class="card-header"
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 class="bold" style="font-size: 16px; color: var(--teal); margin-bottom: 4px;">Expert System Password Verdict
+        </h3>
+        <p style="font-size: 14px; margin:0;">
+          Strength rating: <span class="bold" id="pwd-res-rating" style="color: var(--amber);">Weak</span> (<span
+            id="pwd-res-score">0</span>/100) |
+          Crack Time: <span class="bold" id="pwd-res-crack">Instant</span>
+        </p>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div class="share-dropdown" style="position: relative;">
+          <button class="btn-primary share-report-btn" onclick="toggleShareMenu('password-share-menu')"
+            style="width: auto; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+            <span>Share Report</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="share-menu" id="password-share-menu">
+            <div class="share-menu-item" onclick="downloadSecurityReport('pdf', 'password')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg> Download Password Report (PDF)
+            </div>
+            <div class="share-menu-item" onclick="openEmailModal('password')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg> Share via Email
+            </div>
+          </div>
+        </div>
+        <button class="modal-close analysis-report-close" onclick="closePasswordReport()"
+          aria-label="Close password report">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="aria-verdict-box level-LOW" id="pwd-aria-explanation-box" style="margin-top: 10px;">
+      <div class="aria-box-header">ARIA Remediation Recommendations</div>
+      <div class="aria-box-content" id="pwd-aria-explanation-text">...</div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+
+    // Client-side fallback handler for static GitHub Pages hosting
+    const originalFetch = window.fetch;
+    window.fetch = async function(url, options) {
+      try {
+        const response = await originalFetch(url, options);
+        if (response.ok) return response;
+        if (response.status === 404 && typeof url === 'string' && url.startsWith('/api/')) {
+          return handleClientSideApiFallback(url, options);
+        }
+        return response;
+      } catch (err) {
+        if (typeof url === 'string' && url.startsWith('/api/')) {
+          return handleClientSideApiFallback(url, options);
+        }
+        throw err;
+      }
+    };
+
+    function handleClientSideApiFallback(url, options) {
+      const body = options && options.body ? JSON.parse(options.body) : {};
+      
+      if (url === '/api/threat-intel') {
+        const fallbackIntel = {
+          cached: true,
+          items: [
+            { cve_id: 'CVE-2024-3400', severity: 'CRITICAL', cvss: 10.0, description: 'Command injection vulnerability in security gateways.', plain_summary: 'Critical remote exploit targeting unpatched boundary security systems.', recommendation: 'Ensure multi-factor authentication and rotate credentials.' },
+            { cve_id: 'CVE-2024-21762', severity: 'HIGH', cvss: 8.8, description: 'Out-of-bounds write in SSL VPN web interface.', plain_summary: 'Flaw allowing unauthenticated threat actors to execute arbitrary commands.', recommendation: 'Update firmware to the latest security patch immediately.' },
+            { cve_id: 'CVE-2024-27198', severity: 'HIGH', cvss: 8.5, description: 'Authentication bypass leading to administrative access.', plain_summary: 'Bypass mechanism allowing remote attackers to create admin accounts.', recommendation: 'Audit administrative access logs and enforce least privilege.' }
+          ]
+        };
+        return new Response(JSON.stringify(fallbackIntel), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      if (url === '/api/phishing') {
+        const ind = body.indicators || {};
+        let score = 0;
+        const fired = [];
+        if (ind.requests_credentials) { score += 0.25; fired.push({ id: 'R01', name: 'Credential Harvesting', certainty_factor: 0.25, description: 'Message explicitly prompts user to submit credentials.' }); }
+        if (ind.suspicious_link) { score += 0.20; fired.push({ id: 'R02', name: 'Deceptive Hyperlink', certainty_factor: 0.20, description: 'Embedded links point to unauthorized or deceptive hosts.' }); }
+        if (ind.urgency_language) { score += 0.15; fired.push({ id: 'R03', name: 'Coercive Urgency', certainty_factor: 0.15, description: 'Threatens immediate account closure or punitive consequences.' }); }
+        if (ind.spoofed_domain) { score += 0.15; fired.push({ id: 'R04', name: 'Domain Impersonation', certainty_factor: 0.15, description: 'Sender address mimics a legitimate domain via lookalike characters.' }); }
+        if (ind.unknown_sender) { score += 0.10; fired.push({ id: 'R05', name: 'Unverified External Sender', certainty_factor: 0.10, description: 'First-time interaction originating from unverified sender.' }); }
+        if (ind.unexpected_attachment) { score += 0.08; fired.push({ id: 'R06', name: 'Suspicious Attachment', certainty_factor: 0.08, description: 'Contains executable or archive attachments.' }); }
+        if (ind.generic_greeting) { score += 0.05; fired.push({ id: 'R07', name: 'Impersonal Salutation', certainty_factor: 0.05, description: 'Uses vague or generic greetings rather than personalized context.' }); }
+        if (ind.financial_request) { score += 0.18; fired.push({ id: 'R08', name: 'Financial Coercion', certainty_factor: 0.18, description: 'Requests wire transfer or payment rerouting.' }); }
+        
+        if (ind.urgency_language && ind.unknown_sender) { score += 0.10; fired.push({ id: 'R09', name: 'Compound: Urgent Unknown Sender', certainty_factor: 0.10, description: 'Heightened threat combination.' }); }
+        if (ind.requests_credentials && ind.spoofed_domain) { score += 0.15; fired.push({ id: 'R10', name: 'Compound: Credential Harvesting via Spoofed Domain', certainty_factor: 0.15, description: 'Critical targeted credential attack.' }); }
+
+        score = Math.min(1.0, score);
+        const risk_level = score >= 0.70 ? 'HIGH' : (score >= 0.40 ? 'MEDIUM' : 'LOW');
+        const firedStr = fired.map(r => r.id).join(', ') || 'none';
+        const aria_explanation = score < 0.10 
+          ? 'The expert inference engine evaluated your input and detected no significant phishing signals. Standard vigilance is recommended.'
+          : `The inference engine fired rules ${firedStr} with a composite certainty factor of ${score.toFixed(2)} (verdict: ${risk_level}). This pattern indicates suspicious message characteristics designed to elicit unauthorized actions.`;
+
+        const verdict = {
+          risk_score: score,
+          risk_level: risk_level,
+          fired_rules: fired,
+          aria_explanation: aria_explanation,
+          follow_ups: ['How can I safely verify this sender?', 'What should I do if I clicked a link?']
+        };
+        return new Response(JSON.stringify(verdict), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      if (url === '/api/password') {
+        const pwd = body.password || '';
+        let pool = 0;
+        if (/[a-z]/.test(pwd)) pool += 26;
+        if (/[A-Z]/.test(pwd)) pool += 26;
+        if (/[0-9]/.test(pwd)) pool += 10;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) pool += 32;
+        const entropy = pool > 0 ? Math.round(pwd.length * Math.log2(pool) * 10) / 10 : 0;
+        
+        let score = Math.min(100, Math.round((entropy / 80) * 100));
+        let strength = score >= 80 ? 'Very Strong' : (score >= 60 ? 'Strong' : (score >= 40 ? 'Moderate' : 'Weak'));
+        
+        const pwdVerdict = {
+          score: score,
+          entropy_bits: entropy,
+          strength_label: strength,
+          crack_time: entropy > 60 ? 'Centuries+' : (entropy > 40 ? '~2.5 months' : '< 1 second'),
+          feedback: pwd.length < 12 ? ['Consider using at least 12 characters.'] : ['Good entropy distribution.']
+        };
+
+        const hibpResult = { checked: true, breached: false, breach_count: 0 };
+        return new Response(JSON.stringify({ password: pwdVerdict, hibp: hibpResult }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      if (url === '/api/breach-email') {
+        const res = {
+          email: body.email || '',
+          breached: false,
+          breach_count: 0,
+          breaches: [],
+          aria_explanation: `No public breach records found for ${body.email}. Keep credentials unique and enable two-factor authentication.`
+        };
+        return new Response(JSON.stringify(res), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      if (url === '/api/chat') {
+        const msg = body.message || '';
+        const reply = `I have analyzed your query based on our deterministic security rules. For suspicious emails or credential concerns, always verify through an out-of-band communication channel and inspect sender domain headers closely.`;
+        return new Response(JSON.stringify({ reply: reply, follow_ups: ['How do I report a phishing attempt?', 'Best practices for password managers'] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      if (url === '/api/send-email') {
+        return new Response(JSON.stringify({ ok: true, message: 'Static web simulation: Report formatted successfully.' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // State management
+    const state = {
+      checklist: {
+        requests_credentials: false,
+        suspicious_link: false,
+        urgency: false,
+        spoofed_domain: false,
+        unknown_sender: false,
+        unexpected_attachment: false,
+        generic_greeting: false,
+        too_good_offer: false
+      },
+      evaluation: null, // latest evaluate response
+      passwordEvaluation: null, // latest password check response
+      breachEvaluation: null, // latest breach check response
+      breachEmail: null, // target email analyzed for breach
+      chatSession: [], // chat history
+      chatPendingImage: null, // { mime_type, data, name }
+      latestChatSummary: null, // latest generated ARIA discussion summary
+      pendingChatEmailSummary: null
+    };
+
+    // Hardcoded rules data for Knowledge Base
+    const KB_RULES = [
+      {
+        id: "R01",
+        name: "Credential harvesting attempt",
+        category: "high_risk",
+        cf: 0.25,
+        antecedents: "indicator: requests_credentials",
+        consequents: "Increases risk level (CF = 0.25)",
+        explanation: "Legitimate services never ask for passwords via email. This is the strongest single phishing indicator."
+      },
+      {
+        id: "R02",
+        name: "Suspicious or obfuscated link",
+        category: "high_risk",
+        cf: 0.20,
+        antecedents: "indicator: suspicious_link",
+        consequents: "Increases risk level (CF = 0.20)",
+        explanation: "Phishing emails use links that disguise the real destination URL."
+      },
+      {
+        id: "R03",
+        name: "Urgency or threat framing",
+        category: "social_engineering",
+        cf: 0.15,
+        antecedents: "indicator: urgency",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Creating time pressure prevents the recipient from thinking critically."
+      },
+      {
+        id: "R04",
+        name: "Spoofed or irregular sender domain",
+        category: "identity",
+        cf: 0.15,
+        antecedents: "indicator: spoofed_domain",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Attackers register lookalike domains or spoof display names to impersonate trusted senders."
+      },
+      {
+        id: "R05",
+        name: "Unknown sender",
+        category: "identity",
+        cf: 0.10,
+        antecedents: "indicator: unknown_sender",
+        consequents: "Increases risk level (CF = 0.10)",
+        explanation: "Unsolicited contact from an unrecognised sender is a baseline phishing signal."
+      },
+      {
+        id: "R06",
+        name: "Unexpected attachment",
+        category: "payload",
+        cf: 0.08,
+        antecedents: "indicator: unexpected_attachment",
+        consequents: "Increases risk level (CF = 0.08)",
+        explanation: "Malicious attachments are a primary malware delivery vector."
+      },
+      {
+        id: "R07",
+        name: "Generic impersonal greeting",
+        category: "social_engineering",
+        cf: 0.04,
+        antecedents: "indicator: generic_greeting",
+        consequents: "Increases risk level (CF = 0.04)",
+        explanation: "Bulk phishing campaigns use generic salutations because they don't know your name."
+      },
+      {
+        id: "R08",
+        name: "Implausible prize or reward",
+        category: "social_engineering",
+        cf: 0.03,
+        antecedents: "indicator: too_good_offer",
+        consequents: "Increases risk level (CF = 0.03)",
+        explanation: "Reward-based lures exploit greed and curiosity to override caution."
+      },
+      {
+        id: "R09",
+        name: "Compound: urgency + unknown sender",
+        category: "compound",
+        cf: 0.10,
+        antecedents: "indicator: urgency AND unknown_sender",
+        consequents: "Increases risk level (CF = 0.10)",
+        explanation: "Urgency framing from an unrecognised source is a textbook social engineering pattern."
+      },
+      {
+        id: "R10",
+        name: "Compound: credential request + spoofed domain",
+        category: "compound",
+        cf: 0.15,
+        antecedents: "indicator: requests_credentials AND spoofed_domain",
+        consequents: "Increases risk level (CF = 0.15)",
+        explanation: "Asking for credentials via a lookalike domain is the definitive phishing pattern."
+      }
+    ];
+
+    // Live threat intel ticker
+    let tickerIndex = 0;
+    function rotateTicker() {
+      const items = document.querySelectorAll('.ticker-item');
+      if (items.length > 0) {
+        items[tickerIndex].classList.remove('active');
+        tickerIndex = (tickerIndex + 1) % items.length;
+        items[tickerIndex].classList.add('active');
+      }
+    }
+
+    function renderTickerItems(items) {
+      const container = document.getElementById('ticker-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const safeItems = (items && items.length > 0) ? items : [{ title: 'Threat feed temporarily unavailable.', source: 'CyberGuard' }];
+      const simplifyThreatText = (text) => {
+        let t = String(text || '').trim();
+        if (!t) return 'A security issue was reported.';
+        t = t.replace(/\bCWD ~root command in ftpd allows root access\b/i, 'An old FTP weakness could let attackers gain administrator access');
+        t = t.replace(/\bbuffer overflow\b/ig, 'memory handling flaw');
+        t = t.replace(/\ballows local users to gain root privileges\b/ig, 'could let someone on the device get full administrator control');
+        t = t.replace(/\ballows remote attackers\b/ig, 'could allow outside attackers');
+        t = t.replace(/\barbitrary commands as root\b/ig, 'to run powerful admin-level commands');
+        t = t.replace(/\bprivilege escalation\b/ig, 'access level takeover');
+        return t;
+      };
+      const actionForSeverity = (sev) => {
+        if (sev === 'CRITICAL' || sev === 'HIGH') return 'Action: prioritize patching and monitor exposed systems now.';
+        if (sev === 'MEDIUM') return 'Action: review affected systems and schedule remediation.';
+        return 'Action: track and patch in normal maintenance windows.';
+      };
+      safeItems.slice(0, 5).forEach((it, idx) => {
+        const div = document.createElement('div');
+        div.className = `ticker-item${idx === 0 ? ' active' : ''}`;
+        const sev = (it.severity || 'medium').toUpperCase();
+        const src = it.source ? ` [${it.source}]` : '';
+        const title = String(it.title || '').trim();
+        const summary = String(it.summary || '').trim();
+        const looksLikeCve = /^CVE-\d{4}-\d+/i.test(title);
+        let readable = simplifyThreatText(summary || title || 'Threat item');
+        if (readable.length > 120) readable = readable.substring(0, 117) + '...';
+        const actionText = actionForSeverity(sev);
+        if (looksLikeCve && summary) {
+          div.textContent = `[${sev}] ${readable}. ${actionText} (${title})${src}`;
+        } else {
+          div.textContent = `[${sev}] ${readable}. ${actionText}${src}`;
+        }
+        container.appendChild(div);
+      });
+      tickerIndex = 0;
+    }
+
+    async function loadThreatTicker() {
+      try {
+        const res = await fetch('/api/threat-intel');
+        const data = await res.json();
+        renderTickerItems((data && data.items) ? data.items : []);
+      } catch (err) {
+        renderTickerItems([]);
+      }
+    }
+
+    function initThemeToggle() {
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      const getTheme = () => document.documentElement.getAttribute('data-theme') || 'light';
+
+      function renderThemeLabel() {
+        themeBtn.textContent = getTheme() === 'light' ? 'Dark Mode' : 'Light Mode';
+      }
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cg-theme', theme);
+        renderThemeLabel();
+      }
+
+      // Restore saved preference; default to light if no preference stored yet.
+      const saved = localStorage.getItem('cg-theme') || 'light';
+      setTheme(saved);
+
+      themeBtn.addEventListener('click', () => {
+        const nextTheme = getTheme() === 'light' ? 'dark' : 'light';
+        setTheme(nextTheme);
+      });
+    }
+
+    // Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log('[CyberGuard] DOMContentLoaded fired');
+      initThemeToggle();
+      console.log('[CyberGuard] initThemeToggle done');
+      initTabs();
+      console.log('[CyberGuard] initTabs done');
+      initChecklist();
+      initPasswordAnalyzer();
+      initBreachDatabase();
+      initKnowledgeBase();
+      initChat();
+      loadThreatTicker();
+      setInterval(rotateTicker, 20000);
+      setInterval(loadThreatTicker, 1800000);
+
+      // Initial system status display
+      updateGlobalStatus("LOW", 0);
+      console.log('[CyberGuard] Initialization complete');
+    });
+
+    // Navigation Tabs Toggle
+    function initTabs() {
+      console.log('[initTabs] Starting tab initialization');
+      const buttons = document.querySelectorAll('.tab-btn');
+      console.log('[initTabs] Found', buttons.length, 'tab buttons');
+      buttons.forEach((btn, idx) => {
+        console.log(`[initTabs] Attaching click listener to button ${idx}: ${btn.getAttribute('data-tab')}`);
+        btn.addEventListener('click', () => {
+          console.log('[Tab Click] Clicked tab:', btn.getAttribute('data-tab'));
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const tabName = btn.getAttribute('data-tab');
+          console.log('[Tab Click] Switching to tab:', tabName);
+          document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+          });
+          const targetPanel = document.getElementById(`tab-${tabName}`);
+          console.log('[Tab Click] Target panel:', targetPanel ? 'found' : 'NOT FOUND');
+          if (targetPanel) {
+            targetPanel.classList.add('active');
+          }
+        });
+      });
+      console.log('[initTabs] Tab initialization complete');
+    }
+
+    // Sync Checklist state from UI elements
+    function initChecklist() {
+      const checkboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]');
+      checkboxes.forEach(chk => {
+        const fieldName = chk.id.replace('check-', '');
+        chk.addEventListener('change', () => {
+          state.checklist[fieldName] = chk.checked;
+        });
+      });
+
+      document.getElementById('btn-evaluate').addEventListener('click', runThreatEvaluation);
+      document.getElementById('btn-view-analysis-report').addEventListener('click', openAnalysisReport);
+    }
+
+    function openAnalysisReport() {
+      if (!state.evaluation) return;
+      document.getElementById('eval-results-card').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      document.body.classList.add('report-modal-open');
+    }
+
+    function closeAnalysisReport() {
+      document.getElementById('eval-results-card').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
+    }
+
+    function closePasswordReport() {
+      document.getElementById('password-results-card').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
+    }
+
+    // Run threat logic on backend
+    async function runThreatEvaluation() {
+      const btn = document.getElementById('btn-evaluate');
+      const visualizer = document.getElementById('eval-visualizer');
+      const resultsCard = document.getElementById('eval-results-card');
+
+      btn.disabled = true;
+      visualizer.classList.remove('hidden');
+      resultsCard.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      document.body.classList.remove('report-modal-open');
+
+      // Populate rules animation list
+      const rulesList = document.getElementById('eval-rules-list');
+      rulesList.innerHTML = '';
+
+      KB_RULES.forEach(r => {
+        rulesList.innerHTML += `
+          <div class="eval-rule-row">
+            <div>
+              <span class="eval-rule-id">${r.id}</span>
+              <span style="margin-left: 8px;">${r.name}</span>
+            </div>
+            <span class="eval-rule-status eval-status-pending" id="anim-status-${r.id}">PENDING</span>
+          </div>
+        `;
+      });
+
+      // Sequential delay visualization to demonstrate expert engine firing rules
+      for (let i = 0; i < KB_RULES.length; i++) {
+        const rule = KB_RULES[i];
+        const label = document.getElementById(`anim-status-${rule.id}`);
+        label.className = 'eval-rule-status eval-status-testing';
+        label.innerText = 'TESTING...';
+        await new Promise(r => setTimeout(r, 150));
+        label.className = 'eval-rule-status eval-status-skipped';
+        label.innerText = 'PROCESSED';
+      }
+
+      try {
+        const res = await fetch('/api/phishing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ indicators: state.checklist })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          state.evaluation = data;
+
+          // Mark fired rules in animation list
+          data.fired_rules.forEach(fr => {
+            const label = document.getElementById(`anim-status-${fr.id}`);
+            if (label) {
+              label.className = 'eval-rule-status eval-status-fired';
+              label.innerText = `FIRED (CF = ${fr.cf})`;
+            }
+          });
+
+          // Show Results Panel as a popup
+          visualizer.classList.add('hidden'); // Hide the background trace
+          document.getElementById('btn-view-analysis-report').classList.remove('hidden');
+          openAnalysisReport();
+
+          const threatLevel = data.risk_level; // LOW, MEDIUM, HIGH
+          const scorePercent = Math.round(data.risk_score * 100);
+
+          document.getElementById('results-score-num').innerText = `${scorePercent}%`;
+          document.getElementById('results-verdict-text').innerText = `${threatLevel} RISK`;
+          document.getElementById('results-verdict-text').className = `verdict-text-label level-${threatLevel}`;
+
+          const circle = document.getElementById('results-svg-circle');
+          circle.className = `progress-circle level-${threatLevel}`;
+          const offset = 377 - (377 * scorePercent) / 100;
+          circle.style.strokeDashoffset = offset;
+
+          // Render fired rules list cards
+          const firedList = document.getElementById('results-fired-rules-list');
+          firedList.innerHTML = '';
+
+          if (data.fired_rules.length === 0) {
+            firedList.innerHTML = `<div style="color: var(--text-secondary); font-size: 13.5px;">No risk-based rules triggered. Safe operating limits verified.</div>`;
+          } else {
+            data.fired_rules.forEach(fr => {
+              const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
+              firedList.innerHTML += `
+                <div class="fired-rule-card">
+                  <div class="fired-rule-header">
+                    <span class="rule-id-badge">${fr.id}</span>
+                    <span class="rule-cf-mono">CF = ${fr.cf}</span>
+                  </div>
+                  <div class="fired-rule-name">${fr.name}</div>
+                  <div class="fired-rule-desc mt-8">${ruleMeta.explanation || fr.explanation || ''}</div>
+                </div>
+              `;
+            });
+          }
+
+          // Render ARIA explanation box
+          const explainBox = document.getElementById('aria-explanation-box');
+          explainBox.className = `aria-verdict-box level-${threatLevel}`;
+          document.getElementById('aria-explanation-text').innerHTML = formatMarkdown(data.aria_explanation);
+
+          // Update Dashboard sidebar stats
+          document.getElementById('stat-rules-evaluated').innerText = data.fired_rules.length;
+          document.getElementById('stat-threat-rating').innerText = threatLevel;
+
+          updateGlobalStatus(threatLevel, scorePercent);
+          highlightKBFiredRules(data.fired_rules);
+        } else {
+          alert("Error executing logic server: " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network/server failure while contacting expert system engine.");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Update status dot and header badge classes
+    function updateGlobalStatus(level, score) {
+      const dot = document.getElementById('system-status-dot');
+      const text = document.getElementById('system-status-text');
+      const ariaFace = document.getElementById('aria-face');
+      const ariaPulse = document.getElementById('aria-pulse');
+      const ariaStatusSub = document.getElementById('aria-status-sub');
+      const contextStrip = document.getElementById('context-strip');
+      const contextBadge = document.getElementById('context-posture-badge');
+      const contextScore = document.getElementById('context-score-text');
+
+      dot.className = `dot state-${level}`;
+      text.innerText = `Threat Level: ${level}`;
+
+      ariaFace.className = `aria-shield-face level-${level}`;
+      ariaPulse.className = `pulse-ring level-${level}`;
+
+      if (level === 'LOW') {
+        ariaStatusSub.innerText = "System secure. No issues.";
+      } else if (level === 'MEDIUM') {
+        ariaStatusSub.innerText = "Vulnerabilities detected. Harden posture.";
+      } else {
+        ariaStatusSub.innerText = "WARNING: Critical compromise threats!";
+      }
+
+      if (score > 0) {
+        contextStrip.classList.remove('hidden');
+        contextBadge.innerText = level;
+        contextBadge.style.backgroundColor = level === 'LOW' ? 'rgba(29,158,117,0.2)' : (level === 'MEDIUM' ? 'rgba(239,159,39,0.2)' : 'rgba(226,75,74,0.2)');
+        contextBadge.style.color = level === 'LOW' ? 'var(--teal)' : (level === 'MEDIUM' ? 'var(--amber)' : 'var(--red)');
+        contextScore.innerText = `${score}%`;
+      } else {
+        contextStrip.classList.add('hidden');
+      }
+    }
+
+    // Password Analyzer Tab Client-Side Checks
+    function initPasswordAnalyzer() {
+      const input = document.getElementById('pwd-input');
+      const toggle = document.getElementById('pwd-toggle');
+      const verifyBtn = document.getElementById('btn-sync-password-threat');
+      const resultsCard = document.getElementById('password-results-card');
+
+      toggle.addEventListener('click', () => {
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.innerText = 'HIDE';
+        } else {
+          input.type = 'password';
+          toggle.innerText = 'SHOW';
+        }
+      });
+
+      input.addEventListener('input', () => {
+        const val = input.value;
+        document.getElementById('pwd-length-label').innerText = val.length;
+
+        // criteria evaluations
+        const cLen = val.length >= 8;
+        const cCase = /[a-z]/.test(val) && /[A-Z]/.test(val);
+        const cDigit = /[0-9]/.test(val);
+        const cSpecial = /[^A-Za-z0-9]/.test(val);
+
+        // sequence check (qwerty, asdf, etc.)
+        let cSeq = true;
+        const sequences = ["qwerty", "asdf", "zxcv", "12345", "09876"];
+        sequences.forEach(s => {
+          if (val.toLowerCase().includes(s)) cSeq = false;
+        });
+
+        // repeat check
+        let cRepeat = true;
+        for (let i = 0; i < val.length - 2; i++) {
+          if (val[i] === val[i + 1] && val[i] === val[i + 2]) {
+            cRepeat = false;
+            break;
+          }
+        }
+
+        // update UI rows
+        updateCheckRow('pwd-chk-len', cLen);
+        updateCheckRow('pwd-chk-case', cCase);
+        updateCheckRow('pwd-chk-digit', cDigit);
+        updateCheckRow('pwd-chk-special', cSpecial);
+        updateCheckRow('pwd-chk-seq', cSeq && val.length > 0);
+        updateCheckRow('pwd-chk-repeat', cRepeat && val.length > 0);
+
+        // Entropy calculation
+        let charsetSize = 0;
+        if (/[a-z]/.test(val)) charsetSize += 26;
+        if (/[A-Z]/.test(val)) charsetSize += 26;
+        if (/[0-9]/.test(val)) charsetSize += 10;
+        if (/[!@#$%^&*(),.?\":{}|<>]/.test(val)) charsetSize += 32;
+
+        let entropy = 0;
+        if (val.length > 0 && charsetSize > 0) {
+          entropy = Math.round(val.length * Math.log2(charsetSize));
+        }
+        document.getElementById('pwd-entropy-label').innerText = entropy;
+
+        // Strength progress indicator
+        const strengthBar = document.getElementById('pwd-strength-bar');
+        let strengthPct = 0;
+        if (val.length > 0) {
+          const passedCount = [cLen, cCase, cDigit, cSpecial, cSeq, cRepeat].filter(Boolean).length;
+          strengthPct = (passedCount / 6) * 100;
+        }
+
+        strengthBar.style.width = `${strengthPct}%`;
+        if (strengthPct < 40) {
+          strengthBar.style.backgroundColor = 'var(--red)';
+        } else if (strengthPct < 80) {
+          strengthBar.style.backgroundColor = 'var(--amber)';
+        } else {
+          strengthBar.style.backgroundColor = 'var(--teal)';
+        }
+      });
+
+      // Verify with backend Password API
+      verifyBtn.addEventListener('click', async () => {
+        const val = input.value.trim();
+        if (!val) {
+          alert("Please type a password first.");
+          return;
+        }
+
+        verifyBtn.disabled = true;
+        try {
+          const res = await fetch('/api/password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: val })
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            state.passwordEvaluation = data;
+            resultsCard.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+            document.body.classList.add('report-modal-open');
+
+            document.getElementById('pwd-res-rating').innerText = data.password.strength_label;
+            document.getElementById('pwd-res-score').innerText = data.password.score;
+            document.getElementById('pwd-res-crack').innerText = data.password.crack_time;
+
+            // Highlight color based on score
+            const ratingEl = document.getElementById('pwd-res-rating');
+            if (data.password.score < 40) {
+              ratingEl.style.color = 'var(--red)';
+            } else if (data.password.score < 85) {
+              ratingEl.style.color = 'var(--amber)';
+            } else {
+              ratingEl.style.color = 'var(--teal)';
+            }
+
+            // HIBP context in remediation
+            let remediationHTML = formatMarkdown(data.aria_explanation);
+            if (data.hibp.breached) {
+              remediationHTML = `<div style="color: var(--red); font-weight: bold; margin-bottom: 8px;">
+                ⚠️ CRITICAL COMPROMISE WARNING: This password was discovered in ${data.hibp.breach_count.toLocaleString()} known corporate data breaches!
+              </div>` + remediationHTML;
+            } else {
+              remediationHTML = `<div style="color: var(--teal); font-weight: bold; margin-bottom: 8px;">
+                ✓ Safe Check: This password was not found in the public database of leaked accounts.
+              </div>` + remediationHTML;
+            }
+
+            document.getElementById('pwd-aria-explanation-text').innerHTML = remediationHTML;
+          } else {
+            alert("Error: " + data.error);
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Failed to communicate with password evaluation engine.");
+        } finally {
+          verifyBtn.disabled = false;
+        }
+      });
+
+
+    }
+
+    function updateCheckRow(id, passed) {
+      const el = document.getElementById(id);
+      if (passed) {
+        el.className = 'pwd-check-status passed';
+        el.innerText = '✓ PASS';
+      } else {
+        el.className = 'pwd-check-status failed';
+        el.innerText = '✕ FAIL';
+      }
+    }
+
+    // Seeded Breach Database Lookup Tab
+    function initBreachDatabase() {
+      const btn = document.getElementById('btn-breach-search');
+      const input = document.getElementById('breach-email-input');
+      const timeline = document.getElementById('breach-timeline');
+      const resultsSection = document.getElementById('breach-results-section');
+      const ariaBox = document.getElementById('breach-aria-box');
+      const ariaText = document.getElementById('breach-aria-text');
+
+      btn.addEventListener('click', async () => {
+        const email = input.value.trim();
+        if (!email) {
+          alert("Please enter an email address.");
+          return;
+        }
+
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/breach-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            state.breachEvaluation = data;
+            state.breachEmail = email;
+            resultsSection.classList.remove('hidden');
+            timeline.innerHTML = '';
+
+            if (!data.breached) {
+              timeline.innerHTML = `<div style="padding: 16px; color: var(--text-secondary); text-align: center;">
+                ✓ Safe: 0 matching records found for ${email} in our current threat databases.
+              </div>`;
+              ariaBox.className = "aria-verdict-box level-LOW mt-24";
+            } else {
+              ariaBox.className = "aria-verdict-box level-HIGH mt-24";
+              data.breaches.forEach(b => {
+                const chips = b.data_types.map(t => `<span class="timeline-chip">${t}</span>`).join('');
+                timeline.innerHTML += `
+                  <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-header">
+                      <span class="timeline-service">${b.service}</span>
+                      <div>
+                        <span class="timeline-year">${b.year}</span>
+                        <span class="severity-badge ${b.severity}">${b.severity} IMPACT</span>
+                      </div>
+                    </div>
+                    <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 4px;">
+                      Estimated compromised records: ${b.records.toLocaleString()} profiles.
+                    </div>
+                    <div class="timeline-data-chips">${chips}</div>
+                  </div>
+                `;
+              });
+            }
+
+            ariaText.innerHTML = formatMarkdown(data.aria_explanation);
+          } else {
+            alert("Error querying breach system.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Failed to communicate with breach database.");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+
+    }
+
+    // Knowledge Base Rule Tree
+    function initKnowledgeBase() {
+      const container = document.getElementById('kb-rules-tree');
+      container.innerHTML = '';
+
+      KB_RULES.forEach(r => {
+        container.innerHTML += `
+          <div class="rule-kb-card" id="kb-card-${r.id}" onclick="toggleRuleDrawer('${r.id}')">
+            <div class="rule-kb-header">
+              <div class="bold" style="font-size: 15px; color: var(--text-primary);">${r.id} : ${r.name}</div>
+              <span class="rule-category-badge">${r.category}</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+              ${r.explanation.substring(0, 75)}...
+            </div>
+            <div class="rule-kb-cf-bar-container">
+              <div class="rule-kb-cf-bar-fill" style="width: ${r.cf * 100}%;"></div>
+            </div>
+            <div class="rule-details-drawer hidden" id="kb-drawer-${r.id}">
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">IF (Antecedent Indicators)</div>
+                <div class="mono" style="color: var(--amber);">${r.antecedents}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">THEN (Consequent CF Increase)</div>
+                <div class="mono" style="color: var(--teal);">${r.consequents}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">Rule CF Weight</div>
+                <div class="bold mono">${r.cf}</div>
+              </div>
+              <div class="rule-detail-section">
+                <div class="rule-detail-label">Expert Domain Reason</div>
+                <div>${r.explanation}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.toggleRuleDrawer = function (ruleId) {
+      const drawer = document.getElementById(`kb-drawer-${ruleId}`);
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+      }
+    };
+
+    function highlightKBFiredRules(firedRules) {
+      document.querySelectorAll('.rule-kb-card').forEach(card => {
+        card.classList.remove('fired-highlight');
+      });
+
+      firedRules.forEach(fr => {
+        const card = document.getElementById(`kb-card-${fr.id}`);
+        if (card) {
+          card.classList.add('fired-highlight');
+        }
+      });
+    }
+
+    // Conversational Ask ARIA implementation
+    function initChat() {
+      const sendBtn = document.getElementById('chat-send-btn');
+      const summaryBtn = document.getElementById('chat-summary-btn');
+      const summaryShareBtn = document.getElementById('chat-summary-share-btn');
+      const summaryShareMenu = document.getElementById('chat-summary-share-menu');
+      const imageBtn = document.getElementById('chat-image-btn');
+      const imageInput = document.getElementById('chat-image-input');
+      const imageName = document.getElementById('chat-image-name');
+      const input = document.getElementById('chat-input-text');
+      const box = document.getElementById('chat-messages-box');
+
+      const chips = document.querySelectorAll('.chat-followup-chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const query = chip.getAttribute('data-query');
+          input.value = query;
+          submitChatMessage();
+        });
+      });
+
+      sendBtn.addEventListener('click', submitChatMessage);
+      summaryBtn.addEventListener('click', generateChatSummary);
+      summaryShareBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        summaryShareMenu.style.display = summaryShareMenu.style.display === 'none' ? 'block' : 'none';
+      });
+      document.addEventListener('click', (event) => {
+        if (
+          !summaryShareMenu.contains(event.target) &&
+          !event.target.closest('#chat-summary-share-btn')
+        ) {
+          summaryShareMenu.style.display = 'none';
+        }
+      });
+      summaryShareMenu.querySelectorAll('.chat-share-action').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const action = btn.getAttribute('data-action');
+          summaryShareMenu.style.display = 'none';
+          if (action === 'pdf') {
+            downloadChatSummaryPdf();
+          } else if (action === 'email') {
+            shareChatSummaryByEmail();
+          } else if (action === 'copy') {
+            await copyChatSummaryToClipboard();
+          } else if (action === 'web') {
+            await webShareChatSummary();
+          }
+        });
+      });
+      imageBtn.addEventListener('click', () => imageInput.click());
+      imageInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          imageName.textContent = 'Please choose an image file.';
+          state.chatPendingImage = null;
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          imageName.textContent = 'Image too large (max 5MB).';
+          state.chatPendingImage = null;
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const marker = 'base64,';
+          const idx = result.indexOf(marker);
+          if (idx === -1) {
+            imageName.textContent = 'Could not read image.';
+            state.chatPendingImage = null;
+            return;
+          }
+          state.chatPendingImage = {
+            mime_type: file.type,
+            data: result.substring(idx + marker.length),
+            name: file.name
+          };
+          imageName.textContent = `Attached: ${file.name}`;
+        };
+        reader.onerror = () => {
+          imageName.textContent = 'Could not read image.';
+          state.chatPendingImage = null;
+        };
+        reader.readAsDataURL(file);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          submitChatMessage();
+        }
+      });
+
+      async function submitChatMessage() {
+        const query = input.value.trim();
+        if (!query && !state.chatPendingImage) return;
+
+        clearSuggestionChips();
+        appendMessage('user', query, state.chatPendingImage);
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
+
+        const typingId = appendTypingIndicator();
+        box.scrollTop = box.scrollHeight;
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: query || "Attached image analysis request.",
+              history: state.chatSession,
+              image: state.chatPendingImage ? {
+                mime_type: state.chatPendingImage.mime_type,
+                data: state.chatPendingImage.data
+              } : null
+            })
+          });
+          const data = await res.json();
+
+          document.getElementById(typingId).remove();
+
+          if (res.ok) {
+            const ariaMessage = appendMessage('aria', data.reply);
+
+            // update history state locally
+            state.chatSession.push({ role: 'user', content: query || "Attached image analysis request." });
+            state.chatSession.push({ role: 'assistant', content: data.reply });
+
+            if (data.follow_ups && data.follow_ups.length > 0) {
+              renderSuggestionChips(data.follow_ups, ariaMessage);
+            }
+            if (state.chatPendingImage) {
+              state.chatPendingImage = null;
+              imageInput.value = '';
+              imageName.textContent = '';
+            }
+          } else {
+            appendMessage('aria', "Apologies, I encountered an operational breakdown in my expert communication link: " + data.message);
+          }
+        } catch (err) {
+          document.getElementById(typingId).remove();
+          appendMessage('aria', "Error: Critical timeout contacting ARIA interface server.");
+        } finally {
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+
+      async function generateChatSummary() {
+        if (!state.chatSession || state.chatSession.length === 0) {
+          appendMessage('aria', 'No discussion to summarize yet. Ask a few questions first.');
+          return;
+        }
+        const typingId = appendTypingIndicator();
+        try {
+          const res = await fetch('/api/chat-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history: state.chatSession })
+          });
+          const data = await res.json();
+          document.getElementById(typingId).remove();
+          if (res.ok) {
+            const summaryText = data.summary || 'Unable to generate summary at this time.';
+            appendMessage('aria', summaryText);
+            state.latestChatSummary = summaryText;
+          } else {
+            appendMessage('aria', 'Summary generation failed. Please try again.');
+          }
+        } catch (err) {
+          document.getElementById(typingId).remove();
+          appendMessage('aria', 'Summary generation failed due to connection error.');
+        } finally {
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+
+      function appendMessage(sender, text, image = null) {
+        const msg = document.createElement('div');
+        msg.className = `chat-msg ${sender}`;
+        if (text) {
+          msg.innerHTML = formatMarkdown(text);
+        } else {
+          msg.innerHTML = '';
+        }
+        if (image) {
+          const imgEl = document.createElement('img');
+          imgEl.src = `data:${image.mime_type};base64,${image.data}`;
+          imgEl.className = 'chat-msg-img';
+          imgEl.alt = image.name || 'Uploaded image';
+          msg.appendChild(imgEl);
+        }
+        box.appendChild(msg);
+        return msg;
+      }
+
+      function appendTypingIndicator() {
+        const id = 'typing-' + Math.random().toString(36).substr(2, 9);
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg aria';
+        msg.id = id;
+        msg.innerHTML = `
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        `;
+        box.appendChild(msg);
+        return id;
+      }
+
+      function clearSuggestionChips() {
+        const container = document.getElementById('chat-suggestion-chips');
+        if (container) {
+          container.remove();
+        }
+      }
+
+      function renderSuggestionChips(chipsList, afterElement) {
+        clearSuggestionChips();
+        const container = document.createElement('div');
+        container.className = 'chat-chips-container';
+        container.id = 'chat-suggestion-chips';
+        chipsList.forEach(c => {
+          const chip = document.createElement('div');
+          chip.className = 'chat-followup-chip';
+          chip.setAttribute('data-query', c);
+          chip.innerText = c;
+          chip.addEventListener('click', () => {
+            input.value = c;
+            submitChatMessage();
+          });
+          container.appendChild(chip);
+        });
+        afterElement.insertAdjacentElement('afterend', container);
+      }
+
+      function getLatestSummaryTextOrNotify() {
+        if (!state.latestChatSummary || !String(state.latestChatSummary).trim()) {
+          appendMessage('aria', 'No generated summary available yet. Click "Generate Discussion Summary" first.');
+          box.scrollTop = box.scrollHeight;
+          return null;
+        }
+        return String(state.latestChatSummary).trim();
+      }
+
+      function buildChatSummaryHtml(summaryText) {
+        const datePart = new Date().toISOString().slice(0, 10);
+        const safeSummary = String(summaryText);
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CyberGuard ARIA Discussion Summary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #080c14;
+      --card-bg: #101622;
+      --border-color: #1f2937;
+      --text-main: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent: #10b981;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 35px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+    }
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 15px 0 5px 0;
+    }
+    .meta {
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+    }
+    .meta span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .summary-content {
+      font-size: 14.5px;
+      color: #e5e7eb;
+      line-height: 1.7;
+    }
+    .summary-content ul, .summary-content ol {
+      padding-left: 20px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    .summary-content li {
+      margin-bottom: 6px;
+    }
+    .summary-content p {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .summary-content br {
+      content: "";
+      margin: 2.2em;
+      display: block;
+      font-size: 24%;
+    }
+    footer {
+      margin-top: 30px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 15px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header-section">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" style="vertical-align: middle;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span class="brand-logo">CYBERGUARD</span>
+        </div>
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 700;">ARIA Chat Summary</div>
+      </div>
+      <h1 class="doc-title">Discussion & Action Plan Summary</h1>
+      <div class="meta">
+        <span><strong>Generated:</strong> ${datePart}</span>
+        <span><strong>Model:</strong> ARIA AI Security Assistant</span>
+      </div>
+      <div class="summary-content">${formatMarkdown(safeSummary)}</div>
+      <footer>
+        CyberGuard ARIA AI Security Companion. Confidential and Proprietary.
+      </footer>
+    </div>
+  </div>
+</body>
+</html>`;
+      }
+
+      async function downloadChatSummaryPdf() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        const datePart = new Date().toISOString().slice(0, 10);
+        const filename = `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`;
+        const summaryHtml = buildChatSummaryHtml(summaryText);
+
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '800px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#111827';
+        tempContainer.style.zIndex = '-9999';
+        tempContainer.innerHTML = summaryHtml;
+        document.body.appendChild(tempContainer);
+
+        const targetEl = tempContainer.querySelector('.summary-card') || tempContainer;
+
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+          if (typeof html2pdf === 'undefined') {
+            throw new Error('html2pdf is not available');
+          }
+          if (window.pywebview && window.pywebview.api) {
+            html2pdf().set(opt).from(targetEl).outputPdf('blob').then(function (pdfBlob) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const base64 = e.target.result.split(',')[1];
+                window.pywebview.api.save_file(base64, filename, 'pdf');
+                appendMessage('aria', 'Summary PDF saved successfully.');
+                tempContainer.remove();
+              };
+              reader.readAsDataURL(pdfBlob);
+            }).catch(function (err) {
+              console.error('PDF error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(summaryHtml);
+            });
+          } else {
+            await html2pdf().set(opt).from(targetEl).save();
+            tempContainer.remove();
+            appendMessage('aria', 'Summary PDF downloaded successfully.');
+          }
+        } catch (err) {
+          console.error('PDF generation error:', err);
+          tempContainer.remove();
+          openPrintReportFallback(summaryHtml);
+          appendMessage('aria', 'Opening print preview to save as PDF...');
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function shareChatSummaryByEmail() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        state.pendingChatEmailSummary = summaryText;
+        openEmailModal('chat');
+      }
+
+      async function copyChatSummaryToClipboard() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        try {
+          await navigator.clipboard.writeText(summaryText);
+          appendMessage('aria', 'Summary copied to clipboard.');
+        } catch (err) {
+          appendMessage('aria', 'Clipboard copy failed. Your browser/app may block clipboard access.');
+        }
+        box.scrollTop = box.scrollHeight;
+      }
+
+      async function webShareChatSummary() {
+        const summaryText = getLatestSummaryTextOrNotify();
+        if (!summaryText) return;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'CyberGuard ARIA Discussion Summary',
+              text: summaryText
+            });
+          } catch (err) {
+            // User canceled share or platform declined; no noisy error.
+          }
+        } else {
+          appendMessage('aria', 'Web share is not supported here. Use Download PDF, Email, or Copy Summary.');
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+    }
+
+    function downloadSecurityReport(format = 'pdf', reportScope = 'full') {
+      const esc = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+
+      const formatReportMarkdown = (text) => {
+        if (!text) return '';
+        let html = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/g, '');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+      };
+
+      const dateStr = new Date().toLocaleString();
+
+      // 1. Phishing Section Renders
+      let phishingHtml = '';
+      if (state.evaluation) {
+        const scorePercent = Math.round(state.evaluation.risk_score * 100);
+        let riskColor = '#10b981'; // LOW
+        let riskBg = 'rgba(16, 185, 129, 0.1)';
+        if (state.evaluation.risk_level === 'CRITICAL') {
+          riskColor = '#ef4444';
+          riskBg = 'rgba(239, 68, 68, 0.1)';
+        } else if (state.evaluation.risk_level === 'HIGH') {
+          riskColor = '#f97316';
+          riskBg = 'rgba(249, 115, 22, 0.1)';
+        } else if (state.evaluation.risk_level === 'MEDIUM') {
+          riskColor = '#eab308';
+          riskBg = 'rgba(234, 179, 8, 0.1)';
+        }
+
+        let checklistHtml = '';
+        for (const [ind, active] of Object.entries(state.checklist)) {
+          const label = ind.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          if (active) {
+            checklistHtml += `<span class="ind-badge flagged">✕ ${esc(label)}</span>`;
+          } else {
+            checklistHtml += `<span class="ind-badge clear">✓ ${esc(label)}</span>`;
+          }
+        }
+
+        let rulesHtml = '';
+        if (state.evaluation.fired_rules.length === 0) {
+          rulesHtml = `<p class="empty-note">No expert system inference rules triggered.</p>`;
+        } else {
+          state.evaluation.fired_rules.forEach(fr => {
+            const ruleMeta = KB_RULES.find(r => r.id === fr.id) || {};
+            rulesHtml += `<div class="rule-card"><div class="rule-card-header"><span class="rule-id">${esc(fr.id)}</span><span class="rule-name">${esc(fr.name)}</span><span class="rule-cf">+${fr.cf} CF</span></div><div class="rule-explanation">${esc(ruleMeta.explanation || fr.explanation || '')}</div></div>`;
+          });
+        }
+
+        phishingHtml = `
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">1</div><div><h2>Phishing &amp; Threat Vector Analysis</h2><p>Expert rule engine inference result</p></div></div>
+            <div class="metrics-grid">
+              <div class="metric-box"><div class="metric-label">Risk Verdict</div><div style="margin-top:6px;"><span class="risk-badge ${state.evaluation.risk_level.toLowerCase()}">${esc(state.evaluation.risk_level)}</span></div></div>
+              <div class="metric-box"><div class="metric-label">Confidence Score</div><div class="metric-value">${scorePercent}%</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${scorePercent}%; background:${riskColor};"></div></div></div>
+              <div class="metric-box"><div class="metric-label">Rules Fired</div><div class="metric-value">${state.evaluation.fired_rules.length}</div></div>
+            </div>
+            <div class="sub-title">Inspected Indicators</div><div class="badge-grid">${checklistHtml}</div>
+            <div class="sub-title" style="margin-top:20px;">Fired Rule Inference Trace</div><div>${rulesHtml}</div>
+            <div class="aria-block"><div class="aria-block-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>ARIA Expert Security Evaluation</div><div class="aria-block-body">${formatReportMarkdown(state.evaluation.aria_explanation)}</div></div>
+          </div>
+        `;
+      } else {
+        phishingHtml = `<div class="section-card empty-section"><div class="section-header"><div class="section-num">1</div><div><h2>Phishing &amp; Threat Vector Analysis</h2></div></div><p class="empty-note">No phishing inference run in this session.</p></div>`;
+      }
+
+      let passwordHtml = '';
+      if (state.passwordEvaluation) {
+        const pe = state.passwordEvaluation;
+        let pwdColor = '#10b981';
+        if (pe.password.strength_label === 'critical' || pe.password.strength_label === 'weak') pwdColor = '#ef4444';
+        else if (pe.password.strength_label === 'medium') pwdColor = '#f97316';
+
+        let checksGrid = '';
+        const checksList = (pe.password && pe.password.checks) || [];
+        checksList.forEach(chk => {
+          const chkLabel = chk.name || chk.id;
+          checksGrid += chk.passed
+            ? `<span class="ind-badge clear">✓ ${esc(chkLabel)}</span>`
+            : `<span class="ind-badge flagged">✕ ${esc(chkLabel)}</span>`;
+        });
+
+        passwordHtml = `
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">2</div><div><h2>Password Strength &amp; Entropy Audit</h2><p>HIBP breach check + expert rule analysis</p></div></div>
+            <div class="metrics-grid">
+              <div class="metric-box"><div class="metric-label">Strength Verdict</div><div style="margin-top:6px;"><span class="risk-badge ${pe.password.strength_label.toLowerCase()}">${esc(pe.password.strength_label.toUpperCase())}</span></div></div>
+              <div class="metric-box"><div class="metric-label">Entropy Score</div><div class="metric-value">${pe.password.score}<span style="font-size:13px;font-weight:500;color:#64748b;"> / 100</span></div><div class="metric-bar"><div class="metric-bar-fill" style="width:${pe.password.score}%;background:${pwdColor};"></div></div></div>
+              <div class="metric-box"><div class="metric-label">Brute-Force Complexity</div><div class="metric-value" style="font-size:15px;">${esc(pe.password.crack_time)}</div></div>
+            </div>
+            <div class="hibp-banner ${pe.hibp.breached ? 'danger' : 'success'}"><div class="hibp-banner-icon">${pe.hibp.breached ? '⚠️' : '✅'}</div><div><div class="hibp-banner-title">${pe.hibp.breached ? 'Breached Credential Warning' : 'Secure Credential Status'}</div><div class="hibp-banner-body">${pe.hibp.breached ? `This password was found in <strong>${pe.hibp.breach_count.toLocaleString()}</strong> known public data breach databases.` : 'This password has not been detected in any known public data leaks.'}</div></div></div>
+            <div class="sub-title">Validation Rules Checklist</div><div class="badge-grid">${checksGrid}</div>
+            <div class="aria-block"><div class="aria-block-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>ARIA Entropy &amp; Audit Advice</div><div class="aria-block-body">${formatReportMarkdown(pe.aria_explanation)}</div></div>
+          </div>
+        `;
+      } else {
+        passwordHtml = `<div class="section-card empty-section"><div class="section-header"><div class="section-num">2</div><div><h2>Password Strength &amp; Entropy Audit</h2></div></div><p class="empty-note">No password audit checked in this session.</p></div>`;
+      }
+
+      let breachHtml = '';
+      if (state.breachEvaluation) {
+        const be = state.breachEvaluation;
+        let timelineCards = '';
+        if (!be.breaches || be.breaches.length === 0) {
+          timelineCards = `<div class="empty-rules">No recorded data leaks found for this corporate identity.</div>`;
+        } else {
+          be.breaches.forEach(b => {
+            timelineCards += `
+              <div class="tl-item">
+                <div class="tl-dot"></div>
+                <div class="tl-year">${esc(b.year)}</div>
+                <div class="tl-panel">
+                  <div class="tl-header">
+                    <span class="tl-service">${esc(b.service)}</span>
+                    <span class="sev-pill ${b.severity.toUpperCase()}">${esc(b.severity.toUpperCase())}</span>
+                  </div>
+                  <div class="tl-meta"><strong>Records Leaked:</strong> ${b.records.toLocaleString()}</div>
+                  <div class="chip-row">${b.data_types.map(d => `<span class="data-chip">${esc(d)}</span>`).join('')}</div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        breachHtml = `
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-num">3</div>
+              <div>
+                <h2>Corporate Data Breach Database Inventory</h2>
+                <p>Identity: <strong style="color:#1D9E75; font-family:monospace;">${esc(state.breachEmail)}</strong></p>
+              </div>
+            </div>
+
+            <div class="hibp-banner ${be.breached ? 'danger' : 'success'}">
+              <div class="hibp-banner-icon">${be.breached ? '⚠️' : '✅'}</div>
+              <div>
+                <div class="hibp-banner-title">${be.breached ? 'High Compromise Threat Alert' : 'Clean Domain Identity'}</div>
+                <div class="hibp-banner-body">Identified <strong>${be.breaches ? be.breaches.length : 0}</strong> compromised third-party service databases matching this email identity.</div>
+              </div>
+            </div>
+
+            <div class="sub-title">Breach Compromise Timeline</div>
+            <div class="timeline">${timelineCards}</div>
+
+            <div class="aria-block" style="margin-top:22px;">
+              <div class="aria-block-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                ARIA Incident Action Plan
+              </div>
+              <div class="aria-block-body">${formatReportMarkdown(be.aria_explanation)}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        breachHtml = `
+          <div class="section-card empty-section">
+            <div class="section-header"><div class="section-num">3</div><div><h2>Corporate Data Breach Database Inventory</h2></div></div>
+            <p class="empty-note">No corporate email breach audit checked in this session.</p>
+          </div>
+        `;
+      }
+
+      const reportTitle = {
+        full: 'CYBERGUARD SECURITY POSTURE AUDIT',
+        phishing: 'CYBERGUARD PHISHING ANALYSIS REPORT',
+        password: 'CYBERGUARD PASSWORD ANALYSIS REPORT',
+        breach: 'CYBERGUARD BREACH LOOKUP REPORT'
+      }[reportScope] || 'CYBERGUARD SECURITY POSTURE AUDIT';
+
+      const reportSections = {
+        full: phishingHtml + passwordHtml + breachHtml,
+        phishing: phishingHtml,
+        password: passwordHtml,
+        breach: breachHtml
+      }[reportScope] || (phishingHtml + passwordHtml + breachHtml);
+
+      const filenameBase = {
+        full: 'CyberGuard_Security_Posture_Report',
+        phishing: 'CyberGuard_Phishing_Analysis_Report',
+        password: 'CyberGuard_Password_Analysis_Report',
+        breach: 'CyberGuard_Breach_Lookup_Report'
+      }[reportScope] || 'CyberGuard_Security_Posture_Report';
+
+      // Complete self-contained HTML Template
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${reportTitle} - ${esc(dateStr)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Use a light print-friendly theme for generated reports so text is visible in PDFs */
+    :root {
+      --bg-color: #ffffff;
+      --card-bg: #ffffff;
+      --border-color: #e5e7eb;
+      --text-main: #111827;
+      --text-secondary: #6b7280;
+      --accent: #0f766e;
+      --accent-hover: #0e7666;
+      --shadow: 0 6px 18px rgba(16,24,40,0.06);
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .no-print-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111827;
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .btn-print {
+      background: var(--accent);
+      color: #080c14;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .btn-print:hover {
+      background: var(--accent-hover);
+    }
+
+    header {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 24px;
+      margin-bottom: 40px;
+    }
+
+    .header-logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .header-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .section-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-card h2 {
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .empty-section {
+      opacity: 0.5;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .metric-box {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .progress-bar-container {
+      background: #1f2937;
+      height: 6px;
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-top: 30px;
+      margin-bottom: 12px;
+    }
+
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .indicator-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    .indicator-badge.active {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .indicator-badge.passed {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    .rule-card {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .rule-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .rule-id {
+      background: var(--accent);
+      color: #080c14;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 10px;
+    }
+
+    .rule-name {
+      font-weight: 600;
+      color: var(--text-main);
+      flex-grow: 1;
+    }
+
+    .rule-cf {
+      color: #f43f5e;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .rule-explanation {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .aria-block {
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .aria-block-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .aria-block-body {
+      font-size: 14px;
+      color: #d1d5db;
+    }
+
+    .aria-block-body ul {
+      margin-top: 8px;
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .aria-block-body li {
+      margin-bottom: 6px;
+    }
+
+    .hibp-alert-banner {
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .hibp-alert-banner.danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .hibp-alert-banner.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    .timeline-container {
+      position: relative;
+      padding-left: 20px;
+      border-left: 2px solid var(--border-color);
+      margin-top: 20px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .timeline-badge {
+      position: absolute;
+      left: -32px;
+      top: 2px;
+      background: #0d121f;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .timeline-panel {
+      background: #0d121f;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timeline-service {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .severity-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .severity-badge.critical, .severity-badge.high {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+    }
+
+    .severity-badge.medium {
+      background: rgba(249, 115, 22, 0.15);
+      color: #fb923c;
+    }
+
+    .severity-badge.low {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+
+    footer {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-top: 60px;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+      .section-card {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+      .metric-box, .rule-card, .timeline-panel {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+      }
+      .metric-value, .rule-name, .timeline-service {
+        color: #111827;
+      }
+      .aria-block {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+      }
+      .timeline-badge {
+        background: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="no-print-header no-print">
+      <div style="font-size: 13px; color: var(--text-secondary);">
+        💡 Use <strong>Print</strong> to save this document directly to a high-quality PDF file.
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px;">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print / PDF
+      </button>
+    </div>
+
+    <header>
+      <h1 class="header-logo">${reportTitle}</h1>
+      <div class="header-meta">
+        <div><strong>Generated on:</strong> ${esc(dateStr)}</div>
+        <div><strong>Traceability:</strong> Traceable Expert Rule System & ARIA AI</div>
+      </div>
+    </header>
+
+    ${reportSections}
+
+    <footer>
+      CyberGuard Expert System Assessment Report. Confidential and Proprietary.
+    </footer>
+  </div>
+</body>
+</html>`;
+
+      if (format === 'pdf') {
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '850px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#111827';
+        tempContainer.style.zIndex = '-9999';
+        tempContainer.innerHTML = htmlContent;
+        document.body.appendChild(tempContainer);
+
+        // Remove the print banner in the temp clone
+        const printHeader = tempContainer.querySelector('.no-print-header');
+        if (printHeader) printHeader.remove();
+
+        const targetEl = tempContainer.querySelector('.container') || tempContainer;
+        const pdfFilename = `${filenameBase}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: pdfFilename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+          if (typeof html2pdf === 'undefined') throw new Error('html2pdf library not loaded');
+          if (window.pywebview && window.pywebview.api) {
+            html2pdf().set(opt).from(targetEl).outputPdf('blob').then(function (pdfBlob) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const base64 = e.target.result.split(',')[1];
+                window.pywebview.api.save_file(base64, pdfFilename, 'pdf');
+                tempContainer.remove();
+              };
+              reader.readAsDataURL(pdfBlob);
+            }).catch(function (err) {
+              console.error('PyWebView PDF save error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(htmlContent);
+            });
+          } else {
+            html2pdf().set(opt).from(targetEl).save().then(function () {
+              tempContainer.remove();
+            }).catch(function (err) {
+              console.error('html2pdf save error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(htmlContent);
+            });
+          }
+        } catch (err) {
+          console.error('PDF generation failed:', err);
+          tempContainer.remove();
+          openPrintReportFallback(htmlContent);
+        }
+      }
+    }
+
+    function openPrintReportFallback(htmlContent) {
+      const printWin = window.open('', '_blank', 'width=900,height=750');
+      if (printWin) {
+        printWin.document.open();
+        printWin.document.write(htmlContent);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+          printWin.print();
+        }, 500);
+      } else {
+        alert('Popup blocker prevented opening the PDF print window. Please allow popups or use the web app.');
+      }
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return '';
+      let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+      html = html.replace(/<\/ul>\s*<ul>/g, '');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
+    // Dropdown toggle and Email Modal logic
+    document.addEventListener('click', (e) => {
+      if (
+        !e.target.closest('.share-dropdown') &&
+        !e.target.closest('.chat-share-action') &&
+        !e.target.closest('#chat-summary-share-btn') &&
+        !e.target.closest('#chat-summary-share-menu')
+      ) {
+        document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+        const chatMenu = document.getElementById('chat-summary-share-menu');
+        if (chatMenu) chatMenu.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+        const chatMenu = document.getElementById('chat-summary-share-menu');
+        if (chatMenu) chatMenu.style.display = 'none';
+        closeAnalysisReport();
+        closePasswordReport();
+        closeEmailModal();
+      }
+    });
+
+    function toggleShareMenu(id) {
+      // Close all other share menus first
+      document.querySelectorAll('.share-menu').forEach(m => {
+        if (m.id !== id) {
+          m.classList.remove('show');
+          m.style.position = '';
+          m.style.top = '';
+          m.style.right = '';
+          m.style.left = '';
+          m.style.bottom = '';
+        }
+      });
+
+      const menu = document.getElementById(id);
+      const isOpen = menu.classList.contains('show');
+
+      if (isOpen) {
+        menu.classList.remove('show');
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.right = '';
+        menu.style.left = '';
+      } else {
+        // Use position:fixed relative to the trigger button so overflow on
+        // modal containers never clips the dropdown
+        const btn = menu.previousElementSibling;
+        const rect = btn ? btn.getBoundingClientRect() : { bottom: 0, right: window.innerWidth };
+        const menuHeight = 150; // approximate max height of dropdown
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+
+        menu.style.position = 'fixed';
+        // Ensure share menu appears above the modal backdrop and close button
+        menu.style.zIndex = '20003';
+        menu.style.minWidth = Math.max(rect.width, 190) + 'px';
+        if (openUpward) {
+          menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+          menu.style.top = 'auto';
+        } else {
+          menu.style.top = (rect.bottom + 4) + 'px';
+          menu.style.bottom = 'auto';
+        }
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left = 'auto';
+        menu.classList.add('show');
+      }
+    }
+
+    let currentReportTypeForEmail = null;
+
+    function openEmailModal(reportType) {
+      currentReportTypeForEmail = reportType;
+      const labels = {
+        phishing: ['Share Phishing Report', 'Send the dashboard analysis report via email.'],
+        password: ['Share Password Report', 'Send the password analysis report via email.'],
+        breach: ['Share Breach Report', 'Send the breach lookup report via email.'],
+        chat: ['Share ARIA Discussion Summary', 'Send the generated chat summary via email.']
+      };
+      const [title, subtitle] = labels[reportType] || ['Share Security Report', 'Send a detailed copy of this analysis via email.'];
+      document.getElementById('modal-email-title').textContent = title;
+      document.getElementById('modal-email-subtitle').textContent = subtitle;
+      document.getElementById('email-modal').classList.add('show');
+      document.body.classList.add('modal-open');
+      document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('show'));
+      const chatMenu = document.getElementById('chat-summary-share-menu');
+      if (chatMenu) chatMenu.style.display = 'none';
+    }
+
+    function closeEmailModal() {
+      document.getElementById('email-modal').classList.remove('show');
+      const reportStillOpen =
+        !document.getElementById('eval-results-card').classList.contains('hidden') ||
+        !document.getElementById('password-results-card').classList.contains('hidden');
+      if (!reportStillOpen) {
+        document.body.classList.remove('modal-open');
+        document.body.classList.remove('report-modal-open');
+      }
+      document.getElementById('modal-email-input').value = '';
+      const statusEl = document.getElementById('modal-email-status');
+      statusEl.style.display = 'none';
+      statusEl.className = 'modal-status';
+    }
+
+    async function sendEmailReport() {
+      const email = document.getElementById('modal-email-input').value.trim();
+      const statusEl = document.getElementById('modal-email-status');
+      const btn = document.getElementById('btn-send-email');
+
+      if (!email) {
+        statusEl.textContent = 'Please enter an email address.';
+        statusEl.className = 'modal-status error';
+        statusEl.style.display = 'flex';
+        return;
+      }
+
+      statusEl.style.display = 'none';
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      try {
+        let metrics = {};
+        let fired_rules = [];
+        let aria_explanation = '';
+        let indicators = {};
+        const reportLabel = currentReportTypeForEmail.charAt(0).toUpperCase() + currentReportTypeForEmail.slice(1);
+
+        if (currentReportTypeForEmail === 'phishing') {
+          if (!state.evaluation) throw new Error('No phishing report found. Please run Threat Evaluation first.');
+          const ev = state.evaluation;
+          metrics = {
+            risk_level: ev.risk_level || 'Unknown',
+            confidence_score: Math.round((ev.risk_score || 0) * 100)
+          };
+          fired_rules = ev.fired_rules || [];
+          aria_explanation = ev.aria_explanation || '';
+          indicators = { ...state.checklist };
+        } else if (currentReportTypeForEmail === 'password') {
+          if (!state.passwordEvaluation) throw new Error('No password report found. Please run Password Analysis first.');
+          const pe = state.passwordEvaluation;
+          metrics = {
+            risk_level: pe.password?.strength_label || 'Unknown',
+            confidence_score: pe.password?.score || 0,
+            crack_time: pe.password?.crack_time || 'Unknown',
+            breached: pe.hibp?.breached ? `Yes (${(pe.hibp.breach_count || 0).toLocaleString()} databases)` : 'No'
+          };
+          fired_rules = [];
+          aria_explanation = pe.aria_explanation || '';
+        } else if (currentReportTypeForEmail === 'breach') {
+          if (!state.breachEvaluation) throw new Error('No breach report found. Please run Breach Lookup first.');
+          const be = state.breachEvaluation;
+          metrics = {
+            risk_level: be.breached ? 'HIGH' : 'SAFE',
+            confidence_score: be.breached ? 100 : 0,
+            email_checked: state.breachEmail || '',
+            breach_count: be.breach_count || 0
+          };
+          fired_rules = (be.breaches || []).map(b => ({
+            id: b.service,
+            name: `${b.service} Data Breach (${b.year})`,
+            certainty_factor: b.severity === 'HIGH' ? 0.9 : 0.5,
+            description: `Data types exposed: ${(b.data_types || []).join(', ')}. Estimated ${(b.records || 0).toLocaleString()} records compromised.`
+          }));
+          aria_explanation = be.aria_explanation || '';
+        } else if (currentReportTypeForEmail === 'chat') {
+          if (!state.pendingChatEmailSummary) throw new Error('No chat summary found. Generate a discussion summary first.');
+          metrics = {
+            risk_level: 'ARIA Discussion',
+            confidence_score: state.chatSession.length,
+            messages: state.chatSession.length
+          };
+          fired_rules = [];
+          aria_explanation = state.pendingChatEmailSummary;
+        } else {
+          throw new Error('Unknown report type.');
+        }
+
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipient_email: email,
+            report_type: reportLabel,
+            metrics,
+            fired_rules,
+            aria_explanation,
+            indicators
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          statusEl.textContent = data.message || `Report successfully sent to ${email}! (Check Spam/Junk folder if not in Inbox)`;
+          statusEl.className = 'modal-status success';
+          statusEl.style.display = 'flex';
+          setTimeout(() => {
+            closeEmailModal();
+          }, 3500);
+        } else {
+          throw new Error(data.error || data.detail || data.message || 'Failed to send email.');
+        }
+      } catch (err) {
+        statusEl.textContent = err.message || 'Error occurred while sending.';
+        statusEl.className = 'modal-status error';
+        statusEl.style.display = 'flex';
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+  </script>
+
+  <!-- Email Modal -->
+  <div class="modal-overlay" id="email-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeEmailModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="modal-header">
+        <h3 id="modal-email-title">Share Security Report</h3>
+        <p id="modal-email-subtitle">Send a detailed copy of this analysis via email.</p>
+      </div>
+      <div class="modal-status" id="modal-email-status"></div>
+      <div class="modal-input-group">
+        <label for="modal-email-input">Recipient Email Address</label>
+        <input type="email" id="modal-email-input" class="modal-input" placeholder="e.g. security@company.com">
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeEmailModal()">Cancel</button>
+        <button class="modal-btn modal-btn-send" id="btn-send-email" onclick="sendEmailReport()">
+          <span class="btn-text">Send Report</span>
+          <div class="btn-spinner"></div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

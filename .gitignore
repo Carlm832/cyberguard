@@ -16,6 +16,7 @@ install_package/
 *_report.md
 templates_diff.txt
 scratch_test.py
+build_docs_app.py
 
 # Virtual environments
 .venv/
