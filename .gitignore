@@ -15,6 +15,7 @@ install_package/
 # Scratch / session reports
 *_report.md
 templates_diff.txt
+scratch_test.py
 
 # Virtual environments
 .venv/

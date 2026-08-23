@@ -624,32 +624,42 @@ def _send_email_background(req: EmailRequest, generated_date: str):
 
         log_message(f"Connecting to SMTP server at {smtp_host}:{smtp_port}...")
         server = smtplib.SMTP(smtp_host, smtp_port, timeout=15)
-        log_message("Sending EHLO...")
         server.ehlo()
-        log_message("Starting TLS secure channel...")
         server.starttls()
-        log_message("Sending EHLO post-TLS...")
         server.ehlo()
-        log_message(f"Logging in as user {smtp_user}...")
+        log_message(f"Logging in to SMTP as {smtp_user}...")
         server.login(smtp_user, smtp_password)
-        log_message("Sending email message...")
+        log_message(f"Sending email to {req.recipient_email}...")
         server.send_message(msg)
-        log_message("Closing connection...")
         server.quit()
         log_message(f"Successfully sent report email to {req.recipient_email}")
+        return True, f"Security report successfully dispatched to {req.recipient_email}! Please check your Spam/Junk folder if not in Inbox."
+    except smtplib.SMTPAuthenticationError as sae:
+        err = f"SMTP Authentication failed: {sae}"
+        log_message(err)
+        return False, err
+    except smtplib.SMTPRecipientsRefused as srr:
+        err = f"Recipient email address refused by mail server: {srr}"
+        log_message(err)
+        return False, err
     except Exception as e:
-        log_message(f"Failed to send email to {req.recipient_email}: {e}")
+        err = f"Failed to send email to {req.recipient_email}: {e}"
+        log_message(err)
+        return False, err
 
 @app.post("/api/send-email")
-async def send_email(req: EmailRequest, background_tasks: BackgroundTasks):
+async def send_email(req: EmailRequest):
     smtp_from = os.getenv("SMTP_FROM")
     if not smtp_from:
         log_message("API Send Email Request rejected: SMTP_FROM missing in environment variables.")
-        return JSONResponse({"ok": False, "error": "Email is not configured (SMTP_FROM missing)"}, status_code=500)
+        return JSONResponse({"ok": False, "error": "Email service is not configured (SMTP_FROM missing)."}, status_code=500)
     
     generated_date = datetime.now().strftime("%B %d, %Y at %I:%M %p")
-    background_tasks.add_task(_send_email_background, req, generated_date)
-    return JSONResponse({"ok": True, "message": "Email sending initiated in the background"})
+    success, msg = await asyncio.to_thread(_send_email_background, req, generated_date)
+    if success:
+        return JSONResponse({"ok": True, "message": msg})
+    else:
+        return JSONResponse({"ok": False, "error": msg}, status_code=500)
 
 
 # ---------------------------------------------------------------------------

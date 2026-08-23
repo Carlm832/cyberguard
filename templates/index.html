@@ -1674,37 +1674,59 @@
         const summaryText = getLatestSummaryTextOrNotify();
         if (!summaryText) return;
         const datePart = new Date().toISOString().slice(0, 10);
+        const filename = `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`;
         const summaryHtml = buildChatSummaryHtml(summaryText);
+
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '800px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#111827';
+        tempContainer.style.zIndex = '-9999';
+        tempContainer.innerHTML = summaryHtml;
+        document.body.appendChild(tempContainer);
+
+        const targetEl = tempContainer.querySelector('.summary-card') || tempContainer;
+
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
         try {
           if (typeof html2pdf === 'undefined') {
             throw new Error('html2pdf is not available');
           }
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = summaryHtml;
-          const opt = {
-            margin: 10,
-            filename: `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
           if (window.pywebview && window.pywebview.api) {
-            html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
+            html2pdf().set(opt).from(targetEl).outputPdf('blob').then(function (pdfBlob) {
               const reader = new FileReader();
               reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
-                window.pywebview.api.save_file(base64, `CyberGuard_ARIA_Discussion_Summary_${datePart}.pdf`, 'pdf');
+                window.pywebview.api.save_file(base64, filename, 'pdf');
                 appendMessage('aria', 'Summary PDF saved successfully.');
+                tempContainer.remove();
               };
               reader.readAsDataURL(pdfBlob);
+            }).catch(function (err) {
+              console.error('PDF error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(summaryHtml);
             });
           } else {
-            await html2pdf().set(opt).from(tempDiv).save();
-            appendMessage('aria', 'Summary PDF download started.');
+            await html2pdf().set(opt).from(targetEl).save();
+            tempContainer.remove();
+            appendMessage('aria', 'Summary PDF downloaded successfully.');
           }
         } catch (err) {
           console.error('PDF generation error:', err);
-          appendMessage('aria', 'PDF download failed or was blocked in this environment. Please try again.');
+          tempContainer.remove();
+          openPrintReportFallback(summaryHtml);
+          appendMessage('aria', 'Opening print preview to save as PDF...');
         }
         box.scrollTop = box.scrollHeight;
       }
@@ -2363,42 +2385,77 @@
 </html>`;
 
       if (format === 'pdf') {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '850px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#111827';
+        tempContainer.style.zIndex = '-9999';
+        tempContainer.innerHTML = htmlContent;
+        document.body.appendChild(tempContainer);
 
-        // Remove the print banner (not needed in PDF)
-        const printHeader = tempDiv.querySelector('.no-print-header');
+        // Remove the print banner in the temp clone
+        const printHeader = tempContainer.querySelector('.no-print-header');
         if (printHeader) printHeader.remove();
 
+        const targetEl = tempContainer.querySelector('.container') || tempContainer;
         const pdfFilename = `${filenameBase}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
         const opt = {
-          margin: 10,
+          margin: [10, 10, 10, 10],
           filename: pdfFilename,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#080c14' },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff', scrollY: 0 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
-          if (typeof html2pdf === 'undefined') throw new Error('html2pdf not loaded');
+          if (typeof html2pdf === 'undefined') throw new Error('html2pdf library not loaded');
           if (window.pywebview && window.pywebview.api) {
-            // Desktop (pywebview) — need raw base64 to pass to Python save dialog
-            html2pdf().set(opt).from(tempDiv).outputPdf('blob').then(function (pdfBlob) {
+            html2pdf().set(opt).from(targetEl).outputPdf('blob').then(function (pdfBlob) {
               const reader = new FileReader();
               reader.onload = function (e) {
                 const base64 = e.target.result.split(',')[1];
                 window.pywebview.api.save_file(base64, pdfFilename, 'pdf');
+                tempContainer.remove();
               };
               reader.readAsDataURL(pdfBlob);
+            }).catch(function (err) {
+              console.error('PyWebView PDF save error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(htmlContent);
             });
           } else {
-            // Browser — use .save() which is the most reliable cross-browser method
-            html2pdf().set(opt).from(tempDiv).save();
+            html2pdf().set(opt).from(targetEl).save().then(function () {
+              tempContainer.remove();
+            }).catch(function (err) {
+              console.error('html2pdf save error:', err);
+              tempContainer.remove();
+              openPrintReportFallback(htmlContent);
+            });
           }
         } catch (err) {
           console.error('PDF generation failed:', err);
-          alert('PDF generation failed. Please try again or contact support.');
+          tempContainer.remove();
+          openPrintReportFallback(htmlContent);
         }
+      }
+    }
+
+    function openPrintReportFallback(htmlContent) {
+      const printWin = window.open('', '_blank', 'width=900,height=750');
+      if (printWin) {
+        printWin.document.open();
+        printWin.document.write(htmlContent);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+          printWin.print();
+        }, 500);
+      } else {
+        alert('Popup blocker prevented opening the PDF print window. Please allow popups or use the web app.');
       }
     }
 
@@ -2612,15 +2669,15 @@
         });
 
         const data = await res.json();
-        if (res.ok) {
-          statusEl.textContent = 'Report sent successfully!';
+        if (res.ok && data.ok) {
+          statusEl.textContent = data.message || `Report successfully sent to ${email}! (Check Spam/Junk folder if not in Inbox)`;
           statusEl.className = 'modal-status success';
           statusEl.style.display = 'flex';
           setTimeout(() => {
             closeEmailModal();
-          }, 2000);
+          }, 3500);
         } else {
-          throw new Error(data.detail || data.error || data.message || 'Failed to send email.');
+          throw new Error(data.error || data.detail || data.message || 'Failed to send email.');
         }
       } catch (err) {
         statusEl.textContent = err.message || 'Error occurred while sending.';
